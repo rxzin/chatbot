@@ -21,6 +21,9 @@ export { subscribeAuthChanges };
 
 export type UserMe = components["schemas"]["UserMeResponse"];
 
+/** The permission that gives access to the admin dashboard. */
+export const ADMIN_PERMISSION = "ticket:manage";
+
 export async function fetchCurrentUser(): Promise<UserMe> {
   const response = await authenticatedFetch(`${API_BASE}/auth/me`);
   return readJson<UserMe>(response, "Failed to verify session");

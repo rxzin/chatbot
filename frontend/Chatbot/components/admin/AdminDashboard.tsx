@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import { ADMIN_PERMISSION } from "@/lib/api/authApi";
 import { useLogout } from "@/hooks/useLogout";
 import { AuditLogTab } from "./AuditLogTab";
 import { LoadingPanel } from "./StatePanels";
@@ -39,7 +40,7 @@ export function AdminDashboard() {
   const searchParams = useSearchParams();
   const { isAuthenticated, user } = useAuth({
     redirectTo: "/login?redirect=/admin",
-    requiredPermission: "ticket:manage",
+    requiredPermission: ADMIN_PERMISSION,
     permissionDeniedRedirect: "/chat",
   });
   const { isLoggingOut, handleLogout } = useLogout();

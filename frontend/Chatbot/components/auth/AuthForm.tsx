@@ -3,11 +3,26 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { login, register } from "@/lib/api/authApi";
+import {
+  ADMIN_PERMISSION,
+  fetchCurrentUser,
+  login,
+  register,
+} from "@/lib/api/authApi";
 
 type AuthFormProps = {
   mode: "login" | "register";
 };
+
+/** Admins land on the dashboard. If the role check fails, login still succeeds. */
+async function defaultPathAfterLogin(): Promise<string> {
+  try {
+    const user = await fetchCurrentUser();
+    return user.permissions.includes(ADMIN_PERMISSION) ? "/admin" : "/chat";
+  } catch {
+    return "/chat";
+  }
+}
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
@@ -45,7 +60,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
         // "//evil.com" also starts with "/", but browsers treat it as another site.
         const isLocalPath =
           redirect?.startsWith("/") && !/^\/[/\\]/.test(redirect);
-        router.push(isLocalPath && redirect ? redirect : "/chat");
+        router.push(
+          isLocalPath && redirect ? redirect : await defaultPathAfterLogin()
+        );
       } else {
         await register(trimmedEmail, trimmedPassword);
         router.push("/login?registered=success");
