@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Deploys run one at a time and are never cancelled, so a migration can't be cut off.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/Chatbot/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/Chatbot/pnpm-lock.yaml
+
+      - uses: astral-sh/setup-uv@v10.3.3
+
+      # Logs are public on a public repo. Masking replaces these values with *** in all
+      # later output, including the database host and admin email the deploy prints.
+      - name: Load production settings
+        env:
+          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
+        run: |
+          if [ -z "$ENV_PRODUCTION" ]; then
+            echo "::error::Add the ENV_PRODUCTION repository secret."
+            exit 1
+          fi
+          printf '%s\n' "$ENV_PRODUCTION" | tr -d '\r' > "$RUNNER_TEMP/.env.production"
+          .github/scripts/mask-env-values.sh "$RUNNER_TEMP/.env.production"
+          echo "ENV_FILE=$RUNNER_TEMP/.env.production" >> "$GITHUB_ENV"
+
+      - name: Build, migrate, seed, and deploy
+        env:
+          FASTAPI_CLOUD_TOKEN: ${{ secrets.FASTAPI_CLOUD_TOKEN }}
+          FASTAPI_CLOUD_APP_ID: ${{ secrets.FASTAPI_CLOUD_APP_ID }}
+        run: ./deploy.sh --yes
