@@ -23,7 +23,7 @@ from core.middleware import request_logging_middleware
 
 settings = getSettings()
 
-# Created by `npm run build:deploy`. Absent in local development and in Docker.
+# Created by `pnpm run build:deploy`. Absent in local development and in Docker.
 FRONTEND_DIR = Path(__file__).parent / "frontend_build"
 
 api_tags = [

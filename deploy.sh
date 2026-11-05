@@ -53,7 +53,7 @@ with_production_env() {
 step "Checking prerequisites"
 command -v uv >/dev/null || fail "uv isn't installed."
 if [ "$BUILD_FRONTEND" = true ]; then
-  command -v npm >/dev/null || fail "npm isn't installed."
+  command -v pnpm >/dev/null || fail "pnpm isn't installed."
 fi
 
 if [ "$UPDATE_DB" = true ]; then
@@ -84,7 +84,7 @@ fi
 # before the database changes.
 if [ "$BUILD_FRONTEND" = true ]; then
   step "Building the frontend"
-  (cd "$FRONTEND" && npm ci --no-audit --no-fund && npm run build:deploy)
+  (cd "$FRONTEND" && pnpm install --frozen-lockfile && pnpm run build:deploy)
 fi
 
 if [ "$DEPLOY" = true ] && [ ! -f "$BACKEND/frontend_build/index.html" ]; then

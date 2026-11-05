@@ -11,7 +11,7 @@ const targetDir = resolve(frontendDir, "../../backend/app/frontend_build");
 
 rmSync(outDir, { recursive: true, force: true });
 
-const result = spawnSync("npx", ["next", "build"], {
+const result = spawnSync("pnpm", ["exec", "next", "build"], {
   cwd: frontendDir,
   stdio: "inherit",
   shell: true,
