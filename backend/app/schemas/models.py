@@ -11,7 +11,7 @@ from sqlalchemy import (
     Column,
     Table,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 from core.database import Base
 from typing import Optional, List
@@ -119,6 +119,8 @@ class Message(Base):
     )
     role: Mapped[str] = mapped_column(String(16))
     content: Mapped[str] = mapped_column(Text)
+    # Display parts (text, sources). Null for messages saved before parts existed.
+    parts: Mapped[Optional[list[dict]]] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

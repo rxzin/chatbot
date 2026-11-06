@@ -74,6 +74,8 @@ Admin login and the frontend are confirmed working in production.
       project name with `-p`.
 - [ ] A new user lands on an empty chat and must click New Chat before typing. Creating
       the first conversation automatically would be smoother (feature 5).
+- [ ] The message list doesn't scroll to a reply that failed, so the partial text can sit
+      below the fold (feature 5).
 
 ## UI polish, done
 
@@ -137,8 +139,10 @@ Copy its design system, not its brand.
 
 In this order, because each depends on the one before:
 
-1. **Stream events and parts storage:** sources currently disappear on reload, and
-   everything below needs this.
+1. ~~**Stream events and parts storage**~~ Done (2026-11-06): typed SSE events
+   (`text-delta`, `sources`, `done`, `error`) and a `parts` column, so sources survive a
+   reload. A stream that ends without `done` now shows as interrupted. Needs the
+   `b8c9d0e1f2a3` migration, which `deploy.sh` runs.
 2. **Agent loop:** tool calls replace the classifier, with document search, weather and bug
    reports as tools. This also stops messages containing "error" from being misrouted as
    bug reports.

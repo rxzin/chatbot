@@ -96,8 +96,21 @@ streams its output as SSE:
    - `weather`: looks up the city and summarises the forecast.
    - `bug_report`: drafts a ticket for admin approval. Limited per user by
      `BUG_REPORT_RATE_LIMIT_SECONDS`.
-4. **`runner`** sends the final event, then saves the turn to Postgres and the trimmed
-   recent context to Redis.
+4. **`runner`** turns the graph's output into SSE events, then saves the turn to Postgres
+   and the trimmed recent context to Redis.
+
+Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
+
+| Event | Fields | When |
+|---|---|---|
+| `text-delta` | `delta` | Each piece of the reply, in order |
+| `sources` | `sources` | Once, after the text, for document answers |
+| `done` | `finishReason` | The reply finished. A stream without it was interrupted |
+| `error` | `error.code`, `error.message` | The reply failed; nothing is saved |
+
+Messages store `content` (plain text, used for the model's memory) and `parts`, the
+display content in order: `text` and `sources` parts. Sources therefore survive a reload.
+Messages saved before `parts` existed are returned as a single text part.
 
 Mistral calls go through [`services/fallback.py`](app/services/fallback.py), which retries
 on the fallback model if the main one fails before any text has streamed. A reply cut off

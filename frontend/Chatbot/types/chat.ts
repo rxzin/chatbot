@@ -1,4 +1,20 @@
+import type { components } from "@/types/api";
+
+type Schemas = components["schemas"];
+
 export type ChatRole = "user" | "model";
+
+export type SourceReference = Schemas["SourceReference"];
+
+/** One SSE event from POST /api/chat. The stream ends with "done" or "error". */
+export type ChatStreamEvent =
+  | Schemas["TextDeltaEvent"]
+  | Schemas["SourcesEvent"]
+  | Schemas["DoneEvent"]
+  | Schemas["ErrorEvent"];
+
+/** A stored message's content in display order. */
+export type MessagePart = Schemas["TextPart"] | Schemas["SourcesPart"];
 
 export type ChatMessage = {
   id: string;
@@ -6,31 +22,4 @@ export type ChatMessage = {
   content: string;
   status?: "streaming" | "done" | "error";
   sources?: SourceReference[];
-};
-
-export type ChatStreamDelta = {
-  content: string;
-  finishReason?: string | null;
-  sources?: SourceReference[] | null;
-};
-
-export type ChatStreamSuccess = {
-  success: true;
-  data: ChatStreamDelta;
-};
-
-export type ChatStreamError = {
-  success: false;
-  error: { code: string; message: string };
-};
-
-export type ChatStreamChunk = ChatStreamSuccess | ChatStreamError;
-
-export type SourceReference = {
-  documentId: string;
-  filename: string;
-  page?: number | null;
-  chunkIndex: number;
-  snippet: string;
-  score?: number | null;
 };

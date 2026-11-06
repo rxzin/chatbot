@@ -5,20 +5,27 @@ import {
   parseApiError,
 } from "@/lib/api/client";
 import { parseSSEBuffer } from "@/lib/stream/sseParser";
-import type { ChatStreamSuccess } from "@/types/chat";
+import type { ChatStreamEvent } from "@/types/chat";
+
+/** Every event except "error", which streamChat throws instead. */
+export type ChatStreamUpdate = Exclude<ChatStreamEvent, { type: "error" }>;
 
 export type StreamChatParams = {
   message: string;
   conversationId: string;
   signal?: AbortSignal;
-  onChunk: (chunk: ChatStreamSuccess) => void;
+  onEvent: (event: ChatStreamUpdate) => void;
 };
 
+/**
+ * Streams a reply. Resolves after the "done" event; throws on an "error" event, or
+ * when the connection ends without "done", so a cut-off reply isn't shown as finished.
+ */
 export async function streamChat({
   message,
   conversationId,
   signal,
-  onChunk,
+  onEvent,
 }: StreamChatParams): Promise<void> {
   const response = await authenticatedFetch(`${API_BASE}/chat`, {
     method: "POST",
@@ -42,30 +49,34 @@ export async function streamChat({
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let finished = false;
 
+  const handle = (events: ChatStreamEvent[]) => {
+    for (const event of events) {
+      if (finished) return;
+      if (event.type === "error") throw new Error(event.error.message);
+      if (event.type === "done") finished = true;
+      onEvent(event);
+    }
+  };
+
+  // Read to the end even after "done": the server saves the turn after sending it,
+  // and skips saving if the client has already disconnected.
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
 
     buffer += decoder.decode(value, { stream: true });
-    const { events, remainder } = parseSSEBuffer(buffer);
+    const { events, remainder } = parseSSEBuffer<ChatStreamEvent>(buffer);
     buffer = remainder;
-
-    for (const event of events) {
-      if (!event.success) {
-        throw new Error(event.error.message);
-      }
-      onChunk(event);
-    }
+    handle(events);
   }
 
   if (buffer.trim()) {
-    const { events } = parseSSEBuffer(`${buffer}\n\n`);
-    for (const event of events) {
-      if (!event.success) {
-        throw new Error(event.error.message);
-      }
-      onChunk(event);
-    }
+    handle(parseSSEBuffer<ChatStreamEvent>(`${buffer}\n\n`).events);
+  }
+
+  if (!finished) {
+    throw new Error("The reply was interrupted. Please try again.");
   }
 }

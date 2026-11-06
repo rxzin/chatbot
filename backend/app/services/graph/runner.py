@@ -1,10 +1,18 @@
-import json
 from fastapi import Request
 from core.config import getSettings
 from core.database import SessionLocal
 from core.logging import logger
-from schemas.chat import ChatStreamResponse, ChatStreamDelta, ChatRequest
+from schemas.chat import (
+    ChatRequest,
+    DoneEvent,
+    ErrorEvent,
+    SourcesEvent,
+    StreamError,
+    TextDeltaEvent,
+    sse,
+)
 from schemas.models import User
+from schemas.rag import SourceReference
 from services.documents import list_conversation_documents
 from services.streaming import persist_turn
 from services.graph.state import AgentState
@@ -79,7 +87,7 @@ async def run_graph_stream(
     }
 
     full_model_response = ""
-    buffered_sources = None
+    sources: list[SourceReference] = []
     # Nodes that don't trim the history (bug_report) send "done" without it.
     # Keep the loaded history then, or saving the turn would wipe the context.
     prepared_messages = initial_state["history"]
@@ -97,12 +105,13 @@ async def run_graph_stream(
             if event_name == "token":
                 chunk = event.get("content", "")
                 full_model_response += chunk
-                delta = ChatStreamDelta(content=chunk)
-                response = ChatStreamResponse(success=True, data=delta)
-                yield f"data: {response.model_dump_json(by_alias=True)}\n\n"
+                if chunk:
+                    yield sse(TextDeltaEvent(delta=chunk))
 
             elif event_name == "sources":
-                buffered_sources = event.get("sources")
+                sources = [
+                    SourceReference.model_validate(s) for s in event.get("sources") or []
+                ]
 
             elif event_name == "done":
                 prepared_messages = event.get("prepared_messages", prepared_messages)
@@ -113,11 +122,9 @@ async def run_graph_stream(
         if await request.is_disconnected():
             return
 
-        final_delta = ChatStreamDelta(
-            content="", finishReason="STOP", sources=buffered_sources
-        )
-        final_response = ChatStreamResponse(success=True, data=final_delta)
-        yield f"data: {final_response.model_dump_json(by_alias=True)}\n\n"
+        if sources:
+            yield sse(SourcesEvent(sources=sources))
+        yield sse(DoneEvent())
 
         if await request.is_disconnected():
             return
@@ -131,15 +138,16 @@ async def run_graph_stream(
             model_response=full_model_response,
             prepared_messages=prepared_messages,
             context_summary=final_context_summary,
+            sources=sources,
         )
 
     except Exception:
         logger.exception(f"Stream Generation Failed for {chat_request.conversation_id}")
-        error_data = {
-            "success": False,
-            "error": {
-                "code": "STREAM_GENERATION_FAILED",
-                "message": "Failed to generate a response. Please try again.",
-            },
-        }
-        yield f"data: {json.dumps(error_data)}\n\n"
+        yield sse(
+            ErrorEvent(
+                error=StreamError(
+                    code="STREAM_GENERATION_FAILED",
+                    message="Failed to generate a response. Please try again.",
+                )
+            )
+        )

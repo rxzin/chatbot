@@ -100,11 +100,16 @@ Known risks on FastAPI Cloud, to check after the first deploy:
   proxy.
 - Python 3.14 support is implied by their docs but not stated.
 
-## Stream protocol (planned)
+## Stream protocol
 
-Typed SSE events: `text-delta`, `tool-start`, `tool-result`, `sources`, `suggestions`,
-`done`, `error`. Messages gain a `parts` JSONB column, because sources are not saved
-today and citations would disappear on reload.
+Built (2026-11-06): typed SSE events `text-delta`, `sources`, `done` and `error`, defined
+as a discriminated union in `schemas/chat.py` and generated into the frontend's types.
+Messages have a nullable `parts` JSONB column (`text` and `sources` parts), so sources
+survive a reload; `content` keeps the plain text for the model's memory.
+
+Still to add with their features: `tool-start` and `tool-result` (agent loop),
+`suggestions` (suggested questions). Each adds an event type and, where it should survive
+a reload, a part type.
 
 ## Agent (planned)
 

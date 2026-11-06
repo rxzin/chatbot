@@ -710,6 +710,35 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * DoneEvent
+         * @description The reply finished normally. A stream without it was interrupted.
+         */
+        DoneEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "done";
+            /**
+             * Finishreason
+             * @default stop
+             * @constant
+             */
+            finishReason: "stop";
+        };
+        /**
+         * ErrorEvent
+         * @description The reply failed. Ends the stream; nothing is saved.
+         */
+        ErrorEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "error";
+            error: components["schemas"]["StreamError"];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -726,6 +755,8 @@ export interface components {
             role: string;
             /** Content */
             content: string;
+            /** Parts */
+            parts?: (components["schemas"]["TextPart"] | components["schemas"]["SourcesPart"])[];
             /**
              * Created At
              * Format: date-time
@@ -757,6 +788,77 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** SourceReference */
+        SourceReference: {
+            /**
+             * Documentid
+             * Format: uuid
+             */
+            documentId: string;
+            /** Filename */
+            filename: string;
+            /** Page */
+            page?: number | null;
+            /** Chunkindex */
+            chunkIndex: number;
+            /** Snippet */
+            snippet: string;
+            /** Score */
+            score?: number | null;
+        };
+        /**
+         * SourcesEvent
+         * @description Documents the reply was based on. Sent once, after the text.
+         */
+        SourcesEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "sources";
+            /** Sources */
+            sources: components["schemas"]["SourceReference"][];
+        };
+        /** SourcesPart */
+        SourcesPart: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "sources";
+            /** Sources */
+            sources: components["schemas"]["SourceReference"][];
+        };
+        /** StreamError */
+        StreamError: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
+        /**
+         * TextDeltaEvent
+         * @description A fragment of the reply's text, in order.
+         */
+        TextDeltaEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "text-delta";
+            /** Delta */
+            delta: string;
+        };
+        /** TextPart */
+        TextPart: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "text";
+            /** Text */
+            text: string;
         };
         /** UserCreate */
         UserCreate: {
@@ -1138,41 +1240,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description Server-Sent Events stream of ChatStreamEvent objects. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                    /**
-                     * @example {
-                     *       "data": [
-                     *         {
-                     *           "success": true,
-                     *           "data": {
-                     *             "content": "Initial Content",
-                     *             "finishReason": "Null"
-                     *           }
-                     *         },
-                     *         {
-                     *           "success": true,
-                     *           "data": {
-                     *             "content": "Content Continue",
-                     *             "finishReason": "Null"
-                     *           }
-                     *         },
-                     *         {
-                     *           "success": true,
-                     *           "data": {
-                     *             "content": "",
-                     *             "finishReason": "STOP"
-                     *           }
-                     *         }
-                     *       ]
-                     *     }
-                     */
-                    "text/event-stream": unknown;
+                    "application/json": components["schemas"]["TextDeltaEvent"] | components["schemas"]["SourcesEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ErrorEvent"];
                 };
             };
             /** @description Validation Error */

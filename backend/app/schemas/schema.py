@@ -2,7 +2,9 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+
+from schemas.chat import MessagePart, TextPart
 
 
 class UserBase(BaseModel):
@@ -46,9 +48,22 @@ class MessageResponse(BaseModel):
     id: UUID
     role: str
     content: str
+    parts: list[MessagePart] = Field(default_factory=list)
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @field_validator("parts", mode="before")
+    @classmethod
+    def null_parts(cls, value):
+        return value or []
+
+    @model_validator(mode="after")
+    def default_parts(self) -> "MessageResponse":
+        # Messages saved before parts existed are plain text.
+        if not self.parts:
+            self.parts = [TextPart(text=self.content)]
+        return self
 
 
 class PendingJiraTicketResponse(BaseModel):

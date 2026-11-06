@@ -4,10 +4,22 @@ import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { getConversationMessages } from "@/lib/api/conversationApi";
 import { streamChat } from "@/lib/api/chatApi";
 import { ApiRequestError } from "@/lib/api/client";
-import type { ChatMessage, SourceReference } from "@/types/chat";
+import type { ChatMessage, MessagePart, SourceReference } from "@/types/chat";
 
 function createId() {
   return crypto.randomUUID();
+}
+
+/** Text and sources for display, from a stored message's parts. */
+function fromParts(parts: MessagePart[] | undefined, fallback: string) {
+  if (!parts?.length) return { content: fallback, sources: undefined };
+  const content = parts
+    .flatMap((part) => (part.type === "text" ? [part.text] : []))
+    .join("");
+  const sources = parts.flatMap((part) =>
+    part.type === "sources" ? part.sources : []
+  );
+  return { content, sources: sources.length ? sources : undefined };
 }
 
 export function useChat(conversationId: string | null, conversationKey: string) {
@@ -43,8 +55,8 @@ export function useChat(conversationId: string | null, conversationKey: string) 
         setMessages(
           stored.map((message) => ({
             id: message.id,
-            role: message.role,
-            content: message.content,
+            role: message.role === "user" ? "user" : "model",
+            ...fromParts(message.parts, message.content),
             status: "done" as const,
           }))
         );
@@ -107,21 +119,19 @@ export function useChat(conversationId: string | null, conversationKey: string) 
         message: text,
         conversationId,
         signal: controller.signal,
-        onChunk: (chunk) => {
-          if (chunk.data.finishReason === "STOP") {
-            if (chunk.data.sources) {
-              assistantRef.current.sources = chunk.data.sources;
-            }
-            return;
-          }
-
-          if (chunk.data.content) {
-            assistantRef.current.content += chunk.data.content;
-            setStreamingAssistant((prev) =>
-              prev
-                ? { ...prev, content: assistantRef.current.content }
-                : null
-            );
+        onEvent: (event) => {
+          switch (event.type) {
+            case "text-delta":
+              assistantRef.current.content += event.delta;
+              setStreamingAssistant((prev) =>
+                prev ? { ...prev, content: assistantRef.current.content } : null
+              );
+              break;
+            case "sources":
+              assistantRef.current.sources = event.sources;
+              break;
+            case "done":
+              break;
           }
         },
       });

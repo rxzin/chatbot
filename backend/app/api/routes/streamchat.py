@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Depends, Security
 from fastapi.responses import StreamingResponse
-from schemas.chat import ChatRequest
+from schemas.chat import ChatRequest, ChatStreamEvent
 from core.logging import get_request_id, log_event, set_request_context
 from sqlalchemy.ext.asyncio import AsyncSession
 from auth.service import get_current_active_user
@@ -17,35 +17,10 @@ chat_router = APIRouter()
     status_code=200,
     responses={
         200: {
-            "content": {
-                "text/event-stream": {
-                    "example": {
-                        "data": [
-                            {
-                                "success": True,
-                                "data": {
-                                    "content": "Initial Content",
-                                    "finishReason": "Null",
-                                },
-                            },
-                            {
-                                "success": True,
-                                "data": {
-                                    "content": "Content Continue",
-                                    "finishReason": "Null",
-                                },
-                            },
-                            {
-                                "success": True,
-                                "data": {
-                                    "content": "",
-                                    "finishReason": "STOP",
-                                },
-                            },
-                        ]
-                    }
-                }
-            }
+            # Documents the event shape; the body is text/event-stream, one
+            # "data: <ChatStreamEvent>" line per event, ending with done or error.
+            "model": ChatStreamEvent,
+            "description": "Server-Sent Events stream of ChatStreamEvent objects.",
         }
     },
 )

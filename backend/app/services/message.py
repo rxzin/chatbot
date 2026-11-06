@@ -1,3 +1,4 @@
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -37,6 +38,7 @@ async def save_turn(
     user_id: UUID,
     user_message: str,
     model_response: str,
+    model_parts: Optional[list[dict]] = None,
 ) -> bool:
     try:
         db.add(
@@ -44,6 +46,7 @@ async def save_turn(
                 conversation_id=conversation_id,
                 role="user",
                 content=user_message,
+                parts=[{"type": "text", "text": user_message}],
             )
         )
         db.add(
@@ -51,6 +54,7 @@ async def save_turn(
                 conversation_id=conversation_id,
                 role="model",
                 content=model_response,
+                parts=model_parts or [{"type": "text", "text": model_response}],
             )
         )
         await db.commit()
