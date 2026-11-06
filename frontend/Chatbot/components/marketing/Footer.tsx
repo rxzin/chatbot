@@ -30,7 +30,7 @@ export function Footer() {
         <svg
           aria-hidden
           viewBox="0 0 520 190"
-          className="pointer-events-none absolute right-[2%] bottom-0 w-[min(88%,560px)] text-muted-foreground/70"
+          className="pointer-events-none absolute right-[2%] bottom-0 w-[min(88%,560px)] text-muted-foreground/40"
         >
           <text
             x="0"
