@@ -30,7 +30,7 @@ export function Footer() {
         <svg
           aria-hidden
           viewBox="0 0 520 190"
-          className="pointer-events-none absolute right-[2%] bottom-0 w-[min(88%,560px)] text-muted-foreground/90"
+          className="pointer-events-none absolute right-[2%] bottom-0 w-[min(88%,560px)] text-foreground/85"
         >
           <text
             x="0"
@@ -39,8 +39,8 @@ export function Footer() {
             stroke="currentColor"
             // Round dots of a fixed on-screen size: near-zero dashes with round caps, and
             // a non-scaling stroke so they stay crisp at any width instead of blurring.
-            strokeWidth="1.8"
-            strokeDasharray="0.01 3.8"
+            strokeWidth="2"
+            strokeDasharray="0.01 3.2"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
             className="font-display"
