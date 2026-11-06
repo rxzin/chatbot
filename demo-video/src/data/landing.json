@@ -1,0 +1,104 @@
+{
+ "name": "landing",
+ "viewport": {
+  "width": 1600,
+  "height": 900
+ },
+ "events": [
+  {
+   "t": 4.26,
+   "type": "chapter",
+   "id": "landing",
+   "title": "The landing page",
+   "caption": "One design system, dark by default"
+  },
+  {
+   "t": 9.43,
+   "type": "caption",
+   "text": "Smooth scrolling with Lenis"
+  },
+  {
+   "t": 14.61,
+   "type": "chapter",
+   "id": "use-cases",
+   "title": "Use cases",
+   "caption": "Every capability shown in the product's own UI"
+  },
+  {
+   "t": 15.24,
+   "type": "click",
+   "box": {
+    "x": 258,
+    "y": 459,
+    "w": 460,
+    "h": 84
+   }
+  },
+  {
+   "t": 17.83,
+   "type": "click",
+   "box": {
+    "x": 258,
+    "y": 566,
+    "w": 460,
+    "h": 84
+   }
+  },
+  {
+   "t": 20.45,
+   "type": "click",
+   "box": {
+    "x": 258,
+    "y": 629,
+    "w": 460,
+    "h": 84
+   }
+  },
+  {
+   "t": 23,
+   "type": "click",
+   "box": {
+    "x": 258,
+    "y": 714,
+    "w": 460,
+    "h": 84
+   }
+  },
+  {
+   "t": 25.63,
+   "type": "click",
+   "box": {
+    "x": 258,
+    "y": 323,
+    "w": 460,
+    "h": 84
+   }
+  },
+  {
+   "t": 40.37,
+   "type": "caption",
+   "text": "Light theme, designed rather than inverted"
+  },
+  {
+   "t": 44.31,
+   "type": "click",
+   "box": {
+    "x": 1133,
+    "y": 18,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 48.59,
+   "type": "click",
+   "box": {
+    "x": 1133,
+    "y": 18,
+    "w": 36,
+    "h": 36
+   }
+  }
+ ],
+ "duration": 51.6
+}

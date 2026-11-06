@@ -1,0 +1,456 @@
+{
+ "name": "user",
+ "viewport": {
+  "width": 1600,
+  "height": 900
+ },
+ "events": [
+  {
+   "t": 0,
+   "type": "chapter",
+   "id": "signin",
+   "title": "Sign in",
+   "caption": "Email and password, tokens kept in memory"
+  },
+  {
+   "t": 3.28,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 444,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 5.98,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 532,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 8.22,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 592,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 14.77,
+   "type": "chapter",
+   "id": "streaming",
+   "title": "Streaming replies",
+   "caption": "Answers appear as they're written"
+  },
+  {
+   "t": 15.37,
+   "type": "click",
+   "box": {
+    "x": 12,
+    "y": 76,
+    "w": 231,
+    "h": 36
+   }
+  },
+  {
+   "t": 17.27,
+   "type": "click",
+   "box": {
+    "x": 593,
+    "y": 801,
+    "w": 670,
+    "h": 36
+   }
+  },
+  {
+   "t": 20.9,
+   "type": "click",
+   "box": {
+    "x": 1269,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 24.92,
+   "type": "wait",
+   "label": "plain answer",
+   "start": 21.18,
+   "firstToken": 22.34,
+   "end": 24.92
+  },
+  {
+   "t": 27.43,
+   "type": "chapter",
+   "id": "documents",
+   "title": "Ask your documents",
+   "caption": "Upload a PDF; the answer cites the pages it used"
+  },
+  {
+   "t": 27.95,
+   "type": "click",
+   "box": {
+    "x": 12,
+    "y": 76,
+    "w": 231,
+    "h": 36
+   }
+  },
+  {
+   "t": 29.6,
+   "type": "click",
+   "box": {
+    "x": 551,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 29.98,
+   "type": "focus",
+   "label": "indexing status",
+   "box": {
+    "x": 544,
+    "y": 770,
+    "w": 768,
+    "h": 16
+   },
+   "duration": 2
+  },
+  {
+   "t": 33.98,
+   "type": "wait",
+   "label": "indexing",
+   "start": 29.95,
+   "firstToken": 29.95,
+   "end": 33.98
+  },
+  {
+   "t": 35.31,
+   "type": "click",
+   "box": {
+    "x": 1460,
+    "y": 14,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 36.86,
+   "type": "focus",
+   "label": "documents panel",
+   "box": {
+    "x": 1216,
+    "y": 0,
+    "w": 384,
+    "h": 900
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 40.43,
+   "type": "click",
+   "box": {
+    "x": 593,
+    "y": 801,
+    "w": 670,
+    "h": 36
+   }
+  },
+  {
+   "t": 45.22,
+   "type": "click",
+   "box": {
+    "x": 1269,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 55.72,
+   "type": "wait",
+   "label": "document answer",
+   "start": 45.49,
+   "firstToken": 46.58,
+   "end": 55.72
+  },
+  {
+   "t": 55.72,
+   "type": "caption",
+   "text": "Hover a citation to see the passage"
+  },
+  {
+   "t": 57.98,
+   "type": "focus",
+   "label": "citation preview",
+   "box": {
+    "x": 870,
+    "y": 302,
+    "w": 320,
+    "h": 126
+   },
+   "duration": 3
+  },
+  {
+   "t": 62.63,
+   "type": "focus",
+   "label": "numbered sources",
+   "box": {
+    "x": 577,
+    "y": 350,
+    "w": 518,
+    "h": 162
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 65.13,
+   "type": "chapter",
+   "id": "web",
+   "title": "Web search",
+   "caption": "Current questions are answered from the web, with links"
+  },
+  {
+   "t": 65.71,
+   "type": "click",
+   "box": {
+    "x": 12,
+    "y": 76,
+    "w": 231,
+    "h": 36
+   }
+  },
+  {
+   "t": 67.69,
+   "type": "click",
+   "box": {
+    "x": 593,
+    "y": 801,
+    "w": 670,
+    "h": 36
+   }
+  },
+  {
+   "t": 71.92,
+   "type": "click",
+   "box": {
+    "x": 1269,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 80.69,
+   "type": "wait",
+   "label": "web answer",
+   "start": 72.25,
+   "firstToken": 73.28,
+   "end": 80.69
+  },
+  {
+   "t": 80.71,
+   "type": "focus",
+   "label": "web sources",
+   "box": {
+    "x": 577,
+    "y": 207,
+    "w": 518,
+    "h": 417
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 83.22,
+   "type": "chapter",
+   "id": "suggestions",
+   "title": "Suggested questions",
+   "caption": "One click asks the next question"
+  },
+  {
+   "t": 83.24,
+   "type": "focus",
+   "label": "suggestions",
+   "box": {
+    "x": 560,
+    "y": 645,
+    "w": 552,
+    "h": 112
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 85.28,
+   "type": "click",
+   "box": {
+    "x": 560,
+    "y": 645,
+    "w": 392,
+    "h": 32
+   }
+  },
+  {
+   "t": 97.45,
+   "type": "wait",
+   "label": "suggestion answer",
+   "start": 85.58,
+   "firstToken": 87.58,
+   "end": 97.45
+  },
+  {
+   "t": 99.45,
+   "type": "chapter",
+   "id": "memory",
+   "title": "Memory",
+   "caption": "Long chats keep their context; sources survive a reload"
+  },
+  {
+   "t": 99.97,
+   "type": "click",
+   "box": {
+    "x": 593,
+    "y": 801,
+    "w": 670,
+    "h": 36
+   }
+  },
+  {
+   "t": 104.14,
+   "type": "click",
+   "box": {
+    "x": 1269,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 109.31,
+   "type": "wait",
+   "label": "memory answer",
+   "start": 104.44,
+   "firstToken": 107.07,
+   "end": 109.31
+  },
+  {
+   "t": 115.09,
+   "type": "focus",
+   "label": "sources after reload",
+   "box": {
+    "x": 577,
+    "y": -3395,
+    "w": 518,
+    "h": 417
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 117.09,
+   "type": "chapter",
+   "id": "weather",
+   "title": "Live weather",
+   "caption": "The agent picks the city and calls a weather tool"
+  },
+  {
+   "t": 117.6,
+   "type": "click",
+   "box": {
+    "x": 12,
+    "y": 76,
+    "w": 231,
+    "h": 36
+   }
+  },
+  {
+   "t": 119.31,
+   "type": "click",
+   "box": {
+    "x": 593,
+    "y": 801,
+    "w": 670,
+    "h": 36
+   }
+  },
+  {
+   "t": 122.46,
+   "type": "click",
+   "box": {
+    "x": 1269,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 130.45,
+   "type": "wait",
+   "label": "weather answer",
+   "start": 122.73,
+   "firstToken": 123.72,
+   "end": 130.45
+  },
+  {
+   "t": 132.97,
+   "type": "chapter",
+   "id": "bug",
+   "title": "Bug reports",
+   "caption": "The agent files a ticket for an admin to review"
+  },
+  {
+   "t": 133.47,
+   "type": "click",
+   "box": {
+    "x": 12,
+    "y": 76,
+    "w": 231,
+    "h": 36
+   }
+  },
+  {
+   "t": 135.16,
+   "type": "click",
+   "box": {
+    "x": 593,
+    "y": 801,
+    "w": 670,
+    "h": 36
+   }
+  },
+  {
+   "t": 141.72,
+   "type": "click",
+   "box": {
+    "x": 1269,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 146.13,
+   "type": "wait",
+   "label": "bug report",
+   "start": 141.99,
+   "firstToken": 144.09,
+   "end": 146.13
+  },
+  {
+   "t": 149.14,
+   "type": "chapter",
+   "id": "voice",
+   "title": "Voice mode",
+   "caption": "Speak your question in Chrome; replies are read aloud"
+  }
+ ],
+ "duration": 182.08
+}

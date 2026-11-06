@@ -1,0 +1,260 @@
+{
+ "name": "admin",
+ "viewport": {
+  "width": 1600,
+  "height": 900
+ },
+ "events": [
+  {
+   "t": 0,
+   "type": "chapter",
+   "id": "admin-signin",
+   "title": "Admin sign-in",
+   "caption": "Admins land on the dashboard"
+  },
+  {
+   "t": 2.63,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 444,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 4.97,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 532,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 7.96,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 592,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 13.28,
+   "type": "chapter",
+   "id": "admin-stats",
+   "title": "Admin dashboard",
+   "caption": "Users, sessions, requests and server errors"
+  },
+  {
+   "t": 13.29,
+   "type": "focus",
+   "label": "stats",
+   "box": {
+    "x": 240,
+    "y": 132,
+    "w": 1120,
+    "h": 90
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 15.79,
+   "type": "chapter",
+   "id": "admin-bugs",
+   "title": "Approve a bug report",
+   "caption": "Approval creates the Jira issue and emails the reporter"
+  },
+  {
+   "t": 16.3,
+   "type": "click",
+   "box": {
+    "x": 241,
+    "y": 343,
+    "w": 1118,
+    "h": 39
+   }
+  },
+  {
+   "t": 18.81,
+   "type": "focus",
+   "label": "ticket",
+   "box": {
+    "x": 608,
+    "y": 301,
+    "w": 384,
+    "h": 298
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 22.31,
+   "type": "click",
+   "box": {
+    "x": 846,
+    "y": 547,
+    "w": 130,
+    "h": 36
+   }
+  },
+  {
+   "t": 24.11,
+   "type": "focus",
+   "label": "confirm",
+   "box": {
+    "x": 608,
+    "y": 365,
+    "w": 384,
+    "h": 171
+   },
+   "duration": 2
+  },
+  {
+   "t": 27.4,
+   "type": "click",
+   "box": {
+    "x": 862,
+    "y": 484,
+    "w": 114,
+    "h": 36
+   }
+  },
+  {
+   "t": 39.77,
+   "type": "wait",
+   "label": "jira",
+   "start": 27.67,
+   "firstToken": 27.67,
+   "end": 39.77
+  },
+  {
+   "t": 39.78,
+   "type": "focus",
+   "label": "approved",
+   "box": {
+    "x": 1220,
+    "y": 23,
+    "w": 356,
+    "h": 73
+   },
+   "duration": 3
+  },
+  {
+   "t": 44.5,
+   "type": "chapter",
+   "id": "admin-audit",
+   "title": "Audit log",
+   "caption": "Every API request, filterable"
+  },
+  {
+   "t": 44.99,
+   "type": "click",
+   "box": {
+    "x": 334,
+    "y": 250,
+    "w": 72,
+    "h": 25
+   }
+  },
+  {
+   "t": 48.03,
+   "type": "click",
+   "box": {
+    "x": 472,
+    "y": 302,
+    "w": 192,
+    "h": 32
+   }
+  },
+  {
+   "t": 51.55,
+   "type": "focus",
+   "label": "audit rows",
+   "box": {
+    "x": 241,
+    "y": 351,
+    "w": 1118,
+    "h": 742
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 53.55,
+   "type": "chapter",
+   "id": "admin-users",
+   "title": "Users and sessions",
+   "caption": "Revoke sessions or ban an account"
+  },
+  {
+   "t": 54.04,
+   "type": "click",
+   "box": {
+    "x": 406,
+    "y": 250,
+    "w": 125,
+    "h": 25
+   }
+  },
+  {
+   "t": 56.83,
+   "type": "click",
+   "box": {
+    "x": 240,
+    "y": 302,
+    "w": 288,
+    "h": 32
+   }
+  },
+  {
+   "t": 60.45,
+   "type": "click",
+   "box": {
+    "x": 1208,
+    "y": 400,
+    "w": 85,
+    "h": 32
+   }
+  },
+  {
+   "t": 63.24,
+   "type": "focus",
+   "label": "sessions",
+   "box": {
+    "x": 464,
+    "y": 198,
+    "w": 672,
+    "h": 504
+   },
+   "duration": 2.5
+  },
+  {
+   "t": 68.39,
+   "type": "caption",
+   "text": "The theme switch works everywhere"
+  },
+  {
+   "t": 68.89,
+   "type": "click",
+   "box": {
+    "x": 1144,
+    "y": 40,
+    "w": 32,
+    "h": 32
+   }
+  },
+  {
+   "t": 72.18,
+   "type": "click",
+   "box": {
+    "x": 1144,
+    "y": 40,
+    "w": 32,
+    "h": 32
+   }
+  }
+ ],
+ "duration": 74.16
+}

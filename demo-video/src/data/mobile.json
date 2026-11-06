@@ -1,0 +1,95 @@
+{
+ "name": "mobile",
+ "viewport": {
+  "width": 390,
+  "height": 844
+ },
+ "events": [
+  {
+   "t": 0,
+   "type": "chapter",
+   "id": "mobile",
+   "title": "On a phone",
+   "caption": "The same app, built for small screens"
+  },
+  {
+   "t": 2.51,
+   "type": "click",
+   "box": {
+    "x": 66,
+    "y": 416,
+    "w": 258,
+    "h": 40
+   }
+  },
+  {
+   "t": 5.03,
+   "type": "click",
+   "box": {
+    "x": 66,
+    "y": 504,
+    "w": 258,
+    "h": 40
+   }
+  },
+  {
+   "t": 7.25,
+   "type": "click",
+   "box": {
+    "x": 66,
+    "y": 564,
+    "w": 258,
+    "h": 40
+   }
+  },
+  {
+   "t": 12.86,
+   "type": "click",
+   "box": {
+    "x": 16,
+    "y": 14,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 17.36,
+   "type": "click",
+   "box": {
+    "x": 250,
+    "y": 14,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 21.38,
+   "type": "click",
+   "box": {
+    "x": 65,
+    "y": 745,
+    "w": 260,
+    "h": 36
+   }
+  },
+  {
+   "t": 24.44,
+   "type": "click",
+   "box": {
+    "x": 331,
+    "y": 745,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 29.9,
+   "type": "wait",
+   "label": "mobile answer",
+   "start": 24.72,
+   "firstToken": 27.79,
+   "end": 29.9
+  }
+ ],
+ "duration": 31.84
+}

@@ -1,0 +1,25 @@
+{
+  "name": "chat-demo-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts Demo out/chat-demo.mp4 --codec=h264 --crf=18",
+    "record": "node scripts/recorder.mjs landing user weather admin mobile",
+    "timeline": "node scripts/build-timeline.mjs",
+    "render:highlights": "remotion render src/index.ts Highlights out/chat-highlights.mp4 --codec=h264 --crf=18"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.541",
+    "@remotion/google-fonts": "^4.0.541",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remotion": "^4.0.541"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "^4.0.541",
+    "@types/react": "^19.3.0",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2"
+  }
+}

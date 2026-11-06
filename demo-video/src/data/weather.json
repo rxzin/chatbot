@@ -1,0 +1,85 @@
+{
+ "name": "weather",
+ "viewport": {
+  "width": 1600,
+  "height": 900
+ },
+ "events": [
+  {
+   "t": 2.57,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 444,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 4.89,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 532,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 7.04,
+   "type": "click",
+   "box": {
+    "x": 645,
+    "y": 592,
+    "w": 310,
+    "h": 40
+   }
+  },
+  {
+   "t": 10.95,
+   "type": "chapter",
+   "id": "weather",
+   "title": "Live weather",
+   "caption": "The agent picks the city and calls a weather tool"
+  },
+  {
+   "t": 11.44,
+   "type": "click",
+   "box": {
+    "x": 12,
+    "y": 76,
+    "w": 231,
+    "h": 36
+   }
+  },
+  {
+   "t": 13.08,
+   "type": "click",
+   "box": {
+    "x": 593,
+    "y": 801,
+    "w": 670,
+    "h": 36
+   }
+  },
+  {
+   "t": 16.29,
+   "type": "click",
+   "box": {
+    "x": 1269,
+    "y": 801,
+    "w": 36,
+    "h": 36
+   }
+  },
+  {
+   "t": 20.79,
+   "type": "wait",
+   "label": "weather answer",
+   "start": 16.57,
+   "firstToken": 17.53,
+   "end": 20.79
+  }
+ ],
+ "duration": 23.76
+}
