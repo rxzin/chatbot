@@ -8,7 +8,6 @@ __pycache__
 logs/
 backend/app/frontend_build/
 .uv-cache
-backend/app/models/baai-bge-small
 backend/LOGGING_EVENTS.md
 backend/graphify.mdc
 Prod.md

@@ -62,8 +62,9 @@ Admin login and the frontend are confirmed working in production.
 - [x] The admin card is now "Server errors (24h)" and counts only 5xx. It used to count
       every 4xx, including normal logged-out 401s. The audit log's status filter still
       shows 4xx.
-- [ ] Update both READMEs, which still describe Gemini, ONNX and AWS.
-- [ ] Remove `docker-compose.prod.yml` and other leftovers from the AWS deployment.
+- [x] Rewrote the three READMEs for Mistral, FastAPI Cloud and the current code.
+- [x] Removed `docker-compose.prod.yml`, the Git LFS rules and ignore entry for the old
+      local model, a stray `config.json`, `graph2.png`, and the old hero screenshot.
 - [ ] Try local Docker Compose end to end. The backend and frontend containers haven't
       been run together since the move to `/api`.
 

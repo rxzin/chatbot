@@ -9,7 +9,6 @@ app/frontend_build/
 app/logs/
 app/chroma/
 app/graph.png
-app/graph2.png
 app/services/graph/graph.png
 **/__pycache__
 **/*.pyc

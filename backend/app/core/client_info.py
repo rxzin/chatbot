@@ -9,8 +9,8 @@ def trusted_client_ip(request: Request) -> str | None:
     """
     Return the caller's IP only when it is safe to enforce limits on it.
 
-    Behind nginx, request.client is the proxy, so every user would share one limit.
-    X-Real-IP is set by nginx, and it is only safe when nginx is the sole way in.
+    Behind a proxy, request.client is the proxy, so every user would share one limit.
+    X-Real-IP is only safe when a trusted proxy sets it and is the sole way in.
     """
     if getSettings().TRUST_PROXY_HEADERS:
         return request.headers.get("X-Real-IP")

@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = 900
     LOGIN_MAX_FAILURES_PER_ACCOUNT: int = 10
     LOGIN_MAX_FAILURES_PER_IP: int = 50
-    # Enable only when nginx sets X-Real-IP and the app can't be reached directly.
+    # Enable only when a trusted proxy sets X-Real-IP and the app can't be reached directly.
     TRUST_PROXY_HEADERS: bool = False
     AUDIT_RETENTION_DAYS: int = 90
     SMTP_SERVER: str = "smtp.gmail.com"
