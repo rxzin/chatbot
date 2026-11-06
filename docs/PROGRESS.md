@@ -73,6 +73,49 @@ These don't depend on the features below, so they can be done at any time.
       the choice to `localStorage` without anything reading it back, so this needs a
       `ThemeProvider` in the root layout as well as more toggles.
 
+## Landing page redesign, analysed and not started
+
+Reference: relay.prebuiltui.com, a PrebuiltUI template whose license wasn't confirmed.
+Copy its design system, not its brand.
+
+**Decisions**
+
+- Dark by default, with a designed light version, so the global theme switcher works here.
+- Use the same layout, dashed grid frame, type, spacing and motion, but with this product's
+  own name, logo, accent color and wording.
+- Add an integrations section using the real stack: Mistral, Pinecone, Postgres, Redis,
+  FastAPI and others.
+- Keep the scrolling testimonial strip and the price cards in place of Relay's
+  testimonials, but word them as examples, since the current customers, figures and paid
+  plans aren't real.
+
+**Reference system**
+
+- Colors: background `#000`, text `#fff`, secondary text zinc-400, one accent color.
+- Grid: dashed zinc-800 borders frame the page and divide sections, with small triangle
+  markers where sections meet.
+- Type: Urbanist for headings (40px, weight 500, line height 50px), Geist for body text.
+  Section eyebrows look like `- PRICING`.
+- Buttons: 4px radius, `10px 20px` padding, 14px weight 500. Primary is solid white;
+  secondary is transparent with a dark border. On hover, the label slides up.
+- Hero: about 34 vertical 1px lines with an accent gradient whose brightness animates,
+  faded out toward the centre. A WebGL canvas renders the headline. No product screenshot.
+- Logo strip: scrolls over 22 seconds, linear, with the edges faded out.
+- How it works: a two-column grid of six items with dashed dividers, and no cards.
+- Use cases: an expanding list on the left, and a matching product screenshot on the right.
+- Pricing: three plain columns. The popular plan has a dashed border and an accent badge.
+- FAQ: heading on the left, questions on the right, with no boxes.
+- Footer: link columns over a large outline wordmark drawn with a fine dotted line, cut off
+  by the bottom edge.
+
+**Current page problems to fix**
+
+- `public/hero/chat.png` still mentions Gemini.
+- The product is called Chat, ChatDeck and Chatbot App in different places.
+- Nine feature cards should become the six-item how-it-works grid.
+- Use cases need real screenshots of document chat, weather, bug reports and the admin
+  dashboard.
+
 ## Features, not started
 
 In this order, because each depends on the one before:
