@@ -22,4 +22,6 @@ class AgentState(TypedDict):
     # Finished tool rounds this turn, and the calls waiting to run.
     exchanges: list[ToolExchange]
     pending: Optional[ToolExchange]
+    # Citation key -> the number the model cites it by, for the whole turn.
+    citations: dict[str, int]
     final_response: Optional[str]

@@ -106,6 +106,8 @@ export function stripMarkdownForSpeech(text: string): string {
     .replace(/`([^`]+)`/g, "$1")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    // Citation markers like [2] or [1][3] aren't worth reading aloud.
+    .replace(/\s?\[\d{1,3}\]/g, "")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/[*_~>#-]/g, "")
     .replace(/\s+/g, " ")

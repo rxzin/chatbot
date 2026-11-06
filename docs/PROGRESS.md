@@ -156,6 +156,21 @@ In this order, because each depends on the one before:
    links only, and no `fetch_url` tool. Web sources are saved as `webSources` and shown
    as links. Type check, lint and app import pass. Before deploying, add `EXA_API_KEY`
    in the FastAPI Cloud dashboard, or the live app runs with web search off.
-4. **Inline citations and suggested questions:** using AI Elements.
+4. ~~**Inline citations and suggested questions**~~ Built (2026-11-06), not tested live;
+   the user is testing it.
+   - **Citations:** search results are numbered for the whole turn, the model cites them
+     as `[n]`, and sources carry `number`. The chat turns `[n]` into a badge that shows
+     the source on hover or focus (shadcn `hover-card`; web badges link to the page), but
+     not inside code. Voice mode drops the markers before speaking.
+   - **Suggestions:** a `suggest` node after the answer makes one short model call for
+     three follow-up questions, time-boxed to 8 seconds. They're sent as a `suggestions`
+     event, saved as a `suggestions` part, and shown as chips under the latest reply.
+     Clicking one sends it. Turn off with `SUGGESTIONS_ENABLED=false`.
+   - **Checked:** backend import, ruff, OpenAPI schema; frontend type check, lint and
+     production build.
+   - **Notes:** the AI Elements look was rebuilt with shadcn rather than adding the AI
+     Elements registry. Badges only become clickable when the reply finishes, because
+     sources arrive just before `done`. Replies saved before this have no numbers, so
+     their sources show without badges.
 5. **Chat UI cleanup:** `components/chat` still has raw buttons and inputs to move to
    shadcn.

@@ -30,6 +30,9 @@ class SourceReference(BaseModel):
     chunk_index: int = Field(alias="chunkIndex")
     snippet: str
     score: Optional[float] = None
+    # The number the reply cites it by, as in "[2]". None for replies saved before
+    # citations existed.
+    number: Optional[int] = None
 
     model_config = {"populate_by_name": True}
 
@@ -41,5 +44,6 @@ class WebSource(BaseModel):
     title: str
     snippet: str
     published_date: Optional[str] = Field(default=None, alias="publishedDate")
+    number: Optional[int] = None
 
     model_config = {"populate_by_name": True}

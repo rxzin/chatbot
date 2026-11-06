@@ -3,7 +3,7 @@ from uuid import UUID
 
 from core.database import SessionLocal
 from core.logging import logger
-from schemas.chat import MessageParam, SourcesPart, TextPart
+from schemas.chat import MessageParam, SourcesPart, SuggestionsPart, TextPart
 from schemas.rag import SourceReference, WebSource
 from services.context_budget import compact_history
 from services.base import AIPlatform
@@ -15,11 +15,14 @@ def _model_parts(
     text: str,
     sources: Optional[list[SourceReference]],
     web_sources: Optional[list[WebSource]] = None,
+    suggestions: Optional[list[str]] = None,
 ) -> list[dict]:
     """The reply's display parts, in the order they were streamed."""
     parts: list = [TextPart(text=text)]
     if sources or web_sources:
         parts.append(SourcesPart(sources=sources or [], web_sources=web_sources or []))
+    if suggestions:
+        parts.append(SuggestionsPart(suggestions=suggestions))
     return [part.model_dump(by_alias=True, mode="json") for part in parts]
 
 
@@ -35,6 +38,7 @@ async def persist_turn(
     context_summary: Optional[str] = None,
     sources: Optional[list[SourceReference]] = None,
     web_sources: Optional[list[WebSource]] = None,
+    suggestions: Optional[list[str]] = None,
 ) -> None:
     if not model_response:
         return
@@ -66,7 +70,7 @@ async def persist_turn(
             user_id,
             user_message,
             model_response,
-            _model_parts(model_response, sources, web_sources),
+            _model_parts(model_response, sources, web_sources, suggestions),
         )
 
     if redis_saved and postgres_saved:

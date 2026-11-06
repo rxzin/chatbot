@@ -13,11 +13,15 @@ export type ChatStreamEvent =
   | Schemas["ToolStartEvent"]
   | Schemas["ToolResultEvent"]
   | Schemas["SourcesEvent"]
+  | Schemas["SuggestionsEvent"]
   | Schemas["DoneEvent"]
   | Schemas["ErrorEvent"];
 
 /** A stored message's content in display order. */
-export type MessagePart = Schemas["TextPart"] | Schemas["SourcesPart"];
+export type MessagePart =
+  | Schemas["TextPart"]
+  | Schemas["SourcesPart"]
+  | Schemas["SuggestionsPart"];
 
 export type ChatMessage = {
   id: string;
@@ -26,6 +30,8 @@ export type ChatMessage = {
   status?: "streaming" | "done" | "error";
   sources?: SourceReference[];
   webSources?: WebSource[];
+  /** Follow-up questions; shown under the latest reply only. */
+  suggestions?: string[];
   /** What the agent is doing right now, e.g. "Searching your documents". Streaming only. */
   activity?: string;
 };

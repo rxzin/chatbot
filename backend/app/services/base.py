@@ -128,6 +128,12 @@ class AIPlatform(ABC):
         num_messages = len(history) + (1 if prompt else 0)
         return sum(counts) + num_messages * _PER_MESSAGE_TOKENS
 
+    async def complete_text(
+        self, system_instruction: str, prompt: str, max_output_tokens: int
+    ) -> str:
+        """A complete, non-streamed reply to one prompt, with no history. May be empty."""
+        return await self._complete_text(system_instruction, prompt, max_output_tokens)
+
     async def summarize_messages(
         self,
         evicted_messages: list[MessageParam],

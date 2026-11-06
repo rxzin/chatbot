@@ -7,7 +7,13 @@ from core.config import getSettings
 from services.base import ToolExchange, ToolResult
 from services.context_budget import apply_token_budget
 from services.graph.state import AgentState
-from services.graph.tools import ToolOutcome, instructions_for, run_tool, tools_for
+from services.graph.tools import (
+    ToolOutcome,
+    instructions_for,
+    number_citations,
+    run_tool,
+    tools_for,
+)
 
 
 async def agent(state: AgentState, config: RunnableConfig) -> dict:
@@ -70,25 +76,38 @@ async def tools(state: AgentState, config: RunnableConfig) -> dict:
     exchange = state["pending"]
     limit = getSettings().AGENT_MAX_CALLS_PER_ROUND
 
-    async def run(index: int, call) -> ToolResult:
+    async def run(index: int, call) -> ToolOutcome:
         writer({"event": "tool-start", "id": call.id, "name": call.name, "input": call.arguments})
         if index >= limit:
             outcome = ToolOutcome(f"Skipped: at most {limit} tool calls per step.", is_error=True)
         else:
             outcome = await run_tool(call, state, config)
-        outcome_content, is_error = outcome.content, outcome.is_error
-        if outcome.sources or outcome.web_sources:
+        writer(
+            {"event": "tool-result", "id": call.id, "name": call.name, "is_error": outcome.is_error}
+        )
+        return outcome
+
+    outcomes = await asyncio.gather(*(run(i, call) for i, call in enumerate(exchange.calls)))
+
+    # Numbered after the calls finish, in call order, so parallel searches can't collide.
+    registry = dict(state["citations"])
+    results = []
+    for call, outcome in zip(exchange.calls, outcomes):
+        content = outcome.content
+        if outcome.citations:
+            content, sources, web_sources = number_citations(outcome, registry)
             writer(
                 {
                     "event": "sources",
-                    "sources": [s.model_dump(by_alias=True) for s in outcome.sources],
-                    "web_sources": [s.model_dump(by_alias=True) for s in outcome.web_sources],
+                    "sources": [s.model_dump(by_alias=True) for s in sources],
+                    "web_sources": [s.model_dump(by_alias=True) for s in web_sources],
                 }
             )
-        writer({"event": "tool-result", "id": call.id, "name": call.name, "is_error": is_error})
-        return ToolResult(call_id=call.id, name=call.name, content=outcome_content)
+        results.append(ToolResult(call_id=call.id, name=call.name, content=content))
 
-    exchange.results = list(
-        await asyncio.gather(*(run(i, call) for i, call in enumerate(exchange.calls)))
-    )
-    return {"exchanges": [*state["exchanges"], exchange], "pending": None}
+    exchange.results = results
+    return {
+        "exchanges": [*state["exchanges"], exchange],
+        "pending": None,
+        "citations": registry,
+    }

@@ -22,6 +22,9 @@ runs on FastAPI Cloud.
   the web, check the weather, or file a bug report, and can use several tools before
   answering.
 - **Web search** through Exa, with the pages it used shown as links.
+- **Inline citations:** answers cite their sources as numbered badges, such as [2], that
+  show the passage or page on hover.
+- **Suggested questions:** three follow-up questions under the latest reply.
 - **Bug reports:** drafted from the conversation, queued for an admin, then created in
   Jira on approval with an email to the user.
 - **Admin dashboard:** bug report approval, an audit log of every API request, and user

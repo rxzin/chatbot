@@ -8,6 +8,7 @@ from schemas.chat import (
     ErrorEvent,
     SourcesEvent,
     StreamError,
+    SuggestionsEvent,
     TextDeltaEvent,
     ToolResultEvent,
     ToolStartEvent,
@@ -56,6 +57,7 @@ async def prepare_context(
         "prepared_summary": None,
         "exchanges": [],
         "pending": None,
+        "citations": {},
         "final_response": None,
     }
 
@@ -117,6 +119,7 @@ async def run_graph_stream(
     full_model_response = ""
     sources: list[SourceReference] = []
     web_sources: list[WebSource] = []
+    suggestions: list[str] = []
     # If "done" ever arrives without the trimmed history, keep the loaded one, or
     # saving the turn would wipe the conversation's context.
     prepared_messages = initial_state["history"]
@@ -159,6 +162,11 @@ async def run_graph_stream(
                 sources = _add_sources(sources, event.get("sources") or [])
                 web_sources = _add_web_sources(web_sources, event.get("web_sources") or [])
 
+            elif event_name == "suggestions":
+                suggestions = list(event.get("suggestions") or [])
+                if suggestions:
+                    yield sse(SuggestionsEvent(suggestions=suggestions))
+
             elif event_name == "done":
                 prepared_messages = event.get("prepared_messages", prepared_messages)
                 final_context_summary = event.get(
@@ -186,6 +194,7 @@ async def run_graph_stream(
             context_summary=final_context_summary,
             sources=sources,
             web_sources=web_sources,
+            suggestions=suggestions,
         )
 
     except Exception:

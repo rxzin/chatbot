@@ -40,10 +40,14 @@ function fromParts(parts: MessagePart[] | undefined, fallback: string) {
   const webSources = parts.flatMap((part) =>
     part.type === "sources" ? (part.webSources ?? []) : []
   );
+  const suggestions = parts.flatMap((part) =>
+    part.type === "suggestions" ? part.suggestions : []
+  );
   return {
     content,
     sources: sources.length ? sources : undefined,
     webSources: webSources.length ? webSources : undefined,
+    suggestions: suggestions.length ? suggestions : undefined,
   };
 }
 
@@ -59,6 +63,7 @@ export function useChat(conversationId: string | null, conversationKey: string) 
     content: string;
     sources?: SourceReference[];
     webSources?: WebSource[];
+    suggestions?: string[];
   }>({ content: "" });
 
   useEffect(() => {
@@ -176,6 +181,9 @@ export function useChat(conversationId: string | null, conversationKey: string) 
                 ? event.webSources
                 : undefined;
               break;
+            case "suggestions":
+              assistantRef.current.suggestions = event.suggestions;
+              break;
             case "done":
               break;
           }
@@ -192,6 +200,7 @@ export function useChat(conversationId: string | null, conversationKey: string) 
           status: "done",
           sources: assistantRef.current.sources,
           webSources: assistantRef.current.webSources,
+          suggestions: assistantRef.current.suggestions,
         },
       ]);
       setStreamingAssistant(null);

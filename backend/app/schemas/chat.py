@@ -93,6 +93,13 @@ class ToolResultEvent(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class SuggestionsEvent(BaseModel):
+    """Follow-up questions the user might ask next. Sent after the text, before done."""
+
+    type: Literal["suggestions"] = "suggestions"
+    suggestions: list[str]
+
+
 class DoneEvent(BaseModel):
     """The reply finished normally. A stream without it was interrupted."""
 
@@ -120,6 +127,7 @@ ChatStreamEvent = Annotated[
         ToolStartEvent,
         ToolResultEvent,
         SourcesEvent,
+        SuggestionsEvent,
         DoneEvent,
         ErrorEvent,
     ],
@@ -151,4 +159,11 @@ class SourcesPart(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-MessagePart = Annotated[Union[TextPart, SourcesPart], Field(discriminator="type")]
+class SuggestionsPart(BaseModel):
+    type: Literal["suggestions"] = "suggestions"
+    suggestions: list[str]
+
+
+MessagePart = Annotated[
+    Union[TextPart, SourcesPart, SuggestionsPart], Field(discriminator="type")
+]

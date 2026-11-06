@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     EXA_API_KEY: str = ""
     WEB_SEARCH_RESULTS: int = 5
     WEB_SEARCH_DAILY_LIMIT_PER_USER: int = 30
+    # Follow-up questions after each answer: one extra short model call.
+    SUGGESTIONS_ENABLED: bool = True
+    SUGGESTIONS_TIMEOUT_SECONDS: float = 8.0
     ALLOW_PUBLIC_REGISTRATION: bool = True
     # Sign-ups are counted per window. The per-IP cap only applies when the real
     # client IP is known (TRUST_PROXY_HEADERS); the global cap always applies.

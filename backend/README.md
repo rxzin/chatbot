@@ -61,6 +61,7 @@ Commonly changed optional settings:
 | `SEARCH_PROVIDER` | `exa` | `none` turns web search off. So does an empty `EXA_API_KEY` |
 | `WEB_SEARCH_RESULTS` / `WEB_SEARCH_DAILY_LIMIT_PER_USER` | `5` / `30` | Results per search, and searches per user per UTC day |
 | `AGENT_MAX_TOOL_ROUNDS` / `AGENT_MAX_CALLS_PER_ROUND` | `4` / `4` | |
+| `SUGGESTIONS_ENABLED` / `SUGGESTIONS_TIMEOUT_SECONDS` | `true` / `8` | One extra short model call per reply |
 | `ALLOW_PUBLIC_REGISTRATION` | `true` | |
 | `REGISTRATION_MAX_GLOBAL` / `REGISTRATION_MAX_PER_IP` | `100` / `10` | Per `REGISTRATION_RATE_LIMIT_SECONDS` (an hour) |
 | `LOGIN_MAX_FAILURES_PER_ACCOUNT` / `_PER_IP` | `10` / `50` | Per `LOGIN_RATE_LIMIT_WINDOW_SECONDS` (15 minutes) |
@@ -111,7 +112,14 @@ streams its output as SSE:
    failures go back to the model as error results, never as exceptions. Web pages are
    untrusted, so `report_bug` is withdrawn for the rest of a turn once the web has been
    searched, and only `http` and `https` links are kept.
-3. **`runner`** turns the graph's output into SSE events, then saves the turn to Postgres
+
+   Search results are numbered for the whole turn (`number_citations` in `tools.py`):
+   each passage or page gets the next number, a source found twice keeps its first one,
+   and the model cites them inline as `[n]`. Each source carries its `number`.
+3. **`suggest`** asks the model for three follow-up questions
+   ([`nodes/suggest.py`](app/services/graph/nodes/suggest.py)). It is time-boxed by
+   `SUGGESTIONS_TIMEOUT_SECONDS`, and a failure only means no suggestions.
+4. **`runner`** turns the graph's output into SSE events, then saves the turn to Postgres
    and the trimmed recent context to Redis.
 
 Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
@@ -122,6 +130,7 @@ Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
 | `tool-start` | `toolCallId`, `toolName`, `input` | The agent started a tool |
 | `tool-result` | `toolCallId`, `toolName`, `isError` | That tool finished. Its output goes to the model only |
 | `sources` | `sources`, `webSources` | Once, before `done`, when documents or the web were searched |
+| `suggestions` | `suggestions` | Follow-up questions, after the text |
 | `done` | `finishReason` | The reply finished. A stream without it was interrupted |
 | `error` | `error.code`, `error.message` | The reply failed; nothing is saved |
 

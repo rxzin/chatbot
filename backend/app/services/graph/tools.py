@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Union
 from uuid import UUID
 
 from langchain_core.runnables import RunnableConfig
@@ -24,13 +24,48 @@ _MAX_DESCRIPTION_CHARS = 4000
 
 
 @dataclass
-class ToolOutcome:
-    """What a tool returns to the model, plus anything the UI needs."""
+class Citation:
+    """A passage or page the model may cite. key identifies it across searches."""
 
-    content: str
+    key: str
+    label: str
+    text: str
+    source: Union[SourceReference, WebSource]
+
+
+@dataclass
+class ToolOutcome:
+    """
+    What a tool returns. A search returns citations instead of content; the tools node
+    numbers them for the whole turn and builds the content from them.
+    """
+
+    content: str = ""
     is_error: bool = False
-    sources: list[SourceReference] = field(default_factory=list)
-    web_sources: list[WebSource] = field(default_factory=list)
+    citations: list[Citation] = field(default_factory=list)
+
+
+def number_citations(
+    outcome: ToolOutcome, registry: dict[str, int]
+) -> tuple[str, list[SourceReference], list[WebSource]]:
+    """
+    Give each citation a number for the whole turn and build the text the model reads.
+
+    registry maps a citation's key to its number and is updated in place, so a passage
+    found by two searches keeps its first number and numbers never repeat.
+    """
+    blocks: list[str] = []
+    sources: list[SourceReference] = []
+    web_sources: list[WebSource] = []
+    for citation in outcome.citations:
+        number = registry.setdefault(citation.key, len(registry) + 1)
+        blocks.append(f"[{number}] {citation.label}\n{citation.text}")
+        numbered = citation.source.model_copy(update={"number": number})
+        if isinstance(numbered, WebSource):
+            web_sources.append(numbered)
+        else:
+            sources.append(numbered)
+    return "\n\n---\n\n".join(blocks), sources, web_sources
 
 
 SEARCH_DOCUMENTS = ToolSpec(
@@ -138,7 +173,7 @@ def instructions_for(state: AgentState, config: RunnableConfig) -> str:
     if config["configurable"].get("search_provider") is not None:
         lines.append(
             "Use web_search for recent events, or facts you are unsure of or that may "
-            "have changed. Base the answer on the results and name the sites you used."
+            "have changed. Base the answer on the results."
         )
     if state["has_documents"]:
         names = ", ".join(state["document_filenames"])
@@ -147,6 +182,12 @@ def instructions_for(state: AgentState, config: RunnableConfig) -> str:
             "questions they might answer, answer from the passages it returns, and say "
             "so when the passages don't contain the answer."
         )
+    lines.append(
+        "Search results are numbered like [1]. When you use one, cite its number in "
+        "square brackets right after the claim, e.g. 'It opened in 2019 [2].' or "
+        "'[1][3]'. Only cite numbers that appear in the results, and don't add a "
+        "separate list of sources: the app shows them."
+    )
     lines.append(
         "Use get_weather for weather questions. If no city is given, ask which city."
     )
@@ -175,11 +216,16 @@ async def _search_documents(
     if not results:
         return ToolOutcome("No matching passages were found in the uploaded documents.")
 
-    blocks = []
-    for number, result in enumerate(results, start=1):
-        where = result.filename + (f", page {result.page}" if result.page else "")
-        blocks.append(f"[{number}] {where}\n{result.parent_content}")
-    return ToolOutcome("\n\n---\n\n".join(blocks), sources=to_sources(results))
+    citations = [
+        Citation(
+            key=f"doc:{source.document_id}:{source.chunk_index}",
+            label=result.filename + (f", page {result.page}" if result.page else ""),
+            text=result.parent_content,
+            source=source,
+        )
+        for result, source in zip(results, to_sources(results))
+    ]
+    return ToolOutcome(citations=citations)
 
 
 async def _get_weather(
@@ -236,22 +282,27 @@ async def _web_search(
     if not results:
         return ToolOutcome("The web search found nothing for that query.")
 
-    blocks = []
-    web_sources = []
-    for number, result in enumerate(results, start=1):
+    citations = []
+    for result in results:
         if not is_web_url(result.url):
             continue
         dated = f" ({result.published_date[:10]})" if result.published_date else ""
-        blocks.append(f"[{number}] {result.title}{dated}\n{result.url}\n{result.snippet}")
-        web_sources.append(
-            WebSource(
-                url=result.url,
-                title=result.title,
-                snippet=result.snippet[:300],
-                published_date=result.published_date,
+        citations.append(
+            Citation(
+                key=f"web:{result.url}",
+                label=f"{result.title}{dated}\n{result.url}",
+                text=result.snippet,
+                source=WebSource(
+                    url=result.url,
+                    title=result.title,
+                    snippet=result.snippet[:300],
+                    published_date=result.published_date,
+                ),
             )
         )
-    return ToolOutcome("\n\n---\n\n".join(blocks), web_sources=web_sources)
+    if not citations:
+        return ToolOutcome("The web search found nothing for that query.")
+    return ToolOutcome(citations=citations)
 
 
 def _rate_limit_message(remaining_seconds: int | None) -> str:

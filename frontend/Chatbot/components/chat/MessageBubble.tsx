@@ -9,19 +9,19 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { FileText, Globe, Loader2 } from "lucide-react";
-
-/** Only http and https links are rendered, whatever the server sent. */
-function safeWebUrl(url: string): URL | null {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed : null;
-  } catch {
-    return null;
-  }
-}
+import {
+  CitationBadge,
+  citationMap,
+  citationNumber,
+  linkCitations,
+  safeWebUrl,
+} from "./Citation";
 
 type MessageBubbleProps = {
   message: ChatMessage;
+  /** Set only on the latest reply, which is the one that shows suggestions. */
+  onSuggestion?: (text: string) => void;
+  suggestionsDisabled?: boolean;
 };
 
 type MarkdownCodeProps = {
@@ -30,18 +30,45 @@ type MarkdownCodeProps = {
   children?: ReactNode;
 };
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+type MarkdownLinkProps = {
+  href?: string;
+  children?: ReactNode;
+};
+
+export function MessageBubble({
+  message,
+  onSuggestion,
+  suggestionsDisabled = false,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
   const isStreaming = message.status === "streaming";
-  const docSources = message.sources ?? [];
-  const webSources = (message.webSources ?? []).flatMap((source) => {
-    const url = safeWebUrl(source.url);
-    return url ? [{ ...source, host: url.hostname.replace(/^www\./, "") }] : [];
-  });
+  const cited = citationMap(message.sources, message.webSources);
+
+  // Numbered sources first, in citation order; replies saved before numbering follow.
+  const byNumber = (a?: number | null, b?: number | null) =>
+    (a ?? Number.MAX_SAFE_INTEGER) - (b ?? Number.MAX_SAFE_INTEGER);
+  const docSources = [...(message.sources ?? [])].sort((a, b) => byNumber(a.number, b.number));
+  const webSources = (message.webSources ?? [])
+    .flatMap((source) => {
+      const url = safeWebUrl(source.url);
+      return url
+        ? [{ ...source, href: url.href, host: url.hostname.replace(/^www\./, "") }]
+        : [];
+    })
+    .sort((a, b) => byNumber(a.number, b.number));
+
+  const content = isUser
+    ? message.content
+    : linkCitations(message.content, new Set(cited.keys()));
+  const suggestions =
+    !isUser && !isStreaming && onSuggestion ? (message.suggestions ?? []) : [];
 
   return (
     <div
-      className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}
+      className={cn(
+        "flex w-full flex-col gap-2",
+        isUser ? "items-end" : "items-start"
+      )}
     >
       <div
         className={cn(
@@ -105,9 +132,22 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                   </code>
                 );
               },
+              // "[2]" citations become badges; other links open in a new tab.
+              a({ href, children }: MarkdownLinkProps) {
+                const number = citationNumber(href);
+                const source = number === null ? undefined : cited.get(number);
+                if (source) return <CitationBadge cited={source} />;
+                const url = href ? safeWebUrl(href) : null;
+                if (!url) return <>{children}</>;
+                return (
+                  <a href={url.href} target="_blank" rel="noopener noreferrer nofollow">
+                    {children}
+                  </a>
+                );
+              },
             }}
           >
-            {message.content || (isStreaming ? "" : "…")}
+            {content || (isStreaming ? "" : "…")}
           </ReactMarkdown>
 
           {/* Keep your awesome streaming cursor at the end */}
@@ -119,14 +159,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <p className="mb-2 text-xs font-medium text-muted-foreground">
               Sources
             </p>
-            <div className="flex flex-col gap-2">
+            <ol className="flex flex-col gap-2">
               {docSources.map((source) => (
-                <div
+                <li
                   key={`${source.documentId}-${source.chunkIndex}`}
                   className="rounded-md border border-border bg-background/70 p-2"
                 >
                   <div className="flex min-w-0 items-center gap-2 text-xs font-medium">
-                    <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <SourceNumber number={source.number} />
+                    <FileText aria-hidden className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <span className="truncate">{source.filename}</span>
                     {source.page ? (
                       <span className="shrink-0 text-muted-foreground">
@@ -137,30 +178,61 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                   <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                     {source.snippet}
                   </p>
-                </div>
+                </li>
               ))}
               {webSources.map((source) => (
-                <a
-                  key={source.url}
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="block rounded-md border border-border bg-background/70 p-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <div className="flex min-w-0 items-center gap-2 text-xs font-medium">
-                    <Globe aria-hidden className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate">{source.title}</span>
-                    <span className="shrink-0 text-muted-foreground">{source.host}</span>
-                  </div>
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                    {source.snippet}
-                  </p>
-                </a>
+                <li key={source.url}>
+                  <a
+                    href={source.href}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="block rounded-md border border-border bg-background/70 p-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <div className="flex min-w-0 items-center gap-2 text-xs font-medium">
+                      <SourceNumber number={source.number} />
+                      <Globe aria-hidden className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{source.title}</span>
+                      <span className="shrink-0 text-muted-foreground">{source.host}</span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                      {source.snippet}
+                    </p>
+                  </a>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         )}
       </div>
+
+      {suggestions.length > 0 && onSuggestion && (
+        <div
+          role="group"
+          aria-label="Suggested questions"
+          className="flex max-w-[85%] flex-wrap gap-2 sm:max-w-[75%]"
+        >
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              disabled={suggestionsDisabled}
+              onClick={() => onSuggestion(suggestion)}
+              className="rounded-full border border-border bg-background px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
+  );
+}
+
+function SourceNumber({ number }: { number?: number | null }) {
+  if (!number) return null;
+  return (
+    <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-muted px-1 text-[0.65rem] text-muted-foreground">
+      {number}
+    </span>
   );
 }

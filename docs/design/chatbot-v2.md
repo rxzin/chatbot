@@ -107,8 +107,8 @@ as a discriminated union in `schemas/chat.py` and generated into the frontend's 
 Messages have a nullable `parts` JSONB column (`text` and `sources` parts), so sources
 survive a reload; `content` keeps the plain text for the model's memory.
 
-`tool-start` and `tool-result` were added with the agent loop. Still to add:
-`suggestions` (suggested questions). Each adds an event type and, where it should survive
+`tool-start` and `tool-result` were added with the agent loop, and `suggestions` (event
+and part) with feature 4. Sources carry a `number` for inline citations. Each adds an event type and, where it should survive
 a reload, a part type.
 
 ## Agent

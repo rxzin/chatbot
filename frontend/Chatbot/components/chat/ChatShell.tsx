@@ -460,7 +460,11 @@ export function ChatShell() {
               </button>
             </div>
           ) : (
-            <MessageList messages={messages} />
+            <MessageList
+              messages={messages}
+              onSuggestion={(text) => void sendText(text)}
+              suggestionsDisabled={inputDisabled}
+            />
           )}
         </main>
 

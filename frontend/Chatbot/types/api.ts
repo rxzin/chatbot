@@ -756,7 +756,7 @@ export interface components {
             /** Content */
             content: string;
             /** Parts */
-            parts?: (components["schemas"]["TextPart"] | components["schemas"]["SourcesPart"])[];
+            parts?: (components["schemas"]["TextPart"] | components["schemas"]["SourcesPart"] | components["schemas"]["SuggestionsPart"])[];
             /**
              * Created At
              * Format: date-time
@@ -806,6 +806,8 @@ export interface components {
             snippet: string;
             /** Score */
             score?: number | null;
+            /** Number */
+            number?: number | null;
         };
         /**
          * SourcesEvent
@@ -840,6 +842,29 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+        };
+        /**
+         * SuggestionsEvent
+         * @description Follow-up questions the user might ask next. Sent after the text, before done.
+         */
+        SuggestionsEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "suggestions";
+            /** Suggestions */
+            suggestions: string[];
+        };
+        /** SuggestionsPart */
+        SuggestionsPart: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "suggestions";
+            /** Suggestions */
+            suggestions: string[];
         };
         /**
          * TextDeltaEvent
@@ -970,6 +995,8 @@ export interface components {
             snippet: string;
             /** Publisheddate */
             publishedDate?: string | null;
+            /** Number */
+            number?: number | null;
         };
     };
     responses: never;
@@ -1303,7 +1330,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TextDeltaEvent"] | components["schemas"]["ToolStartEvent"] | components["schemas"]["ToolResultEvent"] | components["schemas"]["SourcesEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ErrorEvent"];
+                    "application/json": components["schemas"]["TextDeltaEvent"] | components["schemas"]["ToolStartEvent"] | components["schemas"]["ToolResultEvent"] | components["schemas"]["SourcesEvent"] | components["schemas"]["SuggestionsEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ErrorEvent"];
                 };
             };
             /** @description Validation Error */
