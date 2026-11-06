@@ -72,13 +72,15 @@ Admin login and the frontend are confirmed working in production.
       `docker compose up` fails with "password authentication failed". Delete it with
       `docker volume rm chatbot_postgres_data` if its data isn't needed, or use another
       project name with `-p`.
-- [ ] A new user lands on an empty chat and must click New Chat before typing. Creating
-      the first conversation automatically would be smoother (feature 5).
-- [ ] The message list doesn't scroll to a reply that failed, so the partial text can sit
-      below the fold (feature 5).
-- [ ] In automated browser tests the "Speaking… / Stop" bar stays up in Text mode, from the
-      "Would you like to work in voice mode?" prompt. Check in a real browser whether it
-      clears; the test browser has no speech voices (feature 5).
+- [x] A new user's first conversation is created automatically (`useConversation`).
+- [x] The message list stays pinned to the bottom when it resizes, e.g. when an error
+      appears below it, and no longer pulls you down if you've scrolled up to read
+      (`useAutoScroll`).
+- [x] The stuck "Speaking…" bar was real: the chat page spoke "Would you like to work in
+      voice mode?" on every load, and browsers block speech until the user has
+      interacted with the page, so it never started or ended. The question now only plays
+      after an interaction (such as clicking Sign in), and `speak` gives up after 3
+      seconds if speech never starts.
 
 ## UI polish, done
 
@@ -172,5 +174,21 @@ In this order, because each depends on the one before:
      Elements registry. Badges only become clickable when the reply finishes, because
      sources arrive just before `done`. Replies saved before this have no numbers, so
      their sources show without badges.
-5. **Chat UI cleanup:** `components/chat` still has raw buttons and inputs to move to
-   shadcn.
+5. ~~**Chat UI cleanup**~~ Built (2026-11-06), not tested live; the user is testing it.
+   - **One palette:** the landing palette moved from `.landing` to `:root` and `.dark`, so
+     chat, admin, auth and every popup (sheets, menus, hover cards) share it. Blue is
+     gone; emerald marks only live states (ready or processing documents, the streaming
+     cursor, 2xx and approved badges). Selection, focus rings and thin scrollbars are
+     themed app-wide.
+   - **Chat:** shadcn `Button` throughout. The conversation list is a sidebar from `md`
+     up and a `Sheet` on phones; documents open in a `Sheet` at every width. 4px
+     controls, 14px containers, dashed rails, no shadows. Developer-facing copy is
+     gone: "Mistral Assistant", "Message Mistral…", "Streaming via Server-Sent Events",
+     "auto-routed" and raw conversation IDs.
+   - **Admin:** Urbanist 500 headings and figures; status badges use the live tint.
+   - **Checked:** type check, lint and production build.
+
+**Marketing:** Lenis smooth scrolling on the landing page (`components/marketing/SmoothScroll.tsx`).
+It respects reduced motion, handles the `#section` links (including from the mobile menu),
+and pauses while a sheet or dialog locks scrolling. The mobile menu keeps native scrolling
+(`data-lenis-prevent`).

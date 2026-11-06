@@ -108,7 +108,13 @@ export function useConversation() {
           return;
         }
 
-        setConversation(null);
+        // A new user has no conversations yet: start one so they can type right away.
+        // createConversation dedupes concurrent calls, so a double mount makes one.
+        const created = await createConversation();
+        if (!cancelled) {
+          setConversations([created]);
+          applyConversation(created);
+        }
       } catch (err) {
         if (!cancelled) {
           const message =

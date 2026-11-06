@@ -1,13 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Files, LogOut, PanelLeft, X } from "lucide-react";
+import { Files, LogOut, PanelLeft } from "lucide-react";
 import { useChat } from "@/hooks/useChat";
 import { useConversation } from "@/hooks/useConversation";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useVoiceMode } from "@/hooks/useVoiceMode";
 import { useLogout } from "@/hooks/useLogout";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Logo } from "@/components/marketing/Logo";
 import {
   parseYesNo,
   stripMarkdownForSpeech,
@@ -223,6 +232,12 @@ export function ChatShell() {
     if (!isReady || isLoadingHistory || hasPromptedRef.current) return;
 
     hasPromptedRef.current = true;
+    // Browsers only allow speech after the user has interacted with the page, e.g.
+    // clicking Sign in. On a fresh load or reload it would hang, so the question is
+    // skipped; the Voice toggle still switches modes.
+    const activation = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } })
+      .userActivation;
+    if (activation && !activation.hasBeenActive) return;
     playQuestionRef.current?.click();
   }, [isReady, isLoadingHistory]);
 
@@ -310,154 +325,128 @@ export function ChatShell() {
   };
 
   const displayError = conversationError ?? docsError ?? error;
-  const showEmptyState = isReady && !isLoadingHistory && messages.length === 0;
   const isSwitching = isLoadingHistory;
+  const headerButton = cn(
+    buttonVariants({ variant: "outline", size: "icon" }),
+    "rounded-[4px] border-line bg-transparent text-muted-foreground hover:text-foreground",
+  );
+
+  const conversationList = (
+    <ConversationList
+      conversations={conversations}
+      activeId={conversationId}
+      onSelect={handleSelectConversation}
+      onNewChat={handleNewChat}
+      isLoading={isConversationLoading}
+      isSwitching={isSwitching || isStartingNew}
+    />
+  );
 
   return (
     <div className="flex h-dvh bg-background">
-      {sidebarOpen && (
-        <button
-          type="button"
-          aria-label="Close conversation history"
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {documentsOpen && (
-        <button
-          type="button"
-          aria-label="Close documents"
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm xl:hidden"
-          onClick={() => setDocumentsOpen(false)}
-        />
-      )}
-
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-card shadow-xl transition-transform duration-200 md:static md:z-auto md:shrink-0 md:translate-x-0 md:shadow-none",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
-          <span className="text-sm font-medium text-foreground">
-            Conversations
-          </span>
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <X className="h-5 w-5" aria-hidden />
-          </button>
+      {/* Conversations: a sidebar from md up, a sheet on phones. */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-dashed border-line md:flex">
+        <div className="flex h-16 shrink-0 items-center px-4">
+          <Logo />
         </div>
-
-        <ConversationList
-          conversations={conversations}
-          activeId={conversationId}
-          onSelect={handleSelectConversation}
-          onNewChat={handleNewChat}
-          isLoading={isConversationLoading}
-          isSwitching={isSwitching || isStartingNew}
-        />
+        {conversationList}
       </aside>
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent
+          side="left"
+          className="w-72 gap-0 border-r border-dashed border-line p-0 md:hidden"
+        >
+          <SheetHeader className="h-16 justify-center px-4 py-0">
+            <SheetTitle className="sr-only">Conversations</SheetTitle>
+            <SheetDescription className="sr-only">Your past conversations</SheetDescription>
+            <Logo />
+          </SheetHeader>
+          {conversationList}
+        </SheetContent>
+      </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="shrink-0 border-b border-border px-4 py-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open conversation history"
-                aria-expanded={sidebarOpen}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
-              >
-                <PanelLeft className="h-5 w-5" aria-hidden />
-              </button>
-              <div className="min-w-0">
-                <h1 className="truncate text-lg font-semibold tracking-tight text-foreground">
-                  {conversation?.title ?? "Mistral Assistant"}
-                </h1>
+        <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-dashed border-line px-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open conversations"
+              aria-expanded={sidebarOpen}
+              className={cn(headerButton, "md:hidden")}
+            >
+              <PanelLeft />
+            </Button>
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-medium text-foreground">
+                {conversation?.title ?? "New conversation"}
+              </h1>
+              {hasIndexedDocuments && (
                 <p className="text-xs text-muted-foreground">
-                  {hasIndexedDocuments
-                    ? `${indexedDocumentCount} document${indexedDocumentCount === 1 ? "" : "s"} available · auto-routed`
-                    : "Streaming via Server-Sent Events"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2">
-              {conversationId && (
-                <p
-                  className="hidden max-w-40 truncate font-mono text-xs text-muted-foreground lg:block"
-                  title={conversationId}
-                >
-                  {conversationId}
+                  {indexedDocumentCount} document{indexedDocumentCount === 1 ? "" : "s"} ready
                 </p>
               )}
-              <AnimatedThemeToggler
-                className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-xl border border-border",
-                  "text-muted-foreground transition-colors [&_svg]:h-5 [&_svg]:w-5",
-                  "hover:bg-muted hover:text-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                )}
-              />
-              <button
-                type="button"
-                onClick={() => setDocumentsOpen(true)}
-                aria-label="Open documents"
-                aria-expanded={documentsOpen}
-                className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-xl border border-border",
-                  "text-muted-foreground transition-colors",
-                  "hover:bg-muted hover:text-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                )}
-              >
-                <Files className="h-5 w-5" aria-hidden />
-              </button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                aria-label="Log out"
-                className={cn(
-                  "flex h-11 w-11 items-center justify-center rounded-xl border border-border",
-                  "text-muted-foreground transition-colors",
-                  "hover:bg-muted hover:text-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
-              >
-                <LogOut className="h-5 w-5" aria-hidden />
-              </button>
             </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setDocumentsOpen(true)}
+              aria-label={`Documents${documents.length ? ` (${documents.length})` : ""}`}
+              aria-expanded={documentsOpen}
+              className={cn(headerButton, "relative")}
+            >
+              <Files />
+              {documents.length > 0 && (
+                <span
+                  aria-hidden
+                  className="absolute -top-1.5 -right-1.5 flex size-4 items-center justify-center rounded-full bg-foreground text-[0.6rem] font-medium text-background tabular-nums"
+                >
+                  {documents.length}
+                </span>
+              )}
+            </Button>
+            <AnimatedThemeToggler className={cn(headerButton, "[&_svg]:size-4")} />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              aria-label="Log out"
+              className={headerButton}
+            >
+              <LogOut />
+            </Button>
           </div>
         </header>
 
         <main className="flex min-h-0 flex-1 flex-col">
           {isConversationLoading || isLoadingHistory ? (
-            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-              {isConversationLoading
-                ? "Loading conversation…"
-                : "Loading messages…"}
-            </div>
+            <p
+              role="status"
+              className="flex flex-1 items-center justify-center text-sm text-muted-foreground"
+            >
+              {isConversationLoading ? "Loading conversation…" : "Loading messages…"}
+            </p>
           ) : !isReady ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Select a conversation from the sidebar or start a new chat.
+                Pick a conversation, or start a new one.
               </p>
-              <button
+              <Button
                 type="button"
                 onClick={handleNewChat}
                 disabled={isStartingNew}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                className="rounded-[4px]"
               >
-                {isStartingNew ? "Starting…" : "New Chat"}
-              </button>
+                {isStartingNew ? "Starting…" : "New chat"}
+              </Button>
             </div>
           ) : (
             <MessageList
@@ -468,18 +457,14 @@ export function ChatShell() {
           )}
         </main>
 
-        {showEmptyState && (
-          <p className="mx-4 mb-2 text-center text-xs text-muted-foreground">
-            Send a message to start this conversation.
-          </p>
-        )}
-
         {displayError && (
-          <div
-            className="mx-auto mb-2 max-w-3xl rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive"
-            role="alert"
-          >
-            {displayError}
+          <div className="shrink-0 px-4 pb-2">
+            <p
+              role="alert"
+              className="mx-auto max-w-3xl rounded-[10px] border border-destructive/40 px-3 py-2 text-sm text-destructive"
+            >
+              {displayError}
+            </p>
           </div>
         )}
 
@@ -503,22 +488,27 @@ export function ChatShell() {
         />
       </div>
 
-      <aside
-        className={cn(
-          "fixed inset-y-0 right-0 z-50 w-80 border-l border-border bg-card shadow-xl transition-transform duration-200 xl:static xl:z-auto xl:shrink-0 xl:shadow-none",
-          documentsOpen ? "translate-x-0" : "translate-x-full xl:hidden",
-        )}
-      >
-        <DocumentPanel
-          onClose={() => setDocumentsOpen(false)}
-          documents={documents}
-          isLoading={isDocsLoading}
-          deletingId={deletingId}
-          error={docsError}
-          refresh={refreshDocs}
-          remove={remove}
-        />
-      </aside>
+      <Sheet open={documentsOpen} onOpenChange={setDocumentsOpen}>
+        <SheetContent
+          side="right"
+          className="w-80 gap-0 border-l border-dashed border-line p-0 sm:max-w-sm"
+        >
+          <SheetHeader className="h-16 justify-center border-b border-dashed border-line px-4 py-0">
+            <SheetTitle className="font-display text-base font-medium">Documents</SheetTitle>
+            <SheetDescription className="sr-only">
+              Files attached to this conversation
+            </SheetDescription>
+          </SheetHeader>
+          <DocumentPanel
+            documents={documents}
+            isLoading={isDocsLoading}
+            deletingId={deletingId}
+            error={docsError}
+            refresh={refreshDocs}
+            remove={remove}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

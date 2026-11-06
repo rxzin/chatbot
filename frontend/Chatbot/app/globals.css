@@ -105,90 +105,9 @@ html {
 }
 
 
+/* One palette for the whole app (see DESIGN.md): zinc neutrals plus one emerald,
+   --live, reserved for things that are actually running. Light mirrors dark. */
 :root {
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.488 0.243 264.376);
-  --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.871 0.006 286.286);
-  --chart-2: oklch(0.552 0.016 285.938);
-  --chart-3: oklch(0.442 0.017 285.786);
-  --chart-4: oklch(0.37 0.013 285.805);
-  --chart-5: oklch(0.274 0.006 286.033);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.546 0.245 262.881);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-}
-
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.424 0.199 265.638);
-  --primary-foreground: oklch(0.97 0.014 254.604);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.871 0.006 286.286);
-  --chart-2: oklch(0.552 0.016 285.938);
-  --chart-3: oklch(0.442 0.017 285.786);
-  --chart-4: oklch(0.37 0.013 285.805);
-  --chart-5: oklch(0.274 0.006 286.033);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.623 0.214 259.815);
-  --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
-  }
-}
-/* Landing page. Overrides the shared tokens for its own subtree, so shadcn
-   components inside it pick up the page's palette. Light is the designed default
-   for the class; dark is what visitors see first. */
-.landing {
   --background: #fafaf9;
   --foreground: #0a0a0a;
   --card: #ffffff;
@@ -203,16 +122,29 @@ html {
   --muted-foreground: #52525b;
   --accent: #f4f4f5;
   --accent-foreground: #0a0a0a;
+  --destructive: oklch(0.577 0.245 27.325);
   --border: #d4d4d8;
   --input: #d4d4d8;
   --ring: #059669;
   --line: #d4d4d8;
   --live: #059669;
-  background: var(--background);
-  color: var(--foreground);
+  --chart-1: #0a0a0a;
+  --chart-2: #52525b;
+  --chart-3: #a1a1aa;
+  --chart-4: #d4d4d8;
+  --chart-5: #059669;
+  --radius: 0.625rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #0a0a0a;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: #d4d4d8;
+  --sidebar-ring: #059669;
 }
 
-.dark .landing {
+.dark {
   --background: #000000;
   --foreground: #ffffff;
   --card: #09090b;
@@ -227,21 +159,73 @@ html {
   --muted-foreground: #a1a1aa;
   --accent: #18181b;
   --accent-foreground: #ffffff;
+  --destructive: oklch(0.704 0.191 22.216);
   --border: #27272a;
   --input: #27272a;
   --ring: #34d399;
   --line: #27272a;
   --live: #34d399;
+  --chart-1: #ffffff;
+  --chart-2: #a1a1aa;
+  --chart-3: #52525b;
+  --chart-4: #27272a;
+  --chart-5: #34d399;
+  --sidebar: #09090b;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #18181b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #34d399;
 }
 
-.landing ::selection {
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    /* Thin scrollbars in the rail colour, everywhere. */
+    scrollbar-color: var(--line) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+/* Browser surfaces carry the palette too. */
+::selection {
   background: color-mix(in oklab, var(--live) 35%, transparent);
   color: var(--foreground);
 }
 
-.landing :focus-visible {
+:focus-visible {
   outline: 2px solid var(--live);
   outline-offset: 3px;
+}
+
+/* The landing page's wrapper. The palette is app-wide now; this only paints the
+   ground so sections between bands match. */
+.landing {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Lenis smooth scrolling on the marketing page (components/marketing/SmoothScroll). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
 }
 
 @media (prefers-reduced-motion: reduce) {

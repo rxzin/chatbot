@@ -34,7 +34,7 @@ const STATUS_CLASSES = ["2xx", "3xx", "4xx", "5xx"];
 function StatusBadge({ code }: { code: number }) {
   if (code >= 500) return <Badge variant="destructive">{code}</Badge>;
   if (code >= 400) return <Badge variant="secondary">{code}</Badge>;
-  return <Badge variant="outline">{code}</Badge>;
+  return <Badge className="border-transparent bg-live/15 text-live hover:bg-live/15 tabular-nums">{code}</Badge>;
 }
 
 export function AuditLogTab() {

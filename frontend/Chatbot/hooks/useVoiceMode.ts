@@ -21,6 +21,8 @@ type DebouncedListenOptions = ListenOptions & {
   onDebouncedFinal: (transcript: string) => void;
 };
 
+const SPEECH_START_TIMEOUT_MS = 3000;
+
 export function useVoiceMode() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const debounceTimerRef = useRef<number | null>(null);
@@ -75,6 +77,20 @@ export function useVoiceMode() {
         setIsSpeaking(false);
         onEnd?.();
       };
+
+      // Browsers can refuse to speak (no user interaction yet, or no voices), and then
+      // neither onend nor onerror fires. Give up quietly if it never starts, without
+      // running onEnd, so nothing goes on to open the microphone.
+      let started = false;
+      utterance.onstart = () => {
+        started = true;
+      };
+      window.setTimeout(() => {
+        if (started || speakEndRef.current !== handleEnd) return;
+        speakEndRef.current = null;
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }, SPEECH_START_TIMEOUT_MS);
 
       utterance.onend = handleEnd;
       utterance.onerror = handleEnd;

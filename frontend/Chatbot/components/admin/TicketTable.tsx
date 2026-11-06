@@ -30,7 +30,7 @@ export function TicketTable({ tickets, onMutate }: TicketTableProps) {
     switch (status) {
       case "approved":
         return (
-          <Badge className="border-transparent bg-primary/10 text-primary hover:bg-primary/10">
+          <Badge className="border-transparent bg-live/15 text-live hover:bg-live/15">
             Approved
           </Badge>
         );

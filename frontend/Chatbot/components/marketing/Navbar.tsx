@@ -67,7 +67,11 @@ export function Navbar() {
                 <Menu />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="landing w-72 border-l border-dashed border-line sm:max-w-xs">
+            <SheetContent
+              side="right"
+              data-lenis-prevent
+              className="landing w-72 border-l border-dashed border-line sm:max-w-xs"
+            >
               <SheetHeader>
                 <SheetTitle className="font-display">Menu</SheetTitle>
                 <SheetDescription className="sr-only">Site navigation</SheetDescription>

@@ -18,24 +18,28 @@ export function MessageList({
   suggestionsDisabled = false,
 }: MessageListProps) {
   const lastId = messages.at(-1)?.id;
-
-  const bottomRef = useAutoScroll<HTMLDivElement>([messages]);
-
-  if (messages.length === 0) {
-    return <EmptyState />;
-  }
+  // The container is always rendered, so auto-scroll can attach to it from the start.
+  const containerRef = useAutoScroll<HTMLDivElement>([messages]);
 
   return (
-    <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-6">
-      {messages.map((message) => (
-        <MessageBubble
-          key={message.id}
-          message={message}
-          onSuggestion={message.id === lastId ? onSuggestion : undefined}
-          suggestionsDisabled={suggestionsDisabled}
-        />
-      ))}
-      <div ref={bottomRef} className="h-px shrink-0" aria-hidden />
+    <div
+      ref={containerRef}
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+    >
+      {messages.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-6">
+          {messages.map((message) => (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              onSuggestion={message.id === lastId ? onSuggestion : undefined}
+              suggestionsDisabled={suggestionsDisabled}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

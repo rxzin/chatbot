@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/chat";
 import { StreamingCursor } from "./StreamingCursor";
@@ -72,12 +73,11 @@ export function MessageBubble({
     >
       <div
         className={cn(
-          "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[75%]",
+          "max-w-[85%] rounded-[14px] px-4 py-3 text-sm leading-relaxed sm:max-w-[75%]",
           isUser
             ? "bg-primary text-primary-foreground"
-            : "border border-border bg-card text-card-foreground",
-          message.status === "error" &&
-            "border-destructive/50 bg-destructive/5",
+            : "border border-line bg-card text-card-foreground",
+          message.status === "error" && "border-destructive/60",
         )}
       >
         {isStreaming && message.activity && (
@@ -150,12 +150,11 @@ export function MessageBubble({
             {content || (isStreaming ? "" : "…")}
           </ReactMarkdown>
 
-          {/* Keep your awesome streaming cursor at the end */}
           {isStreaming && <StreamingCursor />}
         </div>
 
         {!isUser && (docSources.length > 0 || webSources.length > 0) && (
-          <div className="mt-3 border-t border-border pt-3">
+          <div className="mt-3 border-t border-dashed border-line pt-3">
             <p className="mb-2 text-xs font-medium text-muted-foreground">
               Sources
             </p>
@@ -163,7 +162,7 @@ export function MessageBubble({
               {docSources.map((source) => (
                 <li
                   key={`${source.documentId}-${source.chunkIndex}`}
-                  className="rounded-md border border-border bg-background/70 p-2"
+                  className="rounded-[10px] border border-line bg-background p-2"
                 >
                   <div className="flex min-w-0 items-center gap-2 text-xs font-medium">
                     <SourceNumber number={source.number} />
@@ -186,7 +185,7 @@ export function MessageBubble({
                     href={source.href}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="block rounded-md border border-border bg-background/70 p-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="block rounded-[10px] border border-line bg-background p-2 transition-colors hover:bg-muted"
                   >
                     <div className="flex min-w-0 items-center gap-2 text-xs font-medium">
                       <SourceNumber number={source.number} />
@@ -212,15 +211,17 @@ export function MessageBubble({
           className="flex max-w-[85%] flex-wrap gap-2 sm:max-w-[75%]"
         >
           {suggestions.map((suggestion) => (
-            <button
+            <Button
               key={suggestion}
               type="button"
+              variant="outline"
+              size="sm"
               disabled={suggestionsDisabled}
               onClick={() => onSuggestion(suggestion)}
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-auto min-h-8 rounded-[4px] border-line bg-transparent py-1.5 text-left text-xs font-normal whitespace-normal"
             >
               {suggestion}
-            </button>
+            </Button>
           ))}
         </div>
       )}

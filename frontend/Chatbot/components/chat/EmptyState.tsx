@@ -1,20 +1,12 @@
-import { MessageSquare } from "lucide-react";
-
 export function EmptyState() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-muted-foreground">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-        <MessageSquare className="h-7 w-7" />
-      </div>
-      <div>
-        <p className="text-base font-medium text-foreground">
-          Start a conversation
-        </p>
-        <p className="mt-1 max-w-sm text-sm">
-          Ask anything — replies stream in real time from Mistral via FastAPI
-          backend.
-        </p>
-      </div>
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+      <h2 className="font-display text-2xl font-medium tracking-[-0.02em] text-foreground">
+        Ask anything
+      </h2>
+      <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+        Attach a PDF or text file to ask about it. Answers show the sources they used.
+      </p>
     </div>
   );
 }

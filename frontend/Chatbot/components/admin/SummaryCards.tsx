@@ -43,7 +43,7 @@ export function SummaryCards() {
             <span className="truncate">{label}</span>
           </div>
           {data ? (
-            <p className="text-2xl font-semibold tabular-nums">
+            <p className="font-display text-2xl font-medium tracking-[-0.02em] tabular-nums">
               {data[key].toLocaleString()}
             </p>
           ) : (

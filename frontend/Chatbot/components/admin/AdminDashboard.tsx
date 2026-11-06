@@ -66,7 +66,7 @@ export function AdminDashboard() {
     <div className="container mx-auto max-w-6xl space-y-6 px-4 py-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin dashboard</h1>
+          <h1 className="font-display text-3xl font-medium tracking-[-0.02em]">Admin dashboard</h1>
           <p className="mt-2 text-muted-foreground">
             Review bug reports, monitor requests, and manage user access.
           </p>

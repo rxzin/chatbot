@@ -79,7 +79,7 @@ export function TicketDetailsModal({
       >
         <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="font-display text-xl font-medium tracking-[-0.01em]">
               {ticket.title}
             </DialogTitle>
             <DialogDescription>

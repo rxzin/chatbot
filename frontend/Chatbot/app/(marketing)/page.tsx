@@ -7,12 +7,14 @@ import { Integrations } from "@/components/marketing/Integrations";
 import { LogoCarousel } from "@/components/marketing/LogoCarousel";
 import { Navbar } from "@/components/marketing/Navbar";
 import { PricingSection } from "@/components/marketing/PricingSection";
+import { SmoothScroll } from "@/components/marketing/SmoothScroll";
 import { TestimonialSection } from "@/components/marketing/TestimonialSection";
 import { UseCases } from "@/components/marketing/UseCases";
 
 export default function Home() {
   return (
     <div className="landing min-h-screen">
+      <SmoothScroll />
       <Navbar />
       <main>
         <Hero />
