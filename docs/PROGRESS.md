@@ -59,7 +59,9 @@ Admin login and the frontend are confirmed working in production.
 - [x] `_finish_notice` in `services/mistral.py`: a reply cut off at the length limit ends
       with a note to say "continue", and a model error mid-reply shows the error and is not
       saved.
-- [ ] "Failed (24h)" counts every 4xx, including normal logged-out 401s.
+- [x] The admin card is now "Server errors (24h)" and counts only 5xx. It used to count
+      every 4xx, including normal logged-out 401s. The audit log's status filter still
+      shows 4xx.
 - [ ] Update both READMEs, which still describe Gemini, ONNX and AWS.
 - [ ] Remove `docker-compose.prod.yml` and other leftovers from the AWS deployment.
 - [ ] Try local Docker Compose end to end. The backend and frontend containers haven't

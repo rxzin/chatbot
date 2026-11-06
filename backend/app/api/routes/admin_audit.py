@@ -46,10 +46,12 @@ async def get_summary(
             model=Session,
         ),
         requests_24h=await _count(db, AuditLog.created_at >= day_ago, model=AuditLog),
+        # Only 5xx: 4xx is mostly normal use (logged-out 401s, wrong passwords,
+        # taken emails, rate limits), which made the count look alarming.
         failed_requests_24h=await _count(
             db,
             AuditLog.created_at >= day_ago,
-            AuditLog.status_code >= 400,
+            AuditLog.status_code >= 500,
             model=AuditLog,
         ),
     )

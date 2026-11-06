@@ -23,7 +23,7 @@ const CARDS: { key: keyof AdminSummary; label: string; icon: LucideIcon }[] = [
   { key: "banned_users", label: "Banned", icon: Ban },
   { key: "active_sessions", label: "Active sessions", icon: KeyRound },
   { key: "requests_24h", label: "Requests (24h)", icon: Activity },
-  { key: "failed_requests_24h", label: "Failed (24h)", icon: AlertTriangle },
+  { key: "failed_requests_24h", label: "Server errors (24h)", icon: AlertTriangle },
 ];
 
 export function SummaryCards() {
