@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Annotated, Any, Literal, Optional, Union
 from uuid import UUID
 
-from schemas.rag import SourceReference
+from schemas.rag import SourceReference, WebSource
 
 from pydantic import BaseModel, Field
 
@@ -62,10 +62,13 @@ class TextDeltaEvent(BaseModel):
 
 
 class SourcesEvent(BaseModel):
-    """Documents the reply was based on. Sent once, before done."""
+    """Documents and web pages the reply was based on. Sent once, before done."""
 
     type: Literal["sources"] = "sources"
-    sources: list[SourceReference]
+    sources: list[SourceReference] = Field(default_factory=list)
+    web_sources: list[WebSource] = Field(default_factory=list, alias="webSources")
+
+    model_config = {"populate_by_name": True}
 
 
 class ToolStartEvent(BaseModel):
@@ -141,7 +144,11 @@ class TextPart(BaseModel):
 
 class SourcesPart(BaseModel):
     type: Literal["sources"] = "sources"
-    sources: list[SourceReference]
+    sources: list[SourceReference] = Field(default_factory=list)
+    # Parts saved before web search existed have no webSources.
+    web_sources: list[WebSource] = Field(default_factory=list, alias="webSources")
+
+    model_config = {"populate_by_name": True}
 
 
 MessagePart = Annotated[Union[TextPart, SourcesPart], Field(discriminator="type")]

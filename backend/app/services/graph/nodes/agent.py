@@ -7,7 +7,7 @@ from core.config import getSettings
 from services.base import ToolExchange, ToolResult
 from services.context_budget import apply_token_budget
 from services.graph.state import AgentState
-from services.graph.tools import instructions_for, run_tool, tools_for
+from services.graph.tools import ToolOutcome, instructions_for, run_tool, tools_for
 
 
 async def agent(state: AgentState, config: RunnableConfig) -> dict:
@@ -37,9 +37,9 @@ async def agent(state: AgentState, config: RunnableConfig) -> dict:
         prompt=state["user_message"],
         history=history,
         context_summary=summary,
-        instructions=instructions_for(state),
+        instructions=instructions_for(state, config),
         exchanges=exchanges,
-        tools=tools_for(state),
+        tools=tools_for(state, config),
         allow_tools=allow_tools,
     ):
         if isinstance(chunk, list):
@@ -73,14 +73,18 @@ async def tools(state: AgentState, config: RunnableConfig) -> dict:
     async def run(index: int, call) -> ToolResult:
         writer({"event": "tool-start", "id": call.id, "name": call.name, "input": call.arguments})
         if index >= limit:
-            outcome_content, is_error, sources = (
-                f"Skipped: at most {limit} tool calls per step.", True, []
-            )
+            outcome = ToolOutcome(f"Skipped: at most {limit} tool calls per step.", is_error=True)
         else:
             outcome = await run_tool(call, state, config)
-            outcome_content, is_error, sources = outcome.content, outcome.is_error, outcome.sources
-        if sources:
-            writer({"event": "sources", "sources": [s.model_dump(by_alias=True) for s in sources]})
+        outcome_content, is_error = outcome.content, outcome.is_error
+        if outcome.sources or outcome.web_sources:
+            writer(
+                {
+                    "event": "sources",
+                    "sources": [s.model_dump(by_alias=True) for s in outcome.sources],
+                    "web_sources": [s.model_dump(by_alias=True) for s in outcome.web_sources],
+                }
+            )
         writer({"event": "tool-result", "id": call.id, "name": call.name, "is_error": is_error})
         return ToolResult(call_id=call.id, name=call.name, content=outcome_content)
 

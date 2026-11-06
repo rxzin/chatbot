@@ -809,7 +809,7 @@ export interface components {
         };
         /**
          * SourcesEvent
-         * @description Documents the reply was based on. Sent once, before done.
+         * @description Documents and web pages the reply was based on. Sent once, before done.
          */
         SourcesEvent: {
             /**
@@ -818,7 +818,9 @@ export interface components {
              */
             type: "sources";
             /** Sources */
-            sources: components["schemas"]["SourceReference"][];
+            sources?: components["schemas"]["SourceReference"][];
+            /** Websources */
+            webSources?: components["schemas"]["WebSource"][];
         };
         /** SourcesPart */
         SourcesPart: {
@@ -828,7 +830,9 @@ export interface components {
              */
             type: "sources";
             /** Sources */
-            sources: components["schemas"]["SourceReference"][];
+            sources?: components["schemas"]["SourceReference"][];
+            /** Websources */
+            webSources?: components["schemas"]["WebSource"][];
         };
         /** StreamError */
         StreamError: {
@@ -952,6 +956,20 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * WebSource
+         * @description A web page the reply used. url is always http or https.
+         */
+        WebSource: {
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+            /** Snippet */
+            snippet: string;
+            /** Publisheddate */
+            publishedDate?: string | null;
         };
     };
     responses: never;

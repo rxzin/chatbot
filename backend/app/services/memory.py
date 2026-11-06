@@ -2,6 +2,7 @@ import redis.asyncio as redis
 from schemas.chat import MessageParam
 from core.config import getSettings
 from core.logging import logger
+from datetime import datetime, timezone
 from uuid import UUID
 from typing import TYPE_CHECKING, Optional, Tuple
 
@@ -52,6 +53,24 @@ class RedisMemoryService:
             logger.exception(
                 f"Failed to release rate limit for {action} user {user_id}: {e}"
             )
+
+    async def consume_daily_quota(
+        self, user_id: str | UUID, action: str, limit: int
+    ) -> bool:
+        """
+        Count one use of action for today (UTC). False once the day's limit is used.
+        Like try_acquire_rate_limit, a Redis failure refuses, to protect paid APIs.
+        """
+        day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        key = f"quota:{action}:{user_id}:{day}"
+        try:
+            count = await self.redis_client.incr(key)
+            if count == 1:
+                await self.redis_client.expire(key, 2 * 86400)
+            return count <= limit
+        except Exception:
+            logger.exception(f"Failed to count {action} quota for user {user_id}")
+            return False
 
     async def get_rate_limit_ttl(
         self, user_id: str | UUID, action: str

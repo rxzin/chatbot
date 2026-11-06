@@ -14,7 +14,7 @@ from schemas.chat import (
     sse,
 )
 from schemas.models import User
-from schemas.rag import SourceReference
+from schemas.rag import SourceReference, WebSource
 from services.documents import list_conversation_documents
 from services.streaming import persist_turn
 from services.graph.state import AgentState
@@ -74,6 +74,17 @@ def _add_sources(
     return merged
 
 
+def _add_web_sources(sources: list[WebSource], new: list[dict]) -> list[WebSource]:
+    seen = {s.url for s in sources}
+    merged = list(sources)
+    for raw in new:
+        source = WebSource.model_validate(raw)
+        if source.url not in seen:
+            seen.add(source.url)
+            merged.append(source)
+    return merged
+
+
 async def run_graph_stream(
     request: Request,
     chat_request: ChatRequest,
@@ -98,12 +109,14 @@ async def run_graph_stream(
             "embedding_service": app_state.embedding_service,
             "vector_store": app_state.vector_store_service,
             "reranker_service": app_state.reranker_service,
+            "search_provider": getattr(app_state, "search_provider", None),
             "settings": settings,
         }
     }
 
     full_model_response = ""
     sources: list[SourceReference] = []
+    web_sources: list[WebSource] = []
     # If "done" ever arrives without the trimmed history, keep the loaded one, or
     # saving the turn would wipe the conversation's context.
     prepared_messages = initial_state["history"]
@@ -144,6 +157,7 @@ async def run_graph_stream(
 
             elif event_name == "sources":
                 sources = _add_sources(sources, event.get("sources") or [])
+                web_sources = _add_web_sources(web_sources, event.get("web_sources") or [])
 
             elif event_name == "done":
                 prepared_messages = event.get("prepared_messages", prepared_messages)
@@ -154,8 +168,8 @@ async def run_graph_stream(
         if await request.is_disconnected():
             return
 
-        if sources:
-            yield sse(SourcesEvent(sources=sources))
+        if sources or web_sources:
+            yield sse(SourcesEvent(sources=sources, web_sources=web_sources))
         yield sse(DoneEvent())
 
         if await request.is_disconnected():
@@ -171,6 +185,7 @@ async def run_graph_stream(
             prepared_messages=prepared_messages,
             context_summary=final_context_summary,
             sources=sources,
+            web_sources=web_sources,
         )
 
     except Exception:

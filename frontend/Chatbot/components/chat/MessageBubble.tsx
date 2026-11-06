@@ -8,7 +8,17 @@ import type { ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Globe, Loader2 } from "lucide-react";
+
+/** Only http and https links are rendered, whatever the server sent. */
+function safeWebUrl(url: string): URL | null {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
 
 type MessageBubbleProps = {
   message: ChatMessage;
@@ -23,6 +33,11 @@ type MarkdownCodeProps = {
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const isStreaming = message.status === "streaming";
+  const docSources = message.sources ?? [];
+  const webSources = (message.webSources ?? []).flatMap((source) => {
+    const url = safeWebUrl(source.url);
+    return url ? [{ ...source, host: url.hostname.replace(/^www\./, "") }] : [];
+  });
 
   return (
     <div
@@ -99,13 +114,13 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {isStreaming && <StreamingCursor />}
         </div>
 
-        {!isUser && message.sources && message.sources.length > 0 && (
+        {!isUser && (docSources.length > 0 || webSources.length > 0) && (
           <div className="mt-3 border-t border-border pt-3">
             <p className="mb-2 text-xs font-medium text-muted-foreground">
               Sources
             </p>
             <div className="flex flex-col gap-2">
-              {message.sources.map((source) => (
+              {docSources.map((source) => (
                 <div
                   key={`${source.documentId}-${source.chunkIndex}`}
                   className="rounded-md border border-border bg-background/70 p-2"
@@ -123,6 +138,24 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                     {source.snippet}
                   </p>
                 </div>
+              ))}
+              {webSources.map((source) => (
+                <a
+                  key={source.url}
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="block rounded-md border border-border bg-background/70 p-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <div className="flex min-w-0 items-center gap-2 text-xs font-medium">
+                    <Globe aria-hidden className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{source.title}</span>
+                    <span className="shrink-0 text-muted-foreground">{source.host}</span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    {source.snippet}
+                  </p>
+                </a>
               ))}
             </div>
           </div>

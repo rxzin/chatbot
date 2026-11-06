@@ -11,6 +11,7 @@ from services.graph.graph import graph_builder
 from services.memory import RedisMemoryService
 from services.mistral import MistralProvider, is_transient_error
 from services.reranker import RerankerService
+from services.search import build_search_provider
 from services.vector_store import PineconeVectorStoreService
 
 SYSTEM_PROMPT = "You are a helpful AI assistant."
@@ -61,6 +62,10 @@ async def lifespan(app: FastAPI):
         reranker_service = RerankerService()
         app.state.reranker_service = reranker_service
 
+        app.state.search_provider = build_search_provider(
+            settings.SEARCH_PROVIDER, settings.EXA_API_KEY
+        )
+
         app.state.agent_graph = graph_builder()
         log_event(
             event="app.lifecycle.startup.succeeded",
@@ -68,6 +73,7 @@ async def lifespan(app: FastAPI):
             redis_connected=True,
             vector_store_initialized=True,
             reranker_initialized=True,
+            web_search_enabled=app.state.search_provider is not None,
         )
     except Exception:
         logger.exception(
@@ -80,6 +86,10 @@ async def lifespan(app: FastAPI):
 
     try:
         await audit_writer.stop()
+
+        search_provider = getattr(app.state, "search_provider", None)
+        if search_provider is not None:
+            await search_provider.close()
 
         if pinecone_service is not None:
             await pinecone_service.close()

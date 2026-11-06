@@ -5,6 +5,7 @@ type Schemas = components["schemas"];
 export type ChatRole = "user" | "model";
 
 export type SourceReference = Schemas["SourceReference"];
+export type WebSource = Schemas["WebSource"];
 
 /** One SSE event from POST /api/chat. The stream ends with "done" or "error". */
 export type ChatStreamEvent =
@@ -24,6 +25,7 @@ export type ChatMessage = {
   content: string;
   status?: "streaming" | "done" | "error";
   sources?: SourceReference[];
+  webSources?: WebSource[];
   /** What the agent is doing right now, e.g. "Searching your documents". Streaming only. */
   activity?: string;
 };

@@ -32,3 +32,14 @@ class SourceReference(BaseModel):
     score: Optional[float] = None
 
     model_config = {"populate_by_name": True}
+
+
+class WebSource(BaseModel):
+    """A web page the reply used. url is always http or https."""
+
+    url: str
+    title: str
+    snippet: str
+    published_date: Optional[str] = Field(default=None, alias="publishedDate")
+
+    model_config = {"populate_by_name": True}

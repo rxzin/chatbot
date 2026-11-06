@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { getConversationMessages } from "@/lib/api/conversationApi";
 import { streamChat } from "@/lib/api/chatApi";
 import { ApiRequestError } from "@/lib/api/client";
-import type { ChatMessage, MessagePart, SourceReference } from "@/types/chat";
+import type { ChatMessage, MessagePart, SourceReference, WebSource } from "@/types/chat";
 
 function createId() {
   return crypto.randomUUID();
@@ -15,6 +15,8 @@ function describeTool(name: string, input: Record<string, unknown>): string {
   switch (name) {
     case "search_documents":
       return "Searching your documents";
+    case "web_search":
+      return "Searching the web";
     case "get_weather":
       return typeof input.city === "string" && input.city
         ? `Checking the weather in ${input.city}`
@@ -28,14 +30,21 @@ function describeTool(name: string, input: Record<string, unknown>): string {
 
 /** Text and sources for display, from a stored message's parts. */
 function fromParts(parts: MessagePart[] | undefined, fallback: string) {
-  if (!parts?.length) return { content: fallback, sources: undefined };
+  if (!parts?.length) return { content: fallback };
   const content = parts
     .flatMap((part) => (part.type === "text" ? [part.text] : []))
     .join("");
   const sources = parts.flatMap((part) =>
-    part.type === "sources" ? part.sources : []
+    part.type === "sources" ? (part.sources ?? []) : []
   );
-  return { content, sources: sources.length ? sources : undefined };
+  const webSources = parts.flatMap((part) =>
+    part.type === "sources" ? (part.webSources ?? []) : []
+  );
+  return {
+    content,
+    sources: sources.length ? sources : undefined,
+    webSources: webSources.length ? webSources : undefined,
+  };
 }
 
 export function useChat(conversationId: string | null, conversationKey: string) {
@@ -46,7 +55,11 @@ export function useChat(conversationId: string | null, conversationKey: string) 
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const assistantRef = useRef<{ content: string; sources?: SourceReference[] }>({ content: "" });
+  const assistantRef = useRef<{
+    content: string;
+    sources?: SourceReference[];
+    webSources?: WebSource[];
+  }>({ content: "" });
 
   useEffect(() => {
     if (!conversationId) {
@@ -158,7 +171,10 @@ export function useChat(conversationId: string | null, conversationKey: string) 
               );
               break;
             case "sources":
-              assistantRef.current.sources = event.sources;
+              assistantRef.current.sources = event.sources?.length ? event.sources : undefined;
+              assistantRef.current.webSources = event.webSources?.length
+                ? event.webSources
+                : undefined;
               break;
             case "done":
               break;
@@ -175,6 +191,7 @@ export function useChat(conversationId: string | null, conversationKey: string) 
           content: assistantRef.current.content,
           status: "done",
           sources: assistantRef.current.sources,
+          webSources: assistantRef.current.webSources,
         },
       ]);
       setStreamingAssistant(null);
@@ -200,6 +217,7 @@ export function useChat(conversationId: string | null, conversationKey: string) 
           content: assistantRef.current.content,
           status: "error",
           sources: assistantRef.current.sources,
+          webSources: assistantRef.current.webSources,
         },
       ]);
       setStreamingAssistant(null);

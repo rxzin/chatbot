@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # Agent loop: tool rounds per turn before the model must answer, and calls per round.
     AGENT_MAX_TOOL_ROUNDS: int = 4
     AGENT_MAX_CALLS_PER_ROUND: int = 4
+    # Web search. "none", or an empty key, turns the web_search tool off.
+    SEARCH_PROVIDER: Literal["exa", "none"] = "exa"
+    EXA_API_KEY: str = ""
+    WEB_SEARCH_RESULTS: int = 5
+    WEB_SEARCH_DAILY_LIMIT_PER_USER: int = 30
     ALLOW_PUBLIC_REGISTRATION: bool = True
     # Sign-ups are counted per window. The per-IP cap only applies when the real
     # client IP is known (TRUST_PROXY_HEADERS); the global cap always applies.
