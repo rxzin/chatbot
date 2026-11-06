@@ -50,8 +50,8 @@ Admin login and the frontend are confirmed working in production.
 
 ## Smaller fixes
 
-- [ ] `bug_report` wipes the conversation's recent context in Redis, because its `done`
-      event has no `prepared_messages`.
+- [x] `bug_report` wiped the conversation's recent context in Redis, because its `done`
+      event has no `prepared_messages`. The runner now keeps the loaded history instead.
 - [ ] Registration has no rate limit, and `REGISTRATION_RATE_LIMIT_SECONDS` is unused.
 - [ ] `_finish_notice` in `services/mistral.py` is still a TODO, so replies that get cut off
       end silently.

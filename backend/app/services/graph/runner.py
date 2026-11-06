@@ -80,7 +80,9 @@ async def run_graph_stream(
 
     full_model_response = ""
     buffered_sources = None
-    prepared_messages = []
+    # Nodes that don't trim the history (bug_report) send "done" without it.
+    # Keep the loaded history then, or saving the turn would wipe the context.
+    prepared_messages = initial_state["history"]
     final_context_summary = initial_state["context_summary"]
 
     try:
@@ -103,7 +105,7 @@ async def run_graph_stream(
                 buffered_sources = event.get("sources")
 
             elif event_name == "done":
-                prepared_messages = event.get("prepared_messages", [])
+                prepared_messages = event.get("prepared_messages", prepared_messages)
                 final_context_summary = event.get(
                     "context_summary", final_context_summary
                 )
