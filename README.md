@@ -18,8 +18,8 @@ runs on FastAPI Cloud.
 - **Chat with streaming replies** over Server-Sent Events, with saved conversations.
 - **Document answers (RAG):** uploads are split into chunks, embedded with
   `mistral-embed`, stored in Pinecone, reranked with Cohere, and cited as sources.
-- **Routing:** a LangGraph classifier sends each message to general chat, document
-  search, weather, or a bug report.
+- **Agent with tools:** the model decides when to search the user's documents, check the
+  weather, or file a bug report, and can use several tools before answering.
 - **Bug reports:** drafted from the conversation, queued for an admin, then created in
   Jira on approval with an email to the user.
 - **Admin dashboard:** bug report approval, an audit log of every API request, and user
@@ -43,14 +43,11 @@ runs on FastAPI Cloud.
 ## How a message flows
 
 ```
-Browser ──POST /api/chat──▶ FastAPI ──▶ LangGraph
-                                          │ classifier
-             ┌──────────────┬─────────────┼──────────────┐
-             ▼              ▼             ▼              ▼
-           chat      researcher→writer  weather      bug_report
-             └──────────────┴─────────────┴──────────────┘
-                                          │ token events
-Browser ◀──── SSE stream ◀── runner ◀─────┘
+Browser ──POST /api/chat──▶ FastAPI ──▶ LangGraph:  agent ⇄ tools (up to 4 rounds)
+                                                      │      search_documents
+                                                      │      get_weather
+                                                      │      report_bug
+Browser ◀──── SSE events ◀── runner ◀─────────────────┘
                                └─ saves the turn to Postgres and the recent context to Redis
 ```
 

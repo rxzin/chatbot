@@ -107,11 +107,17 @@ as a discriminated union in `schemas/chat.py` and generated into the frontend's 
 Messages have a nullable `parts` JSONB column (`text` and `sources` parts), so sources
 survive a reload; `content` keeps the plain text for the model's memory.
 
-Still to add with their features: `tool-start` and `tool-result` (agent loop),
+`tool-start` and `tool-result` were added with the agent loop. Still to add:
 `suggestions` (suggested questions). Each adds an event type and, where it should survive
 a reload, a part type.
 
-## Agent (planned)
+## Agent
+
+Built (2026-11-06) with `search_documents`, `get_weather` and `report_bug`; `web_search`
+comes with feature 3. `agent` and `tools` are LangGraph nodes; the cap is
+`AGENT_MAX_TOOL_ROUNDS` (4) and calls per round are capped at
+`AGENT_MAX_CALLS_PER_ROUND` (4). Tool steps stream as `tool-start` and `tool-result`
+events but aren't saved as parts yet. Suggestions are not built.
 
 ```
 agent (LLM + tools) ──tool calls──> run tools ──> back to agent

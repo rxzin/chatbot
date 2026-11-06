@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     JIRA_PROJECT_KEY: str
     JIRA_ISSUE_TYPE: str
     BUG_REPORT_RATE_LIMIT_SECONDS: int
+    # Agent loop: tool rounds per turn before the model must answer, and calls per round.
+    AGENT_MAX_TOOL_ROUNDS: int = 4
+    AGENT_MAX_CALLS_PER_ROUND: int = 4
     ALLOW_PUBLIC_REGISTRATION: bool = True
     # Sign-ups are counted per window. The per-IP cap only applies when the real
     # client IP is known (TRUST_PROXY_HEADERS); the global cap always applies.

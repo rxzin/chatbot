@@ -76,6 +76,9 @@ Admin login and the frontend are confirmed working in production.
       the first conversation automatically would be smoother (feature 5).
 - [ ] The message list doesn't scroll to a reply that failed, so the partial text can sit
       below the fold (feature 5).
+- [ ] In automated browser tests the "Speaking… / Stop" bar stays up in Text mode, from the
+      "Would you like to work in voice mode?" prompt. Check in a real browser whether it
+      clears; the test browser has no speech voices (feature 5).
 
 ## UI polish, done
 
@@ -143,9 +146,10 @@ In this order, because each depends on the one before:
    (`text-delta`, `sources`, `done`, `error`) and a `parts` column, so sources survive a
    reload. A stream that ends without `done` now shows as interrupted. Needs the
    `b8c9d0e1f2a3` migration, which `deploy.sh` runs.
-2. **Agent loop:** tool calls replace the classifier, with document search, weather and bug
-   reports as tools. This also stops messages containing "error" from being misrouted as
-   bug reports.
+2. ~~**Agent loop**~~ Done (2026-11-06): `agent` ⇄ `tools` LangGraph loop with
+   `search_documents`, `get_weather` and `report_bug`, capped at 4 tool rounds. The
+   classifier and keyword routing are gone, so a coding question that mentions "error"
+   no longer files a bug report. Tool steps show as a status line while streaming.
 3. **Exa web search:** behind a `SearchProvider` interface, so you can switch providers.
 4. **Inline citations and suggested questions:** using AI Elements.
 5. **Chat UI cleanup:** `components/chat` still has raw buttons and inputs to move to

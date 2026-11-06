@@ -809,7 +809,7 @@ export interface components {
         };
         /**
          * SourcesEvent
-         * @description Documents the reply was based on. Sent once, after the text.
+         * @description Documents the reply was based on. Sent once, before done.
          */
         SourcesEvent: {
             /**
@@ -859,6 +859,45 @@ export interface components {
             type: "text";
             /** Text */
             text: string;
+        };
+        /**
+         * ToolResultEvent
+         * @description A tool call finished. The result itself goes to the model, not the client.
+         */
+        ToolResultEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "tool-result";
+            /** Toolcallid */
+            toolCallId: string;
+            /** Toolname */
+            toolName: string;
+            /**
+             * Iserror
+             * @default false
+             */
+            isError: boolean;
+        };
+        /**
+         * ToolStartEvent
+         * @description The agent started a tool call, such as a document search.
+         */
+        ToolStartEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "tool-start";
+            /** Toolcallid */
+            toolCallId: string;
+            /** Toolname */
+            toolName: string;
+            /** Input */
+            input?: {
+                [key: string]: unknown;
+            };
         };
         /** UserCreate */
         UserCreate: {
@@ -1246,7 +1285,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TextDeltaEvent"] | components["schemas"]["SourcesEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ErrorEvent"];
+                    "application/json": components["schemas"]["TextDeltaEvent"] | components["schemas"]["ToolStartEvent"] | components["schemas"]["ToolResultEvent"] | components["schemas"]["SourcesEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ErrorEvent"];
                 };
             };
             /** @description Validation Error */

@@ -9,6 +9,8 @@ export type SourceReference = Schemas["SourceReference"];
 /** One SSE event from POST /api/chat. The stream ends with "done" or "error". */
 export type ChatStreamEvent =
   | Schemas["TextDeltaEvent"]
+  | Schemas["ToolStartEvent"]
+  | Schemas["ToolResultEvent"]
   | Schemas["SourcesEvent"]
   | Schemas["DoneEvent"]
   | Schemas["ErrorEvent"];
@@ -22,4 +24,6 @@ export type ChatMessage = {
   content: string;
   status?: "streaming" | "done" | "error";
   sources?: SourceReference[];
+  /** What the agent is doing right now, e.g. "Searching your documents". Streaming only. */
+  activity?: string;
 };

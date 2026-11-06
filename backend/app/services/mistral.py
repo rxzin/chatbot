@@ -1,15 +1,16 @@
+import json
+import uuid
 from typing import Any, AsyncGenerator, Optional, Sequence
 
 import httpx2
 from mistralai.client import Mistral
 from mistralai.client.errors import NoResponseError, SDKError
 from mistralai.client.models import TextChunk
-from pydantic import BaseModel
 
 from core.config import getSettings
 from core.logging import logger
 from schemas.chat import MessageParam
-from services.base import AIPlatform
+from services.base import AIPlatform, ToolCall, ToolExchange, ToolSpec, TurnChunk
 
 # Storage and the frontend use "model" for the assistant; Mistral expects "assistant".
 _API_ROLES = {"user": "user", "model": "assistant"}
@@ -55,6 +56,83 @@ def _extract_text(content: Any) -> str:
     return ""
 
 
+def _tool_param(tool: ToolSpec) -> dict[str, Any]:
+    return {
+        "type": "function",
+        "function": {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": tool.parameters,
+        },
+    }
+
+
+def _exchange_messages(exchanges: Sequence[ToolExchange]) -> list[dict[str, Any]]:
+    """This turn's earlier rounds: the assistant's tool calls, then each result."""
+    messages: list[dict[str, Any]] = []
+    for exchange in exchanges:
+        messages.append(
+            {
+                "role": "assistant",
+                "content": exchange.text,
+                "tool_calls": [
+                    {
+                        "id": call.id,
+                        "type": "function",
+                        "function": {
+                            "name": call.name,
+                            "arguments": json.dumps(call.arguments),
+                        },
+                    }
+                    for call in exchange.calls
+                ],
+            }
+        )
+        for result in exchange.results:
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": result.call_id,
+                    "name": result.name,
+                    "content": result.content,
+                }
+            )
+    return messages
+
+
+def _merge_tool_call(pending: dict[int, dict[str, Any]], call: Any) -> None:
+    index = call.index if isinstance(call.index, int) else len(pending)
+    entry = pending.setdefault(index, {"id": None, "name": "", "arguments": ""})
+    if call.id and call.id != "null":
+        entry["id"] = call.id
+    if call.function.name:
+        entry["name"] = call.function.name
+    arguments = call.function.arguments
+    if isinstance(arguments, dict):
+        entry["arguments"] = arguments
+    elif arguments:
+        entry["arguments"] = (
+            entry["arguments"] if isinstance(entry["arguments"], str) else ""
+        ) + arguments
+
+
+def _to_tool_call(entry: dict[str, Any]) -> ToolCall:
+    arguments = entry["arguments"]
+    if isinstance(arguments, str):
+        try:
+            arguments = json.loads(arguments) if arguments.strip() else {}
+        except json.JSONDecodeError:
+            logger.warning("Tool call %s had unparseable arguments", entry["name"])
+            arguments = {}
+    if not isinstance(arguments, dict):
+        arguments = {}
+    return ToolCall(
+        id=entry["id"] or uuid.uuid4().hex[:9],
+        name=entry["name"],
+        arguments=arguments,
+    )
+
+
 def _finish_notice(finish_reason: Optional[str]) -> Optional[str]:
     """
     Decide what the user sees once a stream has ended.
@@ -66,7 +144,7 @@ def _finish_notice(finish_reason: Optional[str]) -> Optional[str]:
     run_graph_stream send STREAM_GENERATION_FAILED. Whatever is returned here is also
     saved to Redis and Postgres as part of the reply; raising saves nothing.
     """
-    if finish_reason in (None, "stop"):
+    if finish_reason in (None, "stop", "tool_calls"):
         return None
     if finish_reason == "length":
         # Kept in the saved reply too, so a follow-up "continue" has context.
@@ -87,26 +165,40 @@ class MistralProvider(AIPlatform):
         self.model = model
         self._client = Mistral(api_key=api_key, timeout_ms=_TIMEOUT_MS)
 
-    async def chat(
+    async def stream_turn(
         self,
+        *,
         prompt: str,
-        history: Optional[Sequence[MessageParam]] = None,
-        context_summary: Optional[str] = None,
-    ) -> AsyncGenerator[str, None]:
-        """Yields chunks of text asynchronously for SSE streaming."""
+        history: Sequence[MessageParam],
+        context_summary: Optional[str],
+        instructions: str,
+        exchanges: Sequence[ToolExchange],
+        tools: Sequence[ToolSpec],
+        allow_tools: bool,
+    ) -> AsyncGenerator[TurnChunk, None]:
+        messages: list[dict[str, Any]] = _to_api_messages(
+            self._build_system_instruction(context_summary, instructions),
+            history,
+            prompt,
+        )
+        messages.extend(_exchange_messages(exchanges))
+
+        tool_args: dict[str, Any] = {}
+        if tools:
+            tool_args = {
+                "tools": [_tool_param(t) for t in tools],
+                "tool_choice": "auto" if allow_tools else "none",
+            }
         stream = await self._client.chat.stream_async(
             model=self.model,
-            messages=_to_api_messages(
-                self._build_system_instruction(context_summary),
-                history or [],
-                prompt,
-            ),
+            messages=messages,
             max_tokens=getSettings().MODEL_OUTPUT_TOKEN_LIMIT,
+            **tool_args,
         )
 
         finish_reason = None
-        # The context manager releases the connection if the client disconnects
-        # and this generator is closed part-way through.
+        # Tool calls may arrive split across chunks; they're joined by index.
+        pending: dict[int, dict[str, Any]] = {}
         async with stream as events:
             async for event in events:
                 if not event.data.choices:
@@ -115,25 +207,17 @@ class MistralProvider(AIPlatform):
                 text = _extract_text(choice.delta.content)
                 if text:
                     yield text
+                for call in choice.delta.tool_calls or []:
+                    _merge_tool_call(pending, call)
                 finish_reason = choice.finish_reason or finish_reason
 
+        calls = [_to_tool_call(p) for _, p in sorted(pending.items())]
+        if calls and allow_tools:
+            yield calls
+            return
         notice = _finish_notice(finish_reason)
         if notice:
             yield notice
-
-    async def classify_json(
-        self, system_prompt: str, user_prompt: str, schema: type[BaseModel]
-    ) -> BaseModel:
-        response = await self._client.chat.parse_async(
-            response_format=schema,
-            model=self.model,
-            messages=_to_api_messages(system_prompt, [], user_prompt),
-            temperature=0,
-        )
-        parsed = response.choices[0].message.parsed if response.choices else None
-        if parsed is None:
-            raise ValueError(f"Mistral returned no {schema.__name__} output")
-        return parsed
 
     async def _complete_text(
         self, system_instruction: str, prompt: str, max_output_tokens: int

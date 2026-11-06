@@ -10,6 +10,22 @@ function createId() {
   return crypto.randomUUID();
 }
 
+/** A short status line for a tool the agent started. */
+function describeTool(name: string, input: Record<string, unknown>): string {
+  switch (name) {
+    case "search_documents":
+      return "Searching your documents";
+    case "get_weather":
+      return typeof input.city === "string" && input.city
+        ? `Checking the weather in ${input.city}`
+        : "Checking the weather";
+    case "report_bug":
+      return "Filing a bug report";
+    default:
+      return "Working on it";
+  }
+}
+
 /** Text and sources for display, from a stored message's parts. */
 function fromParts(parts: MessagePart[] | undefined, fallback: string) {
   if (!parts?.length) return { content: fallback, sources: undefined };
@@ -124,7 +140,21 @@ export function useChat(conversationId: string | null, conversationKey: string) 
             case "text-delta":
               assistantRef.current.content += event.delta;
               setStreamingAssistant((prev) =>
-                prev ? { ...prev, content: assistantRef.current.content } : null
+                prev
+                  ? { ...prev, content: assistantRef.current.content, activity: undefined }
+                  : null
+              );
+              break;
+            case "tool-start":
+              setStreamingAssistant((prev) =>
+                prev
+                  ? { ...prev, activity: describeTool(event.toolName, event.input ?? {}) }
+                  : null
+              );
+              break;
+            case "tool-result":
+              setStreamingAssistant((prev) =>
+                prev ? { ...prev, activity: undefined } : null
               );
               break;
             case "sources":

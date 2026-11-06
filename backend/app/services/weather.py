@@ -3,6 +3,10 @@ import httpx
 from core.logging import logger
 
 
+class CityNotFoundError(Exception):
+    """The geocoder has no match for the name. Other failures mean the service is down."""
+
+
 async def fetch_open_meteo(city: str) -> dict:
     """
     Fetches the current weather and daily forecast for a given city using Open-Meteo.
@@ -33,7 +37,7 @@ async def fetch_open_meteo(city: str) -> dict:
 
         results = geocode_data.get("results")
         if not results:
-            raise Exception(f"Could not find coordinates for city: {normalized_city}")
+            raise CityNotFoundError(f"Could not find coordinates for city: {normalized_city}")
 
         location = results[0]
         lat = location.get("latitude")

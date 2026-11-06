@@ -9,6 +9,8 @@ from schemas.chat import (
     SourcesEvent,
     StreamError,
     TextDeltaEvent,
+    ToolResultEvent,
+    ToolStartEvent,
     sse,
 )
 from schemas.models import User
@@ -50,12 +52,26 @@ async def prepare_context(
         "document_filenames": document_filenames,
         "history": history,
         "context_summary": summary,
-        "route": "chat",  # Placeholder
-        "route_reason": "",
-        "grounded_prompt": None,
-        "sources": None,
+        "prepared_history": None,
+        "prepared_summary": None,
+        "exchanges": [],
+        "pending": None,
         "final_response": None,
     }
+
+
+def _add_sources(
+    sources: list[SourceReference], new: list[dict]
+) -> list[SourceReference]:
+    """Several searches in one turn can return the same passage; keep it once."""
+    seen = {(s.document_id, s.chunk_index) for s in sources}
+    merged = list(sources)
+    for raw in new:
+        source = SourceReference.model_validate(raw)
+        if (source.document_id, source.chunk_index) not in seen:
+            seen.add((source.document_id, source.chunk_index))
+            merged.append(source)
+    return merged
 
 
 async def run_graph_stream(
@@ -88,8 +104,8 @@ async def run_graph_stream(
 
     full_model_response = ""
     sources: list[SourceReference] = []
-    # Nodes that don't trim the history (bug_report) send "done" without it.
-    # Keep the loaded history then, or saving the turn would wipe the context.
+    # If "done" ever arrives without the trimmed history, keep the loaded one, or
+    # saving the turn would wipe the conversation's context.
     prepared_messages = initial_state["history"]
     final_context_summary = initial_state["context_summary"]
 
@@ -108,10 +124,26 @@ async def run_graph_stream(
                 if chunk:
                     yield sse(TextDeltaEvent(delta=chunk))
 
+            elif event_name == "tool-start":
+                yield sse(
+                    ToolStartEvent(
+                        tool_call_id=event["id"],
+                        tool_name=event["name"],
+                        input=event.get("input") or {},
+                    )
+                )
+
+            elif event_name == "tool-result":
+                yield sse(
+                    ToolResultEvent(
+                        tool_call_id=event["id"],
+                        tool_name=event["name"],
+                        is_error=bool(event.get("is_error")),
+                    )
+                )
+
             elif event_name == "sources":
-                sources = [
-                    SourceReference.model_validate(s) for s in event.get("sources") or []
-                ]
+                sources = _add_sources(sources, event.get("sources") or [])
 
             elif event_name == "done":
                 prepared_messages = event.get("prepared_messages", prepared_messages)

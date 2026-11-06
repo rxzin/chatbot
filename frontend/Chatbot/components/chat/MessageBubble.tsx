@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { FileText } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 
 type MessageBubbleProps = {
   message: ChatMessage;
@@ -38,10 +38,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             "border-destructive/50 bg-destructive/5",
         )}
       >
-        {/* <p className="whitespace-pre-wrap break-words">
-          {message.content || (isStreaming ? "" : "…")}
-          {isStreaming && <StreamingCursor />}
-        </p> */}
+        {isStreaming && message.activity && (
+          <p
+            role="status"
+            className="mb-2 flex items-center gap-2 text-xs text-muted-foreground"
+          >
+            <Loader2 aria-hidden className="h-3.5 w-3.5 animate-spin" />
+            {message.activity}…
+          </p>
+        )}
         <div
           className={cn(
             "prose max-w-none wrap-break-word dark:prose-invert prose-p:leading-relaxed prose-pre:p-0",

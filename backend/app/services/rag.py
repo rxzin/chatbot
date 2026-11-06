@@ -10,22 +10,6 @@ from services.reranker import RerankerService
 from services.vector_store import VectorSearchResult, VectorStoreService
 
 
-def build_grounded_prompt(message: str, results: list[VectorSearchResult]) -> str:
-    if not results:
-        return message
-
-    context = "\n\n---\n\n".join([doc.parent_content for doc in results])
-    return f"""
-Answer the question based only on the following context:
-
-{context}
-
----
-
-Answer the question based on the above context: {message}
-"""
-
-
 def _snippet(text: str, max_length: int = 240) -> str:
     normalized = " ".join(text.split())
     if len(normalized) <= max_length:

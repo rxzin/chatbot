@@ -1,31 +1,20 @@
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import END, START, StateGraph
 
+from services.graph.nodes.agent import agent, tools
 from services.graph.state import AgentState
-from services.graph.classifier import classifier
-from services.graph.nodes.chat import chat
-from services.graph.nodes.rag import researcher, writer
-from services.graph.nodes.weather import weather
-from services.graph.nodes.bug_report import bug_report
+
+
+def _after_agent(state: AgentState) -> str:
+    return "tools" if state["pending"] else END
 
 
 def graph_builder():
+    """agent ⇄ tools until the model answers; the agent caps the number of rounds."""
     g = StateGraph(AgentState)
-    g.add_node("classifier", classifier)
-    g.add_node("researcher", researcher)
-    g.add_node("writer", writer)
-    g.add_node("chat", chat)
-    g.add_node("weather", weather)
-    g.add_node("bug_report", bug_report)
+    g.add_node("agent", agent)
+    g.add_node("tools", tools)
 
-    g.add_edge(START, "classifier")
-    g.add_conditional_edges(
-        "classifier",
-        lambda state: state["route"],
-        {"chat": "chat", "rag": "researcher", "weather": "weather", "bug_report": "bug_report"},
-    )
-    g.add_edge("researcher", "writer")
-    g.add_edge("writer", END)
-    g.add_edge("chat", END)
-    g.add_edge("weather", END)
-    g.add_edge("bug_report", END)
+    g.add_edge(START, "agent")
+    g.add_conditional_edges("agent", _after_agent, {"tools": "tools", END: END})
+    g.add_edge("tools", "agent")
     return g.compile()

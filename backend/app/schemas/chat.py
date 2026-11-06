@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Any, Literal, Optional, Union
 from uuid import UUID
 
 from schemas.rag import SourceReference
@@ -62,10 +62,32 @@ class TextDeltaEvent(BaseModel):
 
 
 class SourcesEvent(BaseModel):
-    """Documents the reply was based on. Sent once, after the text."""
+    """Documents the reply was based on. Sent once, before done."""
 
     type: Literal["sources"] = "sources"
     sources: list[SourceReference]
+
+
+class ToolStartEvent(BaseModel):
+    """The agent started a tool call, such as a document search."""
+
+    type: Literal["tool-start"] = "tool-start"
+    tool_call_id: str = Field(alias="toolCallId")
+    tool_name: str = Field(alias="toolName")
+    input: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = {"populate_by_name": True}
+
+
+class ToolResultEvent(BaseModel):
+    """A tool call finished. The result itself goes to the model, not the client."""
+
+    type: Literal["tool-result"] = "tool-result"
+    tool_call_id: str = Field(alias="toolCallId")
+    tool_name: str = Field(alias="toolName")
+    is_error: bool = Field(default=False, alias="isError")
+
+    model_config = {"populate_by_name": True}
 
 
 class DoneEvent(BaseModel):
@@ -90,7 +112,14 @@ class ErrorEvent(BaseModel):
 
 
 ChatStreamEvent = Annotated[
-    Union[TextDeltaEvent, SourcesEvent, DoneEvent, ErrorEvent],
+    Union[
+        TextDeltaEvent,
+        ToolStartEvent,
+        ToolResultEvent,
+        SourcesEvent,
+        DoneEvent,
+        ErrorEvent,
+    ],
     Field(discriminator="type"),
 ]
 

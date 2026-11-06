@@ -89,14 +89,19 @@ streams its output as SSE:
 
 1. **`runner.prepare_context`** loads the conversation's indexed documents and its recent
    messages from Redis. On a cold cache it rebuilds them from Postgres.
-2. **`classifier`** picks a route: `chat`, `rag`, `weather` or `bug_report`.
-3. The chosen node streams tokens:
-   - `chat`: a plain reply.
-   - `researcher` → `writer`: searches Pinecone, reranks with Cohere, answers with sources.
-   - `weather`: looks up the city and summarises the forecast.
-   - `bug_report`: drafts a ticket for admin approval. Limited per user by
-     `BUG_REPORT_RATE_LIMIT_SECONDS`.
-4. **`runner`** turns the graph's output into SSE events, then saves the turn to Postgres
+2. **`agent`** streams the model's reply. The model may instead ask for tools, which
+   **`tools`** runs before going back to `agent`
+   ([`services/graph/tools.py`](app/services/graph/tools.py)):
+   - `search_documents(query)`: searches Pinecone, reranks with Cohere, and returns
+     passages with their sources. Only offered when the conversation has indexed
+     documents.
+   - `get_weather(city)`: current weather and forecast from Open-Meteo.
+   - `report_bug(title, description)`: saves a ticket for admin approval. Limited per
+     user by `BUG_REPORT_RATE_LIMIT_SECONDS`.
+
+   After `AGENT_MAX_TOOL_ROUNDS` rounds (4) the model must answer without tools. Tool
+   failures go back to the model as error results, never as exceptions.
+3. **`runner`** turns the graph's output into SSE events, then saves the turn to Postgres
    and the trimmed recent context to Redis.
 
 Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
@@ -104,7 +109,9 @@ Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
 | Event | Fields | When |
 |---|---|---|
 | `text-delta` | `delta` | Each piece of the reply, in order |
-| `sources` | `sources` | Once, after the text, for document answers |
+| `tool-start` | `toolCallId`, `toolName`, `input` | The agent started a tool |
+| `tool-result` | `toolCallId`, `toolName`, `isError` | That tool finished. Its output goes to the model only |
+| `sources` | `sources` | Once, before `done`, when documents were searched |
 | `done` | `finishReason` | The reply finished. A stream without it was interrupted |
 | `error` | `error.code`, `error.message` | The reply failed; nothing is saved |
 
@@ -146,7 +153,7 @@ app/
   core/              Settings, database, logging, errors, middleware
   schemas/           SQLAlchemy models and Pydantic schemas
   services/          Mistral, fallback, memory, RAG, Jira, email, audit
-  services/graph/    LangGraph graph, classifier, nodes and runner
+  services/graph/    LangGraph graph (agent and tools nodes), tools and runner
   alembic/           Migrations
   seed.py            Roles, permissions and the admin user
 ```
