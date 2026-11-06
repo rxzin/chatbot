@@ -9,8 +9,8 @@ admin approves them.
 One FastAPI app serves both the API (under `/api`) and the built Next.js frontend, and
 runs on FastAPI Cloud.
 
-- [backend/README.md](backend/README.md): setup, settings, API, request flow, agent and memory
-- [frontend/README.md](frontend/README.md): setup, routes, structure and the chat stream
+- [Backend](backend/README.md): setup, settings, API, request flow, agent and memory
+- [Frontend](frontend/README.md): setup, routes, structure and the chat stream
 - [docs/PROGRESS.md](docs/PROGRESS.md): what's done and what's next
 - [docs/design/chatbot-v2.md](docs/design/chatbot-v2.md): why things are built this way
 
