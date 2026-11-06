@@ -3,7 +3,8 @@
 import { LogOut, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { ADMIN_PERMISSION } from "@/lib/api/authApi";
@@ -71,6 +72,9 @@ export function AdminDashboard() {
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
+          <AnimatedThemeToggler
+            className={buttonVariants({ variant: "outline", size: "icon-sm" })}
+          />
           <Button asChild variant="outline" size="sm">
             <Link href="/chat">
               <MessageSquare />

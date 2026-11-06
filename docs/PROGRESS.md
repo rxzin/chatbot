@@ -61,23 +61,20 @@ Admin login and the frontend are confirmed working in production.
 - [ ] Try local Docker Compose end to end. The backend and frontend containers haven't
       been run together since the move to `/api`.
 
-## UI polish, not started
+## UI polish, done
 
-These don't depend on the features below, so they can be done at any time.
-
-- [ ] **Sign in and sign up:** rebuild both forms with prebuilt shadcn components, using
-      email and password only.
-- [ ] **Dark theme switcher across the whole app:** the theme now applies app-wide through
-      `next-themes` (dark by default), but the toggle is only on the landing page so far. Add it to the auth, chat and admin pages too, and keep the choice across pages
-      and reloads. `next-themes` is installed but unused, and `AnimatedThemeToggler` saves
-      the choice to `localStorage` without anything reading it back, so this needs a
-      `ThemeProvider` in the root layout as well as more toggles.
+- [x] **Sign in and sign up:** rebuilt with shadcn `Field`, `Input` and `Button` in the
+      landing page's design, with a show-password toggle and errors linked to the fields.
+- [x] **Theme switcher across the whole app:** the toggle is on the landing, auth, chat and
+      admin pages, and the choice is kept across pages and reloads.
+- [ ] Chat and admin still use the old shadcn zinc and blue colours. Moving them onto the
+      landing page's system is part of feature 5 below.
 
 ## Landing page redesign, done
 
 Built and reviewed (finish review: ship). The system is recorded in
 `frontend/Chatbot/DESIGN.md`, and product facts in `frontend/Chatbot/PRODUCT.md`. It covers
-the landing page only: sign in, sign up, chat and admin still use the old tokens.
+the landing, sign in and sign up pages; chat and admin still use the old tokens.
 
 The notes below were the analysis it was built from.
 

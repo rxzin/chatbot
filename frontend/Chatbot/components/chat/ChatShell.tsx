@@ -7,6 +7,7 @@ import { useConversation } from "@/hooks/useConversation";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useVoiceMode } from "@/hooks/useVoiceMode";
 import { useLogout } from "@/hooks/useLogout";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import {
   parseYesNo,
   stripMarkdownForSpeech,
@@ -396,6 +397,14 @@ export function ChatShell() {
                   {conversationId}
                 </p>
               )}
+              <AnimatedThemeToggler
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-xl border border-border",
+                  "text-muted-foreground transition-colors [&_svg]:h-5 [&_svg]:w-5",
+                  "hover:bg-muted hover:text-foreground",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                )}
+              />
               <button
                 type="button"
                 onClick={() => setDocumentsOpen(true)}
