@@ -92,12 +92,13 @@ Pushing to `main` runs `.github/workflows/deploy.yml`, which calls `deploy.sh`. 
 three repository secrets: `ENV_PRODUCTION` (the whole of `backend/app/.env.production`),
 `FASTAPI_CLOUD_TOKEN` and `FASTAPI_CLOUD_APP_ID`.
 
-To deploy by hand:
+To deploy by hand, put `FASTAPI_CLOUD_APP_ID=<app id>` in `backend/app/.env.production`
+(or export it), then:
 
 ```bash
-FASTAPI_CLOUD_APP_ID=<app id> ./deploy.sh            # frontend, database and upload
-FASTAPI_CLOUD_APP_ID=<app id> ./deploy.sh --no-db    # skip migrations and the seed
-FASTAPI_CLOUD_APP_ID=<app id> ./deploy.sh --no-frontend --no-db   # backend code only
+./deploy.sh                          # frontend, database and upload
+./deploy.sh --no-db                  # skip migrations and the seed
+./deploy.sh --no-frontend --no-db    # backend code only
 ```
 
 `deploy.sh` builds the frontend into `backend/app/frontend_build`, runs migrations and the

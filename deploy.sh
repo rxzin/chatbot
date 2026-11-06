@@ -10,6 +10,7 @@
 #   ./deploy.sh --no-deploy    Do everything except the upload
 #
 # Settings come from backend/app/.env.production, or the ENV_FILE environment variable.
+# Put FASTAPI_CLOUD_APP_ID there too, so it doesn't need passing on every run.
 # The app itself reads the variables set in the FastAPI Cloud dashboard, so update those
 # separately when they change.
 
@@ -36,7 +37,7 @@ for arg in "$@"; do
     --yes) ASSUME_YES=true ;;
     *)
       echo "Unknown option: $arg" >&2
-      sed -n '2,13p' "${BASH_SOURCE[0]}" >&2
+      sed -n '2,14p' "${BASH_SOURCE[0]}" >&2
       exit 2
       ;;
   esac
@@ -54,6 +55,19 @@ step "Checking prerequisites"
 command -v uv >/dev/null || fail "uv isn't installed."
 if [ "$BUILD_FRONTEND" = true ]; then
   command -v pnpm >/dev/null || fail "pnpm isn't installed."
+fi
+
+# The app to deploy to. An exported value wins (GitHub Actions sets it from a secret);
+# otherwise it's read from the env file, so it doesn't have to be typed each time.
+if [ "$DEPLOY" = true ] && [ -z "${FASTAPI_CLOUD_APP_ID:-}" ] && [ -f "$ENV_FILE" ]; then
+  FASTAPI_CLOUD_APP_ID="$(grep -E '^[[:space:]]*FASTAPI_CLOUD_APP_ID[[:space:]]*=' "$ENV_FILE" \
+    | tail -n 1 | cut -d= -f2- | tr -d "\r\"' \t")"
+  export FASTAPI_CLOUD_APP_ID
+fi
+if [ "$DEPLOY" = true ]; then
+  [ -n "${FASTAPI_CLOUD_APP_ID:-}" ] ||
+    fail "Set FASTAPI_CLOUD_APP_ID in $ENV_FILE, or export it, so the CLI knows which app to deploy."
+  echo "App: $FASTAPI_CLOUD_APP_ID"
 fi
 
 if [ "$UPDATE_DB" = true ]; then
