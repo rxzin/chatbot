@@ -30,19 +30,19 @@ export function Footer() {
         <svg
           aria-hidden
           viewBox="0 0 520 190"
-          className="pointer-events-none absolute right-[2%] bottom-0 w-[min(88%,560px)] text-foreground/85"
+          className="pointer-events-none absolute right-[2%] bottom-0 w-[min(88%,560px)] text-foreground/45"
         >
           <text
             x="0"
             y="165"
             fill="none"
             stroke="currentColor"
-            // Round dots of a fixed on-screen size: near-zero dashes with round caps, and
-            // a non-scaling stroke so they stay crisp at any width instead of blurring.
-            strokeWidth="2"
-            strokeDasharray="0.01 3.2"
+            // Round dots: near-zero dashes with round caps. Sized in the drawing's own
+            // units so every browser scales them the same way: about 4.3px on a laptop
+            // and 2.4px on a phone, big enough to read as dots at a quiet 45%.
+            strokeWidth="4"
+            strokeDasharray="0.01 7.6"
             strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
             className="font-display"
             style={{ fontSize: 210, fontWeight: 700, letterSpacing: "-0.04em" }}
           >
