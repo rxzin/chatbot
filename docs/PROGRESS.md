@@ -56,8 +56,9 @@ Admin login and the frontend are confirmed working in production.
       The per-IP limit only runs with `TRUST_PROXY_HEADERS=true`, so shared Wi-Fi and the
       FastAPI Cloud proxy can't lock people out. Settings: `REGISTRATION_MAX_GLOBAL`,
       `REGISTRATION_MAX_PER_IP`, `REGISTRATION_RATE_LIMIT_SECONDS`.
-- [ ] `_finish_notice` in `services/mistral.py` is still a TODO, so replies that get cut off
-      end silently.
+- [x] `_finish_notice` in `services/mistral.py`: a reply cut off at the length limit ends
+      with a note to say "continue", and a model error mid-reply shows the error and is not
+      saved.
 - [ ] "Failed (24h)" counts every 4xx, including normal logged-out 401s.
 - [ ] Update both READMEs, which still describe Gemini, ONNX and AWS.
 - [ ] Remove `docker-compose.prod.yml` and other leftovers from the AWS deployment.

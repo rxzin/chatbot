@@ -7,6 +7,7 @@ from mistralai.client.models import TextChunk
 from pydantic import BaseModel
 
 from core.config import getSettings
+from core.logging import logger
 from schemas.chat import MessageParam
 from services.base import AIPlatform
 
@@ -65,7 +66,18 @@ def _finish_notice(finish_reason: Optional[str]) -> Optional[str]:
     run_graph_stream send STREAM_GENERATION_FAILED. Whatever is returned here is also
     saved to Redis and Postgres as part of the reply; raising saves nothing.
     """
-    # TODO: decide how "length" and "error" should behave.
+    if finish_reason in (None, "stop"):
+        return None
+    if finish_reason == "length":
+        # Kept in the saved reply too, so a follow-up "continue" has context.
+        return (
+            "\n\n*[Reply cut off at the length limit. "
+            'Say "continue" to get the rest.]*'
+        )
+    if finish_reason == "error":
+        # A reply broken by a model error shouldn't be remembered as an answer.
+        raise RuntimeError("Mistral ended the stream with finish_reason=error")
+    logger.warning("Unexpected Mistral finish_reason: %s", finish_reason)
     return None
 
 
