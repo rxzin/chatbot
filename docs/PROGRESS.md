@@ -65,8 +65,15 @@ Admin login and the frontend are confirmed working in production.
 - [x] Rewrote the three READMEs for Mistral, FastAPI Cloud and the current code.
 - [x] Removed `docker-compose.prod.yml`, the Git LFS rules and ignore entry for the old
       local model, a stray `config.json`, `graph2.png`, and the old hero screenshot.
-- [ ] Try local Docker Compose end to end. The backend and frontend containers haven't
-      been run together since the move to `/api`.
+- [x] Ran local Docker Compose end to end (2026-11-06): migrate and seed, sign up, sign in,
+      a streamed chat reply saved to Postgres, admin summary and audit log, and the frontend
+      container in a browser. Migrate and seed are safe to rerun.
+- [ ] Old local volume `chatbot_postgres_data` (June) has a different password, so
+      `docker compose up` fails with "password authentication failed". Delete it with
+      `docker volume rm chatbot_postgres_data` if its data isn't needed, or use another
+      project name with `-p`.
+- [ ] A new user lands on an empty chat and must click New Chat before typing. Creating
+      the first conversation automatically would be smoother (feature 5).
 
 ## UI polish, done
 
