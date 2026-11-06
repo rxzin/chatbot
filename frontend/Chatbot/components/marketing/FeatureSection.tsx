@@ -1,149 +1,80 @@
-"use client";
-
-import { cn } from "@/lib/utils";
 import {
-  DatabaseZap,
-  FileText,
   History,
   Radio,
   SearchCheck,
   ShieldCheck,
-  CloudSun,
-  GitFork,
+  FileText,
   TicketCheck,
+  type LucideIcon,
 } from "lucide-react";
-import { motion } from "motion/react";
+import { RailSection, SectionHeading } from "./Frame";
+
+const features: { title: string; description: string; icon: LucideIcon }[] = [
+  {
+    title: "Private accounts",
+    description:
+      "Sign in with email and password. Logging out ends your session at once, and only you can see your conversations.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Replies that stream",
+    description:
+      "Answers appear word by word as Mistral writes them, so you're never left watching an empty screen.",
+    icon: Radio,
+  },
+  {
+    title: "Documents per conversation",
+    description:
+      "Attach PDF or TXT files to one conversation. They stay there and never mix into your other chats.",
+    icon: FileText,
+  },
+  {
+    title: "Answers with sources",
+    description:
+      "Chat finds the right passages with Mistral embeddings and Pinecone, reranks them with Cohere, and lists them under the answer.",
+    icon: SearchCheck,
+  },
+  {
+    title: "Memory for long chats",
+    description:
+      "Recent messages stay quick to reach in Redis, and older ones are summarised, so long conversations keep their context.",
+    icon: History,
+  },
+  {
+    title: "Bug reports with a human check",
+    description:
+      "Describe a problem and Chat drafts a ticket. An admin approves it before it reaches Jira, and you get an email.",
+    icon: TicketCheck,
+  },
+];
 
 export function FeaturesSection() {
-  const features = [
-    {
-      title: "Secure User Accounts",
-      description:
-        "Register, sign in, and keep each user's conversations private with JWT authentication and refresh-token rotation.",
-      icon: <ShieldCheck />,
-    },
-    {
-      title: "Streaming Mistral Responses",
-      description:
-        "Assistant replies stream in real time over Server-Sent Events, so responses appear as they are generated.",
-      icon: <Radio />,
-    },
-    {
-      title: "Persistent Conversations",
-      description:
-        "Every chat is saved to PostgreSQL, with a sidebar for starting, selecting, and resuming previous conversations.",
-      icon: <History />,
-    },
-    {
-      title: "Conversation-Scoped Documents",
-      description:
-        "Upload PDF or TXT files to a specific conversation. Documents stay attached to that thread only.",
-      icon: <FileText />,
-    },
-    {
-      title: "Document-Grounded RAG Mode",
-      description:
-        "Retrieve relevant chunks with Mistral embeddings and Pinecone, then get answers grounded in your indexed documents.",
-      icon: <SearchCheck />,
-    },
-    {
-      title: "Smart Context Management",
-      description:
-        "Redis keeps recent conversation context fast while older turns are compacted into summaries for longer conversations.",
-      icon: <DatabaseZap />,
-    },
-    {
-      title: "Live Weather",
-      description:
-        "Ask about temperature, forecasts, or locations, and the assistant fetches live details to give you immediate, grounded answers.",
-      icon: <CloudSun />,
-    },
-    {
-      title: "Zero-Setup Intelligence",
-      description:
-        "Just start typing. The assistant automatically detects whether to answer casually, read your documents, look up weather, or draft support tickets.",
-      icon: <GitFork />,
-    },
-    {
-      title: "Effortless Support Ticketing",
-      description:
-        "Describe a bug or feature request in plain English, and the chatbot automatically formats and submits a support ticket for admin review.",
-      icon: <TicketCheck />,
-    },
-  ];
-
   return (
-    <div id="features" className="max-w-7xl mx-auto py-16">
-      <motion.div
-        className="text-center mb-16"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <h2 className="text-4xl md:text-5xl font-bold mb-4 text-neutral-800 dark:text-neutral-100">
-          Built For Document-Aware Chat
-        </h2>
-        <p className="text-lg md:text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
-          A full-stack Mistral chat app with protected accounts, persistent
-          threads, streaming responses, and conversation-scoped document
-          grounding.
-        </p>
-      </motion.div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative z-10">
-        {features.map((feature, index) => (
-          <Feature key={feature.title} {...feature} index={index} />
-        ))}
+    <RailSection id="features" aria-labelledby="features-heading">
+      <div className="px-5 pt-24 pb-20 text-center sm:pt-28">
+        <SectionHeading id="features-heading" className="mx-auto max-w-[30rem]">
+          Everything private AI chat needs, already wired up
+        </SectionHeading>
       </div>
-    </div>
+      <ul className="grid border-t border-dashed border-line md:grid-cols-2">
+        {features.map(({ title, description, icon: Icon }, index) => (
+          <li
+            key={title}
+            className={[
+              "border-dashed border-line px-6 py-10 sm:px-12",
+              index < features.length - 1 ? "border-b" : "",
+              index === features.length - 2 ? "md:border-b-0" : "",
+              index % 2 === 0 ? "md:border-r" : "",
+            ].join(" ")}
+          >
+            <h3 className="flex items-center gap-3 text-base font-medium">
+              <Icon aria-hidden className="size-[18px] text-foreground/80" strokeWidth={1.6} />
+              {title}
+            </h3>
+            <p className="mt-3 max-w-[26rem] text-sm leading-relaxed text-muted-foreground">{description}</p>
+          </li>
+        ))}
+      </ul>
+    </RailSection>
   );
 }
-
-const Feature = ({
-  title,
-  description,
-  icon,
-  index,
-}: {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  index: number;
-}) => {
-  return (
-    <motion.div
-      className={cn(
-        "flex flex-col lg:border-r py-10 relative group/feature dark:border-neutral-800",
-        (index === 0 || index === 3) && "lg:border-l dark:border-neutral-800",
-        index < 3 && "lg:border-b dark:border-neutral-800",
-      )}
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{
-        duration: 0.5,
-        delay: index * 0.15,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-    >
-      {index < 3 && (
-        <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-linear-to-t from-neutral-100 dark:from-neutral-800 to-transparent pointer-events-none" />
-      )}
-      {index >= 3 && (
-        <div className="opacity-0 group-hover/feature:opacity-100 transition duration-200 absolute inset-0 h-full w-full bg-linear-to-b from-neutral-100 dark:from-neutral-800 to-transparent pointer-events-none" />
-      )}
-      <div className="mb-4 relative z-10 px-10 text-neutral-600 dark:text-neutral-400 group-hover/feature:text-primary group-hover/feature:scale-101 transition duration-200">
-        {icon}
-      </div>
-      <div className="text-lg font-bold mb-2 relative z-10 px-10">
-        <div className="absolute left-0 inset-y-0 h-6 group-hover/feature:h-8 w-1 rounded-tr-full rounded-br-full bg-neutral-300 dark:bg-neutral-700 group-hover/feature:bg-primary transition-all duration-200 origin-center" />
-        <span className="group-hover/feature:translate-x-2 transition duration-200 inline-block text-neutral-800 dark:text-neutral-100">
-          {title}
-        </span>
-      </div>
-      <p className="text-sm text-neutral-600 dark:text-neutral-300 max-w-xs relative z-10 px-10">
-        {description}
-      </p>
-    </motion.div>
-  );
-};

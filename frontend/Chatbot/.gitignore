@@ -44,3 +44,8 @@ next-env.d.ts
 
 
 *.md
+
+# design review captures and build state
+.impeccable/review/
+.impeccable/build/
+.impeccable/mocks/

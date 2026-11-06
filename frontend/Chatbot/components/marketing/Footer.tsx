@@ -1,135 +1,80 @@
 import Link from "next/link";
+import { RailSection } from "./Frame";
+import { Logo } from "./Logo";
 
-export const Footer = () => {
+const columns = [
+  {
+    title: "Product",
+    links: [
+      { label: "Features", href: "#features" },
+      { label: "Use cases", href: "#use-cases" },
+      { label: "Integrations", href: "#integrations" },
+      { label: "Pricing", href: "#pricing" },
+      { label: "FAQ", href: "#faq" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { label: "Sign up", href: "/register" },
+      { label: "Sign in", href: "/login" },
+    ],
+  },
+];
+
+export function Footer() {
   return (
-    <footer className="block w-full bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800 pt-24">
-      <div className="mx-auto max-w-7xl px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section */}
-          <div className="col-span-1 md:col-span-1">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Chat
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Chatbot for everyone.
-            </p>
-          </div>
-
-          {/* Product Links */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Product
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#features"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#pricing"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#testimonials"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Testimonials
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/register"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Sign up
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/login"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Login
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company Links */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Company
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#about"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#blog"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div>
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-              Legal
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#privacy"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#terms"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Terms
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#cookies"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Cookie Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-            © {new Date().getFullYear()} Chat. All rights reserved.
+    <RailSection as="footer" className="border-b-0" innerClassName="overflow-hidden" markers={false}>
+      <div className="relative grid gap-12 px-5 pt-16 pb-48 sm:px-12 md:grid-cols-[1fr_auto] md:pb-56">
+        {/* The wordmark is drawn as a dotted outline, resting on the bottom divider. */}
+        <svg
+          aria-hidden
+          viewBox="0 0 520 190"
+          className="pointer-events-none absolute right-[2%] bottom-0 w-[min(88%,560px)] text-muted-foreground/45"
+        >
+          <text
+            x="0"
+            y="165"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.1"
+            strokeDasharray="1.2 3.2"
+            strokeLinecap="round"
+            className="font-display"
+            style={{ fontSize: 210, fontWeight: 700, letterSpacing: "-0.04em" }}
+          >
+            Chat
+          </text>
+        </svg>
+        <div className="max-w-[22rem]">
+          <Logo />
+          <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
+            Private AI chat that answers from your own documents, with streaming replies and
+            the sources it used.
           </p>
         </div>
+        <div className="grid grid-cols-2 gap-16">
+          {columns.map((column) => (
+            <nav key={column.title} aria-label={column.title}>
+              <h2 className="text-sm font-medium">{column.title}</h2>
+              <ul className="mt-5 space-y-3.5 text-sm text-muted-foreground">
+                {column.links.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} prefetch={false} className="transition-colors hover:text-foreground">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
       </div>
-    </footer>
+
+      <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-dashed border-line px-5 py-6 text-sm text-muted-foreground sm:px-12">
+        <p>© {new Date().getFullYear()} Chat.</p>
+        <p>Built with FastAPI, Next.js and Mistral.</p>
+      </div>
+    </RailSection>
   );
-};
+}

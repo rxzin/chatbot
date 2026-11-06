@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Sun, SunDim } from "lucide-react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { flushSync } from "react-dom";
 
 import { cn } from "@/lib/utils";
@@ -10,44 +11,33 @@ interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"butt
   duration?: number;
 }
 
+const subscribeNever = () => () => undefined;
+
 export const AnimatedThemeToggler = ({
   className,
   duration = 400,
   ...props
 }: AnimatedThemeTogglerProps) => {
-  const [isDark, setIsDark] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
   const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const updateTheme = () => {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    };
-
-    updateTheme();
-
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  // The theme is only known in the browser, so the server renders a neutral icon.
+  const mounted = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const isDark = mounted && resolvedTheme === "dark";
 
   const toggleTheme = useCallback(async () => {
-    if (!buttonRef.current) return;
+    const next = isDark ? "light" : "dark";
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!buttonRef.current || !document.startViewTransition || reduceMotion) {
+      setTheme(next);
+      return;
+    }
 
     await document.startViewTransition(() => {
-      flushSync(() => {
-        const newTheme = !isDark;
-        setIsDark(newTheme);
-        document.documentElement.classList.toggle("dark");
-        localStorage.setItem("theme", newTheme ? "dark" : "light");
-      });
+      flushSync(() => setTheme(next));
     }).ready;
 
-    const { top, left, width, height } =
-      buttonRef.current.getBoundingClientRect();
+    const { top, left, width, height } = buttonRef.current.getBoundingClientRect();
     const x = left + width / 2;
     const y = top + height / 2;
     const maxRadius = Math.hypot(
@@ -64,21 +54,22 @@ export const AnimatedThemeToggler = ({
       },
       {
         duration,
-        easing: "ease-in-out",
+        easing: "cubic-bezier(0.16, 1, 0.3, 1)",
         pseudoElement: "::view-transition-new(root)",
       },
     );
-  }, [isDark, duration]);
+  }, [isDark, duration, setTheme]);
 
   return (
     <button
       ref={buttonRef}
+      type="button"
       onClick={toggleTheme}
+      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       className={cn(className)}
       {...props}
     >
-      {isDark ? <Sun /> : <SunDim />}
-      <span className="sr-only">Toggle theme</span>
+      {isDark ? <Sun /> : <Moon />}
     </button>
   );
 };

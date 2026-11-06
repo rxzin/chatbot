@@ -1,109 +1,38 @@
-"use client";
+import { ArrowUpRight } from "lucide-react";
+import { RailSection } from "./Frame";
+import { SlideButton } from "./SlideButton";
+import { StripeField } from "./StripeField";
 
-import { Badge } from "@/components/ui/badge";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
-import { motion, type Variants } from "motion/react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-
-// Animation variants for staggered children
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const fadeUpVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut", // Using named easing instead of custom bezier
-    },
-  },
-};
-
-const scaleInVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.95,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-    },
-  },
-};
-
-const Hero = () => {
-  const router = useRouter();
-
+export default function Hero() {
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible">
-      {/* Introducing Chat */}
-      <motion.div
-        className="flex items-center justify-center"
-        variants={fadeUpVariants}
-      >
-        <Badge className="text-sm font-medium px-4 py-2 " variant={"outline"}>
-          Full-stack AI chat with RAG 🎉
-        </Badge>
-      </motion.div>
+    <RailSection innerClassName="overflow-hidden" aria-labelledby="hero-heading">
+      <StripeField />
+      <div className="relative flex min-h-[calc(100svh-73px)] flex-col items-center justify-center px-5 py-24 text-center">
+        <h1
+          id="hero-heading"
+          className="font-display text-[2.6rem] leading-[1.12] font-medium tracking-[-0.03em] text-balance sm:text-6xl sm:leading-[1.1] lg:text-[4.25rem]"
+        >
+          <span className="block">AI chat that knows</span>
+          <span className="mt-2 inline-block border border-dashed border-muted-foreground/40 px-3 pb-1.5 font-semibold sm:px-4">
+            your documents.
+          </span>
+        </h1>
 
-      {/* Hero Text */}
-      <div className="text-center mt-8">
-        <motion.h1
-          className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl"
-          variants={fadeUpVariants}
-        >
-          AI Chatbot for everyone.
-        </motion.h1>
-        <motion.p
-          className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-400 max-w-3xl mx-auto"
-          variants={fadeUpVariants}
-        >
-          A secure AI chat workspace with login, persistent conversation
-          history, real-time streaming responses, and optional PDF/TXT document
-          grounding per conversation.
-        </motion.p>
+        <p className="mt-6 max-w-[34rem] text-[0.95rem] leading-relaxed font-light text-muted-foreground">
+          Private AI chat that answers from the PDFs and text files you upload, with the
+          sources it used. Replies stream in as they&apos;re written, and every conversation
+          stays yours.
+        </p>
+
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <SlideButton href="/register" icon={<ArrowUpRight aria-hidden className="size-4" />}>
+            Start chatting
+          </SlideButton>
+          <SlideButton href="#use-cases" variant="outline" className="bg-background">
+            See it at work
+          </SlideButton>
+        </div>
       </div>
-
-      {/* Hero Actions */}
-      <motion.div
-        className="my-6 mb-12 flex items-center justify-center gap-x-4"
-        variants={fadeUpVariants}
-      >
-        <ShimmerButton onClick={() => router.push("/register")}>
-          Try For Free
-        </ShimmerButton>
-      </motion.div>
-
-      {/* Hero Image */}
-      <motion.div
-        className="relative max-w-5xl mx-auto"
-        variants={scaleInVariants}
-      >
-        <Image
-          src="/hero/chat.png"
-          alt="Hero Image"
-          className="w-full rounded-md border shadow-lg"
-        />
-      </motion.div>
-    </motion.div>
+    </RailSection>
   );
-};
-
-export default Hero;
+}

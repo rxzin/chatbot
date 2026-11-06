@@ -1,200 +1,130 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Check } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { RailSection, SectionHeading } from "./Frame";
+import { SlideButton } from "./SlideButton";
 
+// Example plans. Chat is free while in development and has no billing.
 const plans = [
   {
     name: "Free",
-    description: "Perfect for testing ChatDeck on your personal website",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    features: [
-      "1 AI Chatbot",
-      "50 conversations/month",
-      "Train on 1 website",
-      "Basic analytics",
-      "Community support",
-    ],
-    cta: "Get Started",
-    href: "/register",
+    description: "For trying Chat with your own documents.",
+    monthly: 0,
+    yearly: 0,
+    features: ["Private conversations", "Streaming replies", "PDF and TXT uploads", "Live weather"],
     popular: false,
   },
   {
     name: "Pro",
-    description: "For growing businesses that need more power",
-    monthlyPrice: 29,
-    yearlyPrice: 24,
-    features: [
-      "3 AI Chatbots",
-      "1,000 conversations/month",
-      "Train on unlimited websites & docs",
-      "Remove ChatDeck branding",
-      "Integrations (Slack, Zapier)",
-      "Priority email support",
-    ],
-    cta: "Start Free Trial",
-    href: "/register",
+    description: "For people who chat with documents every day.",
+    monthly: 12,
+    yearly: 10,
+    features: ["Everything in Free", "Larger uploads", "Longer conversation memory", "Priority replies"],
     popular: true,
-    includesPrevious: "All Free features, plus",
   },
   {
-    name: "Business",
-    description: "For large teams requiring scale and control",
-    monthlyPrice: 99,
-    yearlyPrice: 79,
-    features: [
-      "10 AI Chatbots",
-      "5,000 conversations/month",
-      "Priority 24/7 support",
-      "API Access",
-      "Smart Escalation to humans",
-      "Custom integrations",
-    ],
-    cta: "Contact Sales",
-    href: "/register",
+    name: "Team",
+    description: "For teams that need oversight and support.",
+    monthly: 49,
+    yearly: 39,
+    features: ["Everything in Pro", "Admin dashboard", "Audit log and session control", "Bug reports to Jira"],
     popular: false,
-    includesPrevious: "All Pro features, plus",
   },
 ];
 
 export function PricingSection() {
-  const [isYearly, setIsYearly] = useState(false);
+  const [yearly, setYearly] = useState(true);
 
   return (
-    <section
-      id="pricing"
-      className="py-24 sm:py-32 border bg-muted/40 rounded-xl"
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="mx-auto max-w-2xl text-center mb-12">
-          <Badge variant="outline" className="mb-4">
-            Pricing Plans
-          </Badge>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            Choose your plan
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            Start with our free AI chatbot to automate support, or upgrade to
-            Pro for unlimited training sources and advanced integrations.
-          </p>
-
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center mb-2">
-            <ToggleGroup
-              type="single"
-              value={isYearly ? "yearly" : "monthly"}
-              onValueChange={(value) => setIsYearly(value === "yearly")}
-              className="bg-secondary text-secondary-foreground border-none rounded-full p-1 cursor-pointer shadow-none"
+    <RailSection id="pricing" aria-labelledby="pricing-heading">
+      <div className="grid gap-10 px-5 pt-24 pb-16 sm:px-12 sm:pt-28 lg:grid-cols-[1fr_auto]">
+        <div>
+          <SectionHeading id="pricing-heading" className="max-w-[26rem]">
+            Simple pricing for every way you chat.
+          </SectionHeading>
+          <div
+            role="group"
+            aria-label="Billing period"
+            className="mt-8 inline-flex items-center gap-1 rounded-full border border-line p-1 text-sm"
+          >
+            <button
+              type="button"
+              aria-pressed={yearly}
+              onClick={() => setYearly(true)}
+              className={cn(
+                "rounded-full px-4 py-1.5 transition-colors",
+                yearly ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
+              )}
             >
-              <ToggleGroupItem
-                value="monthly"
-                className="data-[state=on]:bg-background data-[state=on]:border-border border-transparent border px-6 rounded-full! data-[state=on]:text-foreground hover:bg-transparent cursor-pointer transition-colors"
-              >
-                Monthly
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="yearly"
-                className="data-[state=on]:bg-background data-[state=on]:border-border border-transparent border px-6 rounded-full! data-[state=on]:text-foreground hover:bg-transparent cursor-pointer transition-colors"
-              >
-                Annually
-              </ToggleGroupItem>
-            </ToggleGroup>
+              Annually
+            </button>
+            <button
+              type="button"
+              aria-pressed={!yearly}
+              onClick={() => setYearly(false)}
+              className={cn(
+                "rounded-full px-4 py-1.5 transition-colors",
+                !yearly ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Monthly
+            </button>
           </div>
-
-          <p className="text-sm text-muted-foreground">
-            <span className="text-primary font-semibold">Save 20%</span> On
-            Annual Billing
-          </p>
         </div>
-
-        {/* Pricing Cards */}
-        <div className="mx-auto max-w-6xl">
-          <div>
-            <div className="grid lg:grid-cols-3">
-              {plans.map((plan, index) => (
-                <div
-                  key={index}
-                  className={`p-8 grid grid-rows-subgrid row-span-4 gap-6 ${
-                    plan.popular
-                      ? "my-2 mx-4 rounded-xl bg-card border-transparent shadow-xl ring-1 ring-foreground/10 backdrop-blur"
-                      : "my-2 mx-4 rounded-xl bg-muted border scale-99"
-                  }`}
-                >
-                  {/* Plan Header */}
-                  <div>
-                    <div className="text-lg font-medium tracking-tight mb-2">
-                      {plan.name}
-                    </div>
-                    <div className="text-muted-foreground text-balance text-sm">
-                      {plan.description}
-                    </div>
-                  </div>
-
-                  {/* Pricing */}
-                  <div>
-                    <div className="text-4xl font-bold mb-1">
-                      {plan.name === "Lifetime"
-                        ? `$${plan.monthlyPrice}`
-                        : plan.name === "Free"
-                          ? "$0"
-                          : `$${isYearly ? plan.yearlyPrice : plan.monthlyPrice}`}
-                    </div>
-                    <div className="text-muted-foreground text-sm">
-                      {plan.name === "Lifetime"
-                        ? "One-time payment"
-                        : "Per month"}
-                    </div>
-                  </div>
-
-                  {/* CTA Button */}
-                  <div>
-                    <Button
-                      asChild
-                      className={`w-full cursor-pointer my-2 rounded-full ${
-                        plan.popular
-                          ? "shadow-md border-[0.5px] border-white/25 shadow-black/20 bg-primary ring-1 ring-primary/15 text-primary-foreground hover:bg-primary/90"
-                          : "shadow-sm shadow-black/15 border border-transparent bg-background ring-1 ring-foreground/10 hover:bg-muted/50"
-                      }`}
-                      variant={plan.popular ? "default" : "secondary"}
-                    >
-                      <Link href={plan.href}>{plan.cta}</Link>
-                    </Button>
-                  </div>
-
-                  {/* Features */}
-                  <div>
-                    <ul role="list" className="space-y-3 text-sm">
-                      {plan.includesPrevious && (
-                        <li className="flex items-center gap-3 font-medium">
-                          {plan.includesPrevious}:
-                        </li>
-                      )}
-                      {plan.features.map((feature, featureIndex) => (
-                        <li
-                          key={featureIndex}
-                          className="flex items-center gap-3"
-                        >
-                          <Check
-                            className="text-muted-foreground size-4 shrink-0"
-                            strokeWidth={2.5}
-                          />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="max-w-[19rem] text-sm leading-relaxed text-muted-foreground">
+          <p>Chat is free while it&apos;s in development. These plans are examples of how pricing could work.</p>
+          <p className="mt-3 flex items-center gap-2.5 text-foreground/85">
+            <span className="flex size-5 items-center justify-center rounded-[4px] border border-line">
+              <Check aria-hidden className="size-3" />
+            </span>
+            No billing is set up yet
+          </p>
         </div>
       </div>
-    </section>
+
+      <ul className="grid gap-y-4 px-5 pb-24 sm:px-12 sm:pb-28 md:grid-cols-3">
+        {plans.map((plan) => {
+          const price = yearly ? plan.yearly : plan.monthly;
+          return (
+            <li
+              key={plan.name}
+              className={cn(
+                "flex flex-col px-6 py-8 md:px-8",
+                plan.popular && "border border-dashed border-muted-foreground/40",
+              )}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-base font-medium">{plan.name}</h3>
+                <span className="rounded-[4px] border border-line px-2 py-0.5 text-xs text-muted-foreground">
+                  Example
+                </span>
+              </div>
+              <p className="mt-5 flex items-baseline gap-1">
+                <span className="font-display text-[2rem] font-medium tabular-nums">${price}</span>
+                <span className="text-sm text-muted-foreground">/month</span>
+              </p>
+              <p className="mt-2 min-h-10 text-sm leading-relaxed text-muted-foreground">{plan.description}</p>
+              <ul className="mt-6 space-y-3 border-t border-line pt-6 text-sm">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3">
+                    <Check aria-hidden className="size-4 shrink-0 text-live" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <SlideButton
+                href="/register"
+                variant={plan.popular ? "solid" : "outline"}
+                className="mt-8 justify-center"
+              >
+                Create free account
+              </SlideButton>
+            </li>
+          );
+        })}
+      </ul>
+    </RailSection>
   );
 }

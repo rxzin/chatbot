@@ -8,9 +8,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-urbanist), var(--font-geist-sans), sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-sans);
+  --color-line: var(--line);
+  --color-live: var(--live);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -101,9 +104,6 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
-  font-family: var(--font-geist-sans), sans-serif;
-}
 
 :root {
   --card: oklch(1 0 0);
@@ -185,22 +185,70 @@ body {
     @apply font-sans;
   }
 }
-/* Logo carousel animation */
-@keyframes logo-scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-144rem); /* 12 items * 12rem = 144rem */
-  }
+/* Landing page. Overrides the shared tokens for its own subtree, so shadcn
+   components inside it pick up the page's palette. Light is the designed default
+   for the class; dark is what visitors see first. */
+.landing {
+  --background: #fafaf9;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #f4f4f5;
+  --accent-foreground: #0a0a0a;
+  --border: #d4d4d8;
+  --input: #d4d4d8;
+  --ring: #059669;
+  --line: #d4d4d8;
+  --live: #059669;
+  background: var(--background);
+  color: var(--foreground);
 }
 
-.animate-logo-scroll {
-  animation: logo-scroll 30s linear infinite;
+.dark .landing {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #09090b;
+  --card-foreground: #ffffff;
+  --popover: #09090b;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #0a0a0a;
+  --secondary: #18181b;
+  --secondary-foreground: #ffffff;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --accent: #18181b;
+  --accent-foreground: #ffffff;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #34d399;
+  --line: #27272a;
+  --live: #34d399;
 }
 
-.animate-logo-scroll:hover {
-  animation-play-state: paused;
+.landing ::selection {
+  background: color-mix(in oklab, var(--live) 35%, transparent);
+  color: var(--foreground);
+}
+
+.landing :focus-visible {
+  outline: 2px solid var(--live);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing .animate-marquee,
+  .landing .animate-marquee-vertical {
+    animation-play-state: paused;
+  }
 }
 
 ::view-transition-old(root),

@@ -1,14 +1,5 @@
-"use client";
-
-import { Card } from "@/components/ui/card";
-import {
-  BrainCircuit,
-  DatabaseZap,
-  DatabaseZapIcon,
-  Radio,
-  ShieldCheck,
-} from "lucide-react";
-import type { IconType } from "react-icons";
+import { BrainCircuit, DatabaseZap, Radio, ShieldCheck } from "lucide-react";
+import type { ComponentType } from "react";
 import {
   SiFastapi,
   SiMistralai,
@@ -19,61 +10,43 @@ import {
   SiTailwindcss,
   SiTypescript,
 } from "react-icons/si";
+import { Marquee } from "@/components/ui/marquee";
+import { RailSection } from "./Frame";
 
-const techStack: { name: string; icon: IconType }[] = [
-  { name: "Next.js", icon: SiNextdotjs },
-  { name: "React", icon: SiReact },
+const techStack: { name: string; icon: ComponentType<{ className?: string }> }[] = [
+  { name: "Mistral", icon: SiMistralai },
   { name: "FastAPI", icon: SiFastapi },
   { name: "PostgreSQL", icon: SiPostgresql },
   { name: "Redis", icon: SiRedis },
   { name: "Pinecone", icon: DatabaseZap },
-  { name: "Mistral", icon: SiMistralai },
-  { name: "SSE Streaming", icon: Radio },
-  { name: "Tailwind CSS", icon: SiTailwindcss },
-  { name: "JWT Auth", icon: ShieldCheck },
   { name: "Mistral Embeddings", icon: BrainCircuit },
+  { name: "Next.js", icon: SiNextdotjs },
+  { name: "React", icon: SiReact },
+  { name: "SSE Streaming", icon: Radio },
+  { name: "JWT Auth", icon: ShieldCheck },
+  { name: "Tailwind CSS", icon: SiTailwindcss },
   { name: "TypeScript", icon: SiTypescript },
-] as const;
+];
 
 export function LogoCarousel() {
   return (
-    <section className="pb-12 sm:pb-16 lg:pb-20 pt-24">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <p className="font-medium text-muted-foreground mb-8">
-            Powered by the tools behind real-time document-aware chat
-          </p>
-
-          <div className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-20 bg-linear-to-r from-background to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-linear-to-l from-background to-transparent z-10 pointer-events-none" />
-
-            <div className="overflow-hidden">
-              <div className="flex animate-logo-scroll space-x-8 sm:space-x-12">
-                {techStack.map((item, index) => (
-                  <TechStackCard key={`first-${index}`} {...item} />
-                ))}
-                {techStack.map((item, index) => (
-                  <TechStackCard key={`second-${index}`} {...item} />
-                ))}
-              </div>
-            </div>
-          </div>
+    <RailSection aria-label="Built with">
+      <div className="flex flex-col items-center gap-7 px-5 py-11">
+        <p className="text-sm text-balance text-muted-foreground">Built on the tools behind real-time chat</p>
+        <div className="w-full max-w-5xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+          <Marquee pauseOnHover repeat={2} className="p-0 [--duration:44s] [--gap:3.5rem]">
+            {techStack.map(({ name, icon: Icon }) => (
+              <span
+                key={name}
+                className="flex shrink-0 items-center gap-2.5 text-lg font-medium whitespace-nowrap text-foreground/75"
+              >
+                <Icon className="size-5" />
+                {name}
+              </span>
+            ))}
+          </Marquee>
         </div>
       </div>
-    </section>
-  );
-}
-
-function TechStackCard({ name, icon: Icon }: { name: string; icon: IconType }) {
-  return (
-    <Card className="shrink-0 flex items-center justify-center h-16 w-40 opacity-60 hover:opacity-100 transition-opacity duration-300 border-0 shadow-none bg-transparent">
-      <div className="flex items-center gap-3">
-        <Icon className="size-6 text-foreground" />
-        <span className="text-foreground text-base font-semibold whitespace-nowrap">
-          {name}
-        </span>
-      </div>
-    </Card>
+    </RailSection>
   );
 }

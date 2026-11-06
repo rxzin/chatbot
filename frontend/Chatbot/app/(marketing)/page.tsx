@@ -1,27 +1,31 @@
 import { FaqSection } from "@/components/marketing/FaqSection";
 import { FeaturesSection } from "@/components/marketing/FeatureSection";
+import { FinalCta } from "@/components/marketing/FinalCta";
+import { Footer } from "@/components/marketing/Footer";
 import Hero from "@/components/marketing/Hero";
+import { Integrations } from "@/components/marketing/Integrations";
 import { LogoCarousel } from "@/components/marketing/LogoCarousel";
+import { Navbar } from "@/components/marketing/Navbar";
 import { PricingSection } from "@/components/marketing/PricingSection";
 import { TestimonialSection } from "@/components/marketing/TestimonialSection";
-import { Navbar } from "@/components/marketing/Navbar";
-import { Footer } from "@/components/marketing/Footer";
+import { UseCases } from "@/components/marketing/UseCases";
 
 export default function Home() {
   return (
-    <>
+    <div className="landing min-h-screen">
       <Navbar />
-      <main className="min-h-screen bg-white dark:bg-black">
-        <div className="mx-auto max-w-7xl px-6 pt-40">
-          <Hero />
-          <LogoCarousel />
-          <FeaturesSection />
-          <TestimonialSection />
-          <PricingSection />
-          <FaqSection />
-        </div>
+      <main>
+        <Hero />
+        <LogoCarousel />
+        <FeaturesSection />
+        <UseCases />
+        <Integrations />
+        <TestimonialSection />
+        <PricingSection />
+        <FaqSection />
+        <FinalCta />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
