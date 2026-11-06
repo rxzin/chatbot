@@ -17,6 +17,7 @@ import { Logo } from "./Logo";
 import { SlideButton } from "./SlideButton";
 
 const menuItems = [
+  { name: "Demo", href: "#demo" },
   { name: "Features", href: "#features" },
   { name: "Use cases", href: "#use-cases" },
   { name: "Integrations", href: "#integrations" },

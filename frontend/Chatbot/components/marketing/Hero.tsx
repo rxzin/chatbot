@@ -28,7 +28,7 @@ export default function Hero() {
           <SlideButton href="/register" icon={<ArrowUpRight aria-hidden className="size-4" />}>
             Start chatting
           </SlideButton>
-          <SlideButton href="#use-cases" variant="outline" className="bg-background">
+          <SlideButton href="#demo" variant="outline" className="bg-background">
             See it at work
           </SlideButton>
         </div>

@@ -1,3 +1,4 @@
+import { DemoVideo } from "@/components/marketing/DemoVideo";
 import { FaqSection } from "@/components/marketing/FaqSection";
 import { FeaturesSection } from "@/components/marketing/FeatureSection";
 import { FinalCta } from "@/components/marketing/FinalCta";
@@ -19,6 +20,7 @@ export default function Home() {
       <main>
         <Hero />
         <LogoCarousel />
+        <DemoVideo />
         <FeaturesSection />
         <UseCases />
         <Integrations />

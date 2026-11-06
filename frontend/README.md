@@ -170,6 +170,10 @@ it and skips saving if the client has already disconnected.
   (browsers block speech before that), and speech that never starts is dropped after 3
   seconds.
 - **Admin data** is fetched with SWR in `components/admin/`.
+- **Demo video:** the landing page's `#demo` section (`components/marketing/DemoVideo.tsx`)
+  loops `public/demo/chat-demo.mp4`, rendered from `demo-video/`. It plays only while on
+  screen, has a pause button, and doesn't autoplay with reduced motion. Change its speed
+  with `DEMO_PLAYBACK_RATE` at the top of that file (1 is as rendered).
 - **Design:** one palette for the whole app in `app/globals.css` (`:root` for light,
   `.dark` for dark, dark by default via `next-themes`): zinc neutrals and one emerald
   (`--live`) reserved for live states. Chat uses shadcn `Button` and `Sheet` (the
