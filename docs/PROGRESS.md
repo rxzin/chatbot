@@ -52,7 +52,10 @@ Admin login and the frontend are confirmed working in production.
 
 - [x] `bug_report` wiped the conversation's recent context in Redis, because its `done`
       event has no `prepared_messages`. The runner now keeps the loaded history instead.
-- [ ] Registration has no rate limit, and `REGISTRATION_RATE_LIMIT_SECONDS` is unused.
+- [x] Registration rate limit: 100 sign-ups an hour across the app, plus 10 an hour per IP.
+      The per-IP limit only runs with `TRUST_PROXY_HEADERS=true`, so shared Wi-Fi and the
+      FastAPI Cloud proxy can't lock people out. Settings: `REGISTRATION_MAX_GLOBAL`,
+      `REGISTRATION_MAX_PER_IP`, `REGISTRATION_RATE_LIMIT_SECONDS`.
 - [ ] `_finish_notice` in `services/mistral.py` is still a TODO, so replies that get cut off
       end silently.
 - [ ] "Failed (24h)" counts every 4xx, including normal logged-out 401s.

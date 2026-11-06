@@ -57,3 +57,48 @@ async def clear_login_failures(request: Request, email: str) -> None:
         await redis.delete(key)
     except Exception:
         logger.exception("Failed to clear login failures")
+
+
+def _registration_limits(request: Request) -> list[tuple[str, int, str]]:
+    """Return (key, limit, message) for each sign-up limit that applies."""
+    settings = getSettings()
+    limits = [
+        (
+            "registrations:all",
+            settings.REGISTRATION_MAX_GLOBAL,
+            "Sign-ups are paused for a while. Please try again later.",
+        )
+    ]
+    # Without a trusted IP every visitor shares one address (the proxy), so a
+    # per-IP cap would lock out everyone at once, like a shared Wi-Fi network.
+    ip = trusted_client_ip(request)
+    if ip:
+        limits.append(
+            (
+                f"registrations:ip:{ip}",
+                settings.REGISTRATION_MAX_PER_IP,
+                "Too many sign-ups from this network. Please try again later.",
+            )
+        )
+    return limits
+
+
+async def ensure_registration_allowed(request: Request) -> None:
+    """Count this sign-up attempt and reject it once a limit is reached."""
+    redis = request.app.state.redis_service.redis_client
+    window = getSettings().REGISTRATION_RATE_LIMIT_SECONDS
+    exceeded: str | None = None
+    try:
+        for key, limit, message in _registration_limits(request):
+            count = await redis.incr(key)
+            if count == 1:
+                await redis.expire(key, window)
+            if count > limit and exceeded is None:
+                exceeded = message
+    except Exception:
+        # Losing Redis should not stop people from signing up.
+        logger.exception("Registration rate limit check failed")
+        return
+
+    if exceeded:
+        raise TooManyRequestsError(exceeded)

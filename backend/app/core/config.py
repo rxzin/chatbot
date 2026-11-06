@@ -35,7 +35,11 @@ class Settings(BaseSettings):
     JIRA_ISSUE_TYPE: str
     BUG_REPORT_RATE_LIMIT_SECONDS: int
     ALLOW_PUBLIC_REGISTRATION: bool = True
+    # Sign-ups are counted per window. The per-IP cap only applies when the real
+    # client IP is known (TRUST_PROXY_HEADERS); the global cap always applies.
     REGISTRATION_RATE_LIMIT_SECONDS: int = 3600
+    REGISTRATION_MAX_PER_IP: int = 10
+    REGISTRATION_MAX_GLOBAL: int = 100
     MAX_REFRESH_SESSIONS_PER_USER: int = 5
     SESSION_ABSOLUTE_LIFETIME_DAYS: int = 30
     REFRESH_REUSE_GRACE_SECONDS: int = 30

@@ -12,6 +12,7 @@ from auth.model import Token
 from auth.rate_limit import (
     clear_login_failures,
     ensure_login_allowed,
+    ensure_registration_allowed,
     record_login_failure,
 )
 from auth.service import (
@@ -101,6 +102,7 @@ async def register_user(
     if not settings.ALLOW_PUBLIC_REGISTRATION:
         raise ForbiddenError("Registration is currently disabled")
 
+    await ensure_registration_allowed(request)
     return await create_user_service(db, user)
 
 
