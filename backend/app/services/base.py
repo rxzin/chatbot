@@ -146,7 +146,10 @@ class AIPlatform(ABC):
         for msg in evicted_messages:
             lines.append(f"{msg.role}: {msg.content}\n")
 
-        summary = await self._complete_text(
-            _SUMMARY_INSTRUCTION, "".join(lines), _SUMMARY_MAX_OUTPUT_TOKENS
-        )
+        from services import usage
+
+        with usage.purpose("summary"):
+            summary = await self._complete_text(
+                _SUMMARY_INSTRUCTION, "".join(lines), _SUMMARY_MAX_OUTPUT_TOKENS
+            )
         return summary or existing_summary or ""

@@ -24,6 +24,7 @@ dependencies = [
     "pinecone>=9.1.0",
     "langchain-core>=1.4.7",
     "mistralai>=3.7.0",
+    "langfuse>=5.2.0",
 ]
 
 [tool.fastapi]

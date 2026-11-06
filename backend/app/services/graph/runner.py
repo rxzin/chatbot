@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import Request
 from core.config import getSettings
 from core.database import SessionLocal
@@ -10,15 +12,23 @@ from schemas.chat import (
     StreamError,
     SuggestionsEvent,
     TextDeltaEvent,
+    TitleEvent,
     ToolResultEvent,
     ToolStartEvent,
     sse,
 )
 from schemas.models import User
 from schemas.rag import SourceReference, WebSource
+from services import tracing, usage
+from services.conversation import get_user_conversation, set_conversation_title
 from services.documents import list_conversation_documents
 from services.streaming import persist_turn
 from services.graph.state import AgentState
+from services.titles import generate_title, is_untitled
+
+
+class TurnTimeout(Exception):
+    """The whole turn ran past AGENT_TURN_TIMEOUT_SECONDS."""
 
 
 async def prepare_context(
@@ -87,11 +97,51 @@ def _add_web_sources(sources: list[WebSource], new: list[dict]) -> list[WebSourc
     return merged
 
 
+async def _needs_title(chat_request: ChatRequest, user: User) -> bool:
+    try:
+        async with SessionLocal() as db:
+            conversation = await get_user_conversation(db, chat_request.conversation_id, user.id)
+            return is_untitled(conversation.title)
+    except Exception:
+        logger.exception("Couldn't read the conversation's title")
+        return False
+
+
+async def _events_until(graph_events, deadline: float):
+    """The graph's events, ending with TurnTimeout if the deadline passes."""
+    loop = asyncio.get_running_loop()
+    iterator = graph_events.__aiter__()
+    try:
+        while True:
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                raise TurnTimeout()
+            try:
+                yield await asyncio.wait_for(iterator.__anext__(), remaining)
+            except StopAsyncIteration:
+                return
+            except asyncio.TimeoutError as exc:
+                raise TurnTimeout() from exc
+    finally:
+        await iterator.aclose()
+
+
 async def run_graph_stream(
     request: Request,
     chat_request: ChatRequest,
     current_user: User,
 ):
+    # Every model call in this turn adds its tokens here; saved when the turn ends.
+    records = usage.start_collecting()
+    try:
+        with tracing.trace_turn(current_user.id, chat_request.conversation_id, chat_request.message) as trace:
+            async for frame in _run_turn(request, chat_request, current_user, trace):
+                yield frame
+    finally:
+        await usage.save(records, current_user.id, chat_request.conversation_id)
+
+
+async def _run_turn(request: Request, chat_request: ChatRequest, current_user: User, trace):
     app_state = request.app.state
     memory_service = app_state.redis_service
     llm_service = app_state.llm_service
@@ -116,6 +166,13 @@ async def run_graph_stream(
         }
     }
 
+    # A new conversation gets a title, generated alongside the reply so it adds no wait.
+    title_task = None
+    if not initial_state["history"] and await _needs_title(chat_request, current_user):
+        title_task = asyncio.create_task(
+            generate_title(llm_service, chat_request.message, settings.TITLE_TIMEOUT_SECONDS)
+        )
+
     full_model_response = ""
     sources: list[SourceReference] = []
     web_sources: list[WebSource] = []
@@ -125,10 +182,10 @@ async def run_graph_stream(
     prepared_messages = initial_state["history"]
     final_context_summary = initial_state["context_summary"]
 
+    deadline = asyncio.get_running_loop().time() + settings.AGENT_TURN_TIMEOUT_SECONDS
     try:
-        async for event in app_state.agent_graph.astream(
-            initial_state, config, stream_mode="custom"
-        ):
+        graph_events = app_state.agent_graph.astream(initial_state, config, stream_mode="custom")
+        async for event in _events_until(graph_events, deadline):
             if await request.is_disconnected():
                 return
 
@@ -178,7 +235,19 @@ async def run_graph_stream(
 
         if sources or web_sources:
             yield sse(SourcesEvent(sources=sources, web_sources=web_sources))
+
+        if title_task is not None:
+            title = await title_task  # never raises; bounded by TITLE_TIMEOUT_SECONDS
+            title_task = None
+            try:
+                async with SessionLocal() as db:
+                    await set_conversation_title(db, chat_request.conversation_id, current_user.id, title)
+                yield sse(TitleEvent(title=title))
+            except Exception:
+                logger.exception("Couldn't save the conversation's title")
+
         yield sse(DoneEvent())
+        trace.update(output=tracing.clip(full_model_response), metadata={"sources": len(sources) + len(web_sources)})
 
         if await request.is_disconnected():
             return
@@ -197,8 +266,22 @@ async def run_graph_stream(
             suggestions=suggestions,
         )
 
+    except TurnTimeout:
+        logger.warning(
+            "Turn for %s ran past %ss", chat_request.conversation_id, settings.AGENT_TURN_TIMEOUT_SECONDS
+        )
+        trace.update(level="ERROR", status_message="turn timed out")
+        yield sse(
+            ErrorEvent(
+                error=StreamError(
+                    code="TURN_TIMEOUT",
+                    message="That took too long, so it was stopped. Please try again, or ask a simpler question.",
+                )
+            )
+        )
     except Exception:
         logger.exception(f"Stream Generation Failed for {chat_request.conversation_id}")
+        trace.update(level="ERROR", status_message="stream failed")
         yield sse(
             ErrorEvent(
                 error=StreamError(
@@ -207,3 +290,6 @@ async def run_graph_stream(
                 )
             )
         )
+    finally:
+        if title_task is not None and not title_task.done():
+            title_task.cancel()

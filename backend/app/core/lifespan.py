@@ -8,13 +8,15 @@ from services.audit import AuditLogWriter
 from services.embeddings import MistralEmbeddingService
 from services.fallback import FallbackLLM
 from services.graph.graph import graph_builder
+from services.graph.prompts import BASE_PROMPT
+from services.tracing import init_tracing, shutdown_tracing
 from services.memory import RedisMemoryService
 from services.mistral import MistralProvider, is_transient_error
 from services.reranker import RerankerService
 from services.search import build_search_provider
 from services.vector_store import PineconeVectorStoreService
 
-SYSTEM_PROMPT = "You are a helpful AI assistant."
+SYSTEM_PROMPT = BASE_PROMPT
 
 
 def _build_llm(settings) -> FallbackLLM:
@@ -67,6 +69,7 @@ async def lifespan(app: FastAPI):
         )
 
         app.state.agent_graph = graph_builder()
+        tracing_enabled = init_tracing(settings)
         log_event(
             event="app.lifecycle.startup.succeeded",
             message="Application services initialized",
@@ -74,6 +77,7 @@ async def lifespan(app: FastAPI):
             vector_store_initialized=True,
             reranker_initialized=True,
             web_search_enabled=app.state.search_provider is not None,
+            tracing_enabled=tracing_enabled,
         )
     except Exception:
         logger.exception(
@@ -86,6 +90,7 @@ async def lifespan(app: FastAPI):
 
     try:
         await audit_writer.stop()
+        shutdown_tracing()
 
         search_provider = getattr(app.state, "search_provider", None)
         if search_provider is not None:

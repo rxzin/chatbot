@@ -56,3 +56,41 @@ class AdminSessionResponse(BaseModel):
     created_at: datetime
     last_rotated_at: Optional[datetime]
     expires_at: datetime
+
+
+class UsageBreakdown(BaseModel):
+    key: str
+    calls: int
+    prompt_tokens: int
+    completion_tokens: int
+
+
+class UsageTopUser(BaseModel):
+    user_id: UUID
+    email: Optional[str]
+    calls: int
+    total_tokens: int
+
+
+class UsageDay(BaseModel):
+    day: str
+    prompt_tokens: int
+    completion_tokens: int
+
+
+class UsageSummaryResponse(BaseModel):
+    window_days: int
+    tokens_today: int
+    tokens_7d: int
+    tokens_window: int
+    prompt_tokens_window: int
+    completion_tokens_window: int
+    model_calls_window: int
+    replies_window: int
+    avg_tokens_per_reply: int
+    active_users_window: int
+    fallback_share: float
+    by_purpose: list[UsageBreakdown]
+    by_model: list[UsageBreakdown]
+    top_users: list[UsageTopUser]
+    daily: list[UsageDay]

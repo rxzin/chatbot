@@ -41,3 +41,11 @@ async def get_user_conversation(
     if conversation is None:
         raise NotFoundError("Conversation not found")
     return conversation
+
+
+async def set_conversation_title(
+    db: AsyncSession, conversation_id: UUID, user_id: UUID, title: str
+) -> None:
+    conversation = await get_user_conversation(db, conversation_id, user_id)
+    conversation.title = title[:100]
+    await db.commit()

@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     # Agent loop: tool rounds per turn before the model must answer, and calls per round.
     AGENT_MAX_TOOL_ROUNDS: int = 4
     AGENT_MAX_CALLS_PER_ROUND: int = 4
+    # Time limits: a slow tool becomes an error the model can answer around; a whole
+    # turn that runs over ends with a clear error instead of hanging.
+    TOOL_TIMEOUT_SECONDS: float = 20.0
+    AGENT_TURN_TIMEOUT_SECONDS: float = 150.0
+    TITLE_TIMEOUT_SECONDS: float = 8.0
+    # Langfuse tracing; off unless both keys are set.
+    LANGFUSE_PUBLIC_KEY: str = ""
+    LANGFUSE_SECRET_KEY: str = ""
+    LANGFUSE_BASE_URL: str = "https://cloud.langfuse.com"
+    LANGFUSE_CAPTURE_CONTENT: bool = True
     # Web search. "none", or an empty key, turns the web_search tool off.
     SEARCH_PROVIDER: Literal["exa", "none"] = "exa"
     EXA_API_KEY: str = ""

@@ -6,6 +6,8 @@ from langgraph.config import get_stream_writer
 
 from core.config import getSettings
 from core.logging import logger
+from services import usage
+from services.graph.prompts import has_link, plain_text
 from services.graph.state import AgentState
 
 _INSTRUCTION = (
@@ -25,7 +27,11 @@ def parse_suggestions(text: str, limit: int = 3) -> list[str]:
     """Clean the model's lines into at most limit distinct, short questions."""
     suggestions: list[str] = []
     for line in text.splitlines():
-        cleaned = _LEADING_MARKS.sub("", line).strip().strip("\"'“”").strip()
+        # Plain text only: no links or Markdown, since the answer they're based on may
+        # quote web pages or documents.
+        if has_link(line):
+            continue
+        cleaned = plain_text(_LEADING_MARKS.sub("", line), _MAX_SUGGESTION_CHARS + 1)
         if not 3 <= len(cleaned) <= _MAX_SUGGESTION_CHARS:
             continue
         if cleaned.lower() in (s.lower() for s in suggestions):
@@ -52,10 +58,11 @@ async def suggest(state: AgentState, config: RunnableConfig) -> dict:
         f"Answer:\n{answer[:_MAX_ANSWER_CHARS]}"
     )
     try:
-        text = await asyncio.wait_for(
-            llm.complete_text(_INSTRUCTION, prompt, 200),
-            timeout=settings.SUGGESTIONS_TIMEOUT_SECONDS,
-        )
+        with usage.purpose("suggestions"):
+            text = await asyncio.wait_for(
+                llm.complete_text(_INSTRUCTION, prompt, 200),
+                timeout=settings.SUGGESTIONS_TIMEOUT_SECONDS,
+            )
     except Exception:
         logger.warning("Suggested questions skipped", exc_info=True)
         return {}

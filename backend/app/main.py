@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import schemas.models  # noqa: F401 - registers ORM models with SQLAlchemy metadata
 from api.routes.admin import admin_router
 from api.routes.admin_audit import admin_audit_router
+from api.routes.admin_usage import admin_usage_router
 from api.routes.admin_users import admin_users_router
 from api.routes.conversations import conv_router
 from api.routes.documents import documents_router
@@ -55,6 +56,7 @@ app.include_router(chat_router, prefix=API_PREFIX, tags=["Chat"])
 app.include_router(documents_router, prefix=API_PREFIX, tags=["Documents"])
 app.include_router(admin_router, prefix=API_PREFIX, tags=["Admin"])
 app.include_router(admin_audit_router, prefix=API_PREFIX, tags=["Admin"])
+app.include_router(admin_usage_router, prefix=API_PREFIX, tags=["Admin"])
 app.include_router(admin_users_router, prefix=API_PREFIX, tags=["Admin"])
 
 # Must stay last: it matches every path the routes above don't handle.

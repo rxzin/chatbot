@@ -11,7 +11,10 @@ class ChatRequest(BaseModel):
     """Payload received from the client."""
 
     message: str = Field(
-        ..., description="The raw input message from the user.", min_length=1
+        ...,
+        description="The raw input message from the user.",
+        min_length=1,
+        max_length=8000,
     )
     role: str = "user"
     conversation_id: UUID = Field(
@@ -100,6 +103,13 @@ class SuggestionsEvent(BaseModel):
     suggestions: list[str]
 
 
+class TitleEvent(BaseModel):
+    """The conversation's new title, sent once after its first reply."""
+
+    type: Literal["title"] = "title"
+    title: str
+
+
 class DoneEvent(BaseModel):
     """The reply finished normally. A stream without it was interrupted."""
 
@@ -128,6 +138,7 @@ ChatStreamEvent = Annotated[
         ToolResultEvent,
         SourcesEvent,
         SuggestionsEvent,
+        TitleEvent,
         DoneEvent,
         ErrorEvent,
     ],

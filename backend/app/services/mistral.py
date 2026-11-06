@@ -10,6 +10,7 @@ from mistralai.client.models import TextChunk
 from core.config import getSettings
 from core.logging import logger
 from schemas.chat import MessageParam
+from services import tracing, usage
 from services.base import AIPlatform, ToolCall, ToolExchange, ToolSpec, TurnChunk
 
 # Storage and the frontend use "model" for the assistant; Mistral expects "assistant".
@@ -54,6 +55,16 @@ def _extract_text(content: Any) -> str:
     if isinstance(content, list):
         return "".join(c.text for c in content if isinstance(c, TextChunk))
     return ""
+
+
+def _record_usage(generation: Any, model: str, tokens: Any) -> None:
+    """Save the call's token counts for the usage dashboard and the trace."""
+    if tokens is None:
+        return
+    prompt_tokens = getattr(tokens, "prompt_tokens", 0) or 0
+    completion_tokens = getattr(tokens, "completion_tokens", 0) or 0
+    usage.record(model, prompt_tokens, completion_tokens)
+    generation.update(usage_details={"input": prompt_tokens, "output": completion_tokens})
 
 
 def _tool_param(tool: ToolSpec) -> dict[str, Any]:
@@ -189,44 +200,66 @@ class MistralProvider(AIPlatform):
                 "tools": [_tool_param(t) for t in tools],
                 "tool_choice": "auto" if allow_tools else "none",
             }
-        stream = await self._client.chat.stream_async(
+        with tracing.observe(
+            usage.current_purpose(),
+            as_type="generation",
+            input=messages,
             model=self.model,
-            messages=messages,
-            max_tokens=getSettings().MODEL_OUTPUT_TOKEN_LIMIT,
-            **tool_args,
-        )
+            metadata={"tools": [t.name for t in tools], "tools_allowed": allow_tools},
+        ) as generation:
+            stream = await self._client.chat.stream_async(
+                model=self.model,
+                messages=messages,
+                max_tokens=getSettings().MODEL_OUTPUT_TOKEN_LIMIT,
+                **tool_args,
+            )
 
-        finish_reason = None
-        # Tool calls may arrive split across chunks; they're joined by index.
-        pending: dict[int, dict[str, Any]] = {}
-        async with stream as events:
-            async for event in events:
-                if not event.data.choices:
-                    continue
-                choice = event.data.choices[0]
-                text = _extract_text(choice.delta.content)
-                if text:
-                    yield text
-                for call in choice.delta.tool_calls or []:
-                    _merge_tool_call(pending, call)
-                finish_reason = choice.finish_reason or finish_reason
+            finish_reason = None
+            tokens = None
+            text_out = ""
+            # Tool calls may arrive split across chunks; they're joined by index.
+            pending: dict[int, dict[str, Any]] = {}
+            async with stream as events:
+                async for event in events:
+                    # Usage can come on a final chunk that has no choices.
+                    tokens = getattr(event.data, "usage", None) or tokens
+                    if not event.data.choices:
+                        continue
+                    choice = event.data.choices[0]
+                    text = _extract_text(choice.delta.content)
+                    if text:
+                        text_out += text
+                        yield text
+                    for call in choice.delta.tool_calls or []:
+                        _merge_tool_call(pending, call)
+                    finish_reason = choice.finish_reason or finish_reason
 
-        calls = [_to_tool_call(p) for _, p in sorted(pending.items())]
-        if calls and allow_tools:
-            yield calls
-            return
-        notice = _finish_notice(finish_reason)
-        if notice:
-            yield notice
+            calls = [_to_tool_call(p) for _, p in sorted(pending.items())]
+            _record_usage(generation, self.model, tokens)
+            generation.update(
+                output={"text": text_out, "tool_calls": [{"name": c.name, "arguments": c.arguments} for c in calls]},
+                metadata={"finish_reason": finish_reason},
+            )
+            if calls and allow_tools:
+                yield calls
+                return
+            notice = _finish_notice(finish_reason)
+            if notice:
+                yield notice
 
     async def _complete_text(
         self, system_instruction: str, prompt: str, max_output_tokens: int
     ) -> str:
-        response = await self._client.chat.complete_async(
-            model=self.model,
-            messages=_to_api_messages(system_instruction, [], prompt),
-            max_tokens=max_output_tokens,
-        )
-        if not response.choices:
-            return ""
-        return _extract_text(response.choices[0].message.content)
+        messages = _to_api_messages(system_instruction, [], prompt)
+        with tracing.observe(
+            usage.current_purpose(), as_type="generation", input=messages, model=self.model
+        ) as generation:
+            response = await self._client.chat.complete_async(
+                model=self.model,
+                messages=messages,
+                max_tokens=max_output_tokens,
+            )
+            text = _extract_text(response.choices[0].message.content) if response.choices else ""
+            _record_usage(generation, self.model, response.usage)
+            generation.update(output=text)
+            return text

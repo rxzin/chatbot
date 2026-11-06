@@ -4,10 +4,13 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.config import get_stream_writer
 
 from core.config import getSettings
+from services import tracing, usage
 from services.base import ToolExchange, ToolResult
 from services.context_budget import apply_token_budget
+from services.graph.prompts import wrap_untrusted
 from services.graph.state import AgentState
 from services.graph.tools import (
+    UNTRUSTED_SOURCES,
     ToolOutcome,
     instructions_for,
     number_citations,
@@ -39,20 +42,21 @@ async def agent(state: AgentState, config: RunnableConfig) -> dict:
 
     text = ""
     calls = []
-    async for chunk in llm.stream_turn(
-        prompt=state["user_message"],
-        history=history,
-        context_summary=summary,
-        instructions=instructions_for(state, config),
-        exchanges=exchanges,
-        tools=tools_for(state, config),
-        allow_tools=allow_tools,
-    ):
-        if isinstance(chunk, list):
-            calls = chunk
-        else:
-            text += chunk
-            writer({"event": "token", "content": chunk})
+    with usage.purpose("agent"):
+        async for chunk in llm.stream_turn(
+            prompt=state["user_message"],
+            history=history,
+            context_summary=summary,
+            instructions=instructions_for(state, config),
+            exchanges=exchanges,
+            tools=tools_for(state, config),
+            allow_tools=allow_tools,
+        ):
+            if isinstance(chunk, list):
+                calls = chunk
+            else:
+                text += chunk
+                writer({"event": "token", "content": chunk})
 
     if calls:
         # Keep a lead-in like "Let me check." apart from the answer that follows.
@@ -78,10 +82,15 @@ async def tools(state: AgentState, config: RunnableConfig) -> dict:
 
     async def run(index: int, call) -> ToolOutcome:
         writer({"event": "tool-start", "id": call.id, "name": call.name, "input": call.arguments})
-        if index >= limit:
-            outcome = ToolOutcome(f"Skipped: at most {limit} tool calls per step.", is_error=True)
-        else:
-            outcome = await run_tool(call, state, config)
+        with tracing.observe(call.name, as_type="tool", input=call.arguments) as span:
+            if index >= limit:
+                outcome = ToolOutcome(f"Skipped: at most {limit} tool calls per step.", is_error=True)
+            else:
+                outcome = await run_tool(call, state, config)
+            span.update(
+                output=tracing.clip(outcome.content or f"{len(outcome.citations)} results"),
+                level="ERROR" if outcome.is_error else None,
+            )
         writer(
             {"event": "tool-result", "id": call.id, "name": call.name, "is_error": outcome.is_error}
         )
@@ -103,6 +112,9 @@ async def tools(state: AgentState, config: RunnableConfig) -> dict:
                     "web_sources": [s.model_dump(by_alias=True) for s in web_sources],
                 }
             )
+        # Text from outside goes to the model marked as data, never as instructions.
+        if call.name in UNTRUSTED_SOURCES and not outcome.is_error and content:
+            content = wrap_untrusted(UNTRUSTED_SOURCES[call.name], content)
         results.append(ToolResult(call_id=call.id, name=call.name, content=content))
 
     exchange.results = results

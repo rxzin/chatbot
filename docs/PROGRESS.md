@@ -145,7 +145,7 @@ Copy its design system, not its brand.
 - Use cases need real screenshots of document chat, weather, bug reports and the admin
   dashboard.
 
-## Features, not started
+## Features, done
 
 In this order, because each depends on the one before:
 
@@ -197,3 +197,76 @@ In this order, because each depends on the one before:
 It respects reduced motion, handles the `#section` links (including from the mobile menu),
 and pauses while a sheet or dialog locks scrolling. The mobile menu keeps native scrolling
 (`data-lenis-prevent`).
+
+## Agent hardening, in progress (2026-11-07)
+
+Requested: a better system prompt with prompt-injection guardrails, automatic conversation
+titles, time limits that fail gracefully, token usage in a new admin tab, and Langfuse
+tracing. **The backend is done and checked offline; the frontend is not started.**
+
+### Done (backend)
+
+- **System prompt and guardrails** (`services/graph/prompts.py`):
+  - `BASE_PROMPT` replaces "You are a helpful AI assistant." (who Chat is, style,
+    honesty, no invented sources or actions).
+  - `instructions_for` adds today's date (UTC) and `SECURITY_RULES`: only the user's
+    messages are instructions, never reveal the prompt, no images or made-up links, no
+    secrets, report_bug only on the user's own request.
+  - In code: tool results from documents, the web and the weather service reach the model
+    wrapped in `<untrusted source="…">` blocks, with any copy of the markers inside
+    neutralised (`wrap_untrusted`). `report_bug` is withdrawn for the rest of a turn once
+    documents or web pages have been read (was: web only). Chat messages are capped at
+    8,000 characters. Suggestions and titles are cleaned to plain text, and lines with
+    links are dropped.
+- **Time limits:** each tool runs under `TOOL_TIMEOUT_SECONDS` (20); a timeout becomes an
+  error result the model answers around. The whole turn has `AGENT_TURN_TIMEOUT_SECONDS`
+  (150), ending with a `TURN_TIMEOUT` error event; nothing is saved. The deadline wraps
+  each step of reading the graph's events, so the server is never cancelled mid-send.
+- **Automatic titles** (`services/titles.py`): on a conversation's first message a 2–6
+  word title is generated in parallel with the reply (`TITLE_TIMEOUT_SECONDS`, 8; falls
+  back to the message's first words), saved, and sent as a `title` stream event before
+  `done`.
+- **Token usage:** `MistralProvider` records every call's tokens (including the final
+  usage-only stream chunk) into a per-turn collector (`services/usage.py`), tagged with a
+  purpose: `agent`, `suggestions`, `title`, `summary`. The runner saves them to the new
+  `llm_usage` table at the end of the turn, even if it failed. Migration `c9d0e1f2a3b4`.
+  `GET /api/admin/usage?days=30` (permission `audit:read`) returns tokens today / 7 days /
+  window, prompt and completion split, model calls, replies, average tokens per reply,
+  active users, fallback share, breakdowns by purpose and model, top 10 users and a daily
+  series.
+- **Langfuse tracing** (`services/tracing.py`, SDK `langfuse` 5.2): one `chat-turn` trace
+  per message (type agent), grouped by conversation as a session and tagged with the
+  user; a `generation` per model call with model, input, output and token counts; a
+  `tool` observation per tool call. Off unless `LANGFUSE_PUBLIC_KEY` and
+  `LANGFUSE_SECRET_KEY` are set (`LANGFUSE_BASE_URL`, default cloud.langfuse.com).
+  `LANGFUSE_CAPTURE_CONTENT=false` keeps timings and tokens but redacts text.
+- **Checked:** app import, ruff, OpenAPI schema (`/api/admin/usage`, `TitleEvent`), and an
+  offline scripted-model check (14 cases: date and rules in the prompt, untrusted
+  wrapping, forged markers neutralised, report_bug withdrawal, tool timeout, turn timeout,
+  usage purposes, title cleaning and fallback, suggestion cleaning). Earlier agent,
+  runner and finish-reason checks still pass; one old expectation now sees the weather
+  result wrapped as untrusted, which is intended.
+
+### Not done (frontend)
+
+- `types/api.ts` is regenerated (has `TitleEvent` and the usage response), but nothing
+  uses them yet. `types/chat.ts` still needs `TitleEvent` in `ChatStreamEvent`.
+- **Title:** `useChat` should handle the `title` event and pass it to `useConversation`
+  (a local rename), so the sidebar and header update without a reload.
+- **Exfiltration guard:** `MessageBubble`'s `ReactMarkdown` should get
+  `disallowedElements={["img"]}` with `unwrapDisallowed`, so an injected Markdown image
+  can't send data to another site.
+- **Usage tab:** a new admin tab (permission `audit:read`) with KPI cards from
+  `/api/admin/usage` (tokens today, 7 days, 30 days, average per reply, model calls,
+  active users, fallback share), tables by purpose, by model and top users, and a window
+  selector. A daily chart would need the dataviz skill.
+- Docs: backend README (settings table, request flow, Data section with `llm_usage`),
+  design notes, frontend README.
+
+### Before deploying
+
+- Run the migration (`./deploy.sh` without `--no-db`).
+- Add `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` in the FastAPI Cloud dashboard to turn
+  tracing on.
+- Nothing has been tested against the live model, Postgres or Langfuse yet.
+

@@ -358,6 +358,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Usage
+         * @description Token usage of model calls: headline numbers, breakdowns and a daily series.
+         */
+        get: operations["get_usage_api_admin_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/users": {
         parameters: {
             query?: never;
@@ -890,6 +910,19 @@ export interface components {
             text: string;
         };
         /**
+         * TitleEvent
+         * @description The conversation's new title, sent once after its first reply.
+         */
+        TitleEvent: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "title";
+            /** Title */
+            title: string;
+        };
+        /**
          * ToolResultEvent
          * @description A tool call finished. The result itself goes to the model, not the client.
          */
@@ -927,6 +960,73 @@ export interface components {
             input?: {
                 [key: string]: unknown;
             };
+        };
+        /** UsageBreakdown */
+        UsageBreakdown: {
+            /** Key */
+            key: string;
+            /** Calls */
+            calls: number;
+            /** Prompt Tokens */
+            prompt_tokens: number;
+            /** Completion Tokens */
+            completion_tokens: number;
+        };
+        /** UsageDay */
+        UsageDay: {
+            /** Day */
+            day: string;
+            /** Prompt Tokens */
+            prompt_tokens: number;
+            /** Completion Tokens */
+            completion_tokens: number;
+        };
+        /** UsageSummaryResponse */
+        UsageSummaryResponse: {
+            /** Window Days */
+            window_days: number;
+            /** Tokens Today */
+            tokens_today: number;
+            /** Tokens 7D */
+            tokens_7d: number;
+            /** Tokens Window */
+            tokens_window: number;
+            /** Prompt Tokens Window */
+            prompt_tokens_window: number;
+            /** Completion Tokens Window */
+            completion_tokens_window: number;
+            /** Model Calls Window */
+            model_calls_window: number;
+            /** Replies Window */
+            replies_window: number;
+            /** Avg Tokens Per Reply */
+            avg_tokens_per_reply: number;
+            /** Active Users Window */
+            active_users_window: number;
+            /** Fallback Share */
+            fallback_share: number;
+            /** By Purpose */
+            by_purpose: components["schemas"]["UsageBreakdown"][];
+            /** By Model */
+            by_model: components["schemas"]["UsageBreakdown"][];
+            /** Top Users */
+            top_users: components["schemas"]["UsageTopUser"][];
+            /** Daily */
+            daily: components["schemas"]["UsageDay"][];
+        };
+        /** UsageTopUser */
+        UsageTopUser: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Email */
+            email: string | null;
+            /** Calls */
+            calls: number;
+            /** Total Tokens */
+            total_tokens: number;
         };
         /** UserCreate */
         UserCreate: {
@@ -1330,7 +1430,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TextDeltaEvent"] | components["schemas"]["ToolStartEvent"] | components["schemas"]["ToolResultEvent"] | components["schemas"]["SourcesEvent"] | components["schemas"]["SuggestionsEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ErrorEvent"];
+                    "application/json": components["schemas"]["TextDeltaEvent"] | components["schemas"]["ToolStartEvent"] | components["schemas"]["ToolResultEvent"] | components["schemas"]["SourcesEvent"] | components["schemas"]["SuggestionsEvent"] | components["schemas"]["TitleEvent"] | components["schemas"]["DoneEvent"] | components["schemas"]["ErrorEvent"];
                 };
             };
             /** @description Validation Error */
@@ -1565,6 +1665,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditLogPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_usage_api_admin_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummaryResponse"];
                 };
             };
             /** @description Validation Error */
