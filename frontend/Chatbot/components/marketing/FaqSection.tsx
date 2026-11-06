@@ -9,17 +9,17 @@ const items = [
   {
     title: "What is Chat?",
     content:
-      "Chat is a full-stack AI chat app with private accounts, saved conversations, streaming replies from Mistral, and answers grounded in documents you upload.",
+      "Chat is a full-stack AI chat app with private accounts, saved conversations and streaming replies from Mistral. It answers from documents you upload and from the web, and cites its sources inline.",
   },
   {
     title: "How does document chat work?",
     content:
-      "Upload a PDF or TXT file inside a conversation. Once it's indexed, Chat finds the most relevant passages and answers from them, listing the sources it used.",
+      "Upload a PDF or TXT file inside a conversation. Once it's indexed, Chat searches it when your question needs it and cites each passage it used with a number you can hover.",
   },
   {
     title: "Can I ask general questions too?",
     content:
-      "Yes. Chat decides for each message, so you can ask anything even when documents are attached to the conversation.",
+      "Yes. For each message Chat decides whether to answer directly, search your documents, search the web or check the weather, and it can combine them.",
   },
   {
     title: "Are documents shared across conversations?",
@@ -30,6 +30,11 @@ const items = [
     title: "Is my conversation history saved?",
     content:
       "Yes. Conversations are stored in PostgreSQL and only you can see them. You can reopen any past conversation from the sidebar.",
+  },
+  {
+    title: "Is there a daily limit?",
+    content:
+      "Yes. Each account can send 200 messages and run 30 web searches a day. Both reset at midnight UTC.",
   },
   {
     title: "Is Chat free?",

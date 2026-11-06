@@ -1,4 +1,4 @@
-import { BrainCircuit, DatabaseZap, Radio, ShieldCheck } from "lucide-react";
+import { BrainCircuit, DatabaseZap, Globe, Radio, ShieldCheck, Workflow } from "lucide-react";
 import type { ComponentType } from "react";
 import {
   SiFastapi,
@@ -20,6 +20,8 @@ const techStack: { name: string; icon: ComponentType<{ className?: string }> }[]
   { name: "Redis", icon: SiRedis },
   { name: "Pinecone", icon: DatabaseZap },
   { name: "Mistral Embeddings", icon: BrainCircuit },
+  { name: "LangGraph", icon: Workflow },
+  { name: "Exa", icon: Globe },
   { name: "Next.js", icon: SiNextdotjs },
   { name: "React", icon: SiReact },
   { name: "SSE Streaming", icon: Radio },

@@ -6,6 +6,7 @@ import {
   CloudSun,
   FileSearch,
   FileText,
+  Globe,
   LayoutDashboard,
   MessageSquare,
   SendHorizontal,
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { RailSection, SectionHeading } from "./Frame";
 
 type Message = { from: "user" | "chat"; text: string; note?: string };
+type Source = { label: string; kind: "document" | "web" };
 
 type UseCase = {
   id: string;
@@ -25,7 +27,8 @@ type UseCase = {
   icon: LucideIcon;
   conversation: string;
   messages?: Message[];
-  sources?: string[];
+  sources?: Source[];
+  suggestions?: string[];
   ticket?: string;
 };
 
@@ -41,10 +44,34 @@ const useCases: UseCase[] = [
       { from: "user", text: "What's the notice period if I want to move out?" },
       {
         from: "chat",
-        text: "You need to give 60 days' notice in writing before the end of the term. Notice by email counts, as long as it goes to the address in section 9.",
+        text: "You need to give 60 days' notice in writing before the end of the term [1]. Notice by email counts, as long as it goes to the address in section 9 [2].",
       },
     ],
-    sources: ["lease-2026.pdf · p. 4", "lease-2026.pdf · p. 11"],
+    sources: [
+      { label: "lease-2026.pdf · p. 4", kind: "document" },
+      { label: "lease-2026.pdf · p. 11", kind: "document" },
+    ],
+    suggestions: ["Can I end the lease early?", "Who pays for repairs?"],
+  },
+  {
+    id: "web",
+    title: "Search the web",
+    description:
+      "Ask about anything current. Chat searches the web, answers with numbered citations and links the pages it used.",
+    icon: Globe,
+    conversation: "Starting to run",
+    messages: [
+      { from: "user", text: "How should I start running if I've never run before?" },
+      {
+        from: "chat",
+        note: "Searching the web",
+        text: "Start with short run-walk intervals three times a week and build up slowly over a few weeks [1]. Rest days between runs matter as much as the runs themselves [2].",
+      },
+    ],
+    sources: [
+      { label: "nhs.uk · Couch to 5K", kind: "web" },
+      { label: "nhs.uk · Running for beginners", kind: "web" },
+    ],
   },
   {
     id: "weather",
@@ -59,7 +86,7 @@ const useCases: UseCase[] = [
         text: "Light rain is likely in the morning, clearing by early afternoon. Expect a high of 19°C and a fresh breeze off the coast.",
       },
     ],
-    sources: ["Open-Meteo forecast"],
+    sources: [{ label: "Open-Meteo forecast", kind: "web" }],
   },
   {
     id: "bugs",
@@ -96,6 +123,22 @@ const auditRows = [
   ["10:40:31", "sam@example.com", "GET", "/api/conversations", 200],
 ] as const;
 
+/** Shows "[1]" the way the app does: as a small numbered badge. */
+function withCitations(text: string) {
+  return text.split(/(\[\d\])/g).map((part, index) =>
+    /^\[\d\]$/.test(part) ? (
+      <span
+        key={index}
+        className="mx-0.5 inline-flex size-[1.05rem] items-center justify-center rounded-full bg-muted align-[0.1em] text-[0.6rem] text-muted-foreground"
+      >
+        {part.slice(1, -1)}
+      </span>
+    ) : (
+      part
+    ),
+  );
+}
+
 function Bubble({ message }: { message: Message }) {
   const isUser = message.from === "user";
   return (
@@ -107,7 +150,7 @@ function Bubble({ message }: { message: Message }) {
         )}
       >
         {message.note && <p className="mb-1 text-[0.7rem] text-muted-foreground italic">{message.note}…</p>}
-        {message.text}
+        {isUser ? message.text : withCitations(message.text)}
       </div>
     </div>
   );
@@ -120,13 +163,32 @@ function ChatPreview({ useCase }: { useCase: UseCase }) {
         {useCase.messages?.map((message, index) => <Bubble key={index} message={message} />)}
         {useCase.sources && (
           <div className="flex flex-wrap gap-1.5 pl-0.5">
-            {useCase.sources.map((source) => (
+            {useCase.sources.map((source, index) => (
               <span
-                key={source}
+                key={source.label}
                 className="inline-flex items-center gap-1.5 rounded-[4px] border border-line px-2 py-1 text-[0.68rem] text-muted-foreground"
               >
-                <FileText aria-hidden className="size-3" />
-                {source}
+                {useCase.messages?.some((m) => m.text.includes(`[${index + 1}]`)) && (
+                  <span className="tabular-nums">{index + 1}</span>
+                )}
+                {source.kind === "web" ? (
+                  <Globe aria-hidden className="size-3" />
+                ) : (
+                  <FileText aria-hidden className="size-3" />
+                )}
+                {source.label}
+              </span>
+            ))}
+          </div>
+        )}
+        {useCase.suggestions && (
+          <div className="flex flex-wrap gap-1.5 pl-0.5">
+            {useCase.suggestions.map((suggestion) => (
+              <span
+                key={suggestion}
+                className="rounded-[4px] border border-line px-2 py-1 text-[0.68rem] text-foreground"
+              >
+                {suggestion}
               </span>
             ))}
           </div>
@@ -142,7 +204,7 @@ function ChatPreview({ useCase }: { useCase: UseCase }) {
         )}
       </div>
       <div className="m-3 flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-[0.75rem] text-muted-foreground">
-        <span className="flex-1">Message Chat…</span>
+        <span className="flex-1">Ask anything…</span>
         <SendHorizontal aria-hidden className="size-3.5" />
       </div>
     </div>
@@ -247,7 +309,7 @@ export function UseCases() {
     <RailSection id="use-cases" aria-labelledby="use-cases-heading">
       <div className="px-5 pt-24 pb-14 sm:px-12 sm:pt-28">
         <SectionHeading id="use-cases-heading" className="max-w-[26rem]">
-          One chat for files, forecasts and bug reports.
+          One chat for files, the web, forecasts and bug reports.
         </SectionHeading>
       </div>
 

@@ -1,14 +1,12 @@
-import { CloudSun, DatabaseZap, Layers } from "lucide-react";
+import { CloudSun, DatabaseZap, Globe, Layers, Workflow } from "lucide-react";
 import type { ComponentType } from "react";
 import {
-  SiDocker,
   SiFastapi,
   SiGmail,
   SiJira,
   SiMistralai,
   SiNextdotjs,
   SiPostgresql,
-  SiPython,
   SiReact,
   SiRedis,
   SiTailwindcss,
@@ -26,7 +24,7 @@ const tools: Tool[] = [
   { name: "PostgreSQL", icon: SiPostgresql },
   { name: "Redis", icon: SiRedis },
   { name: "FastAPI", icon: SiFastapi },
-  { name: "Python", icon: SiPython },
+  { name: "Exa web search", icon: Globe },
   { name: "Jira", icon: SiJira },
   { name: "Email over SMTP", icon: SiGmail },
   { name: "Open-Meteo", icon: CloudSun },
@@ -34,7 +32,7 @@ const tools: Tool[] = [
   { name: "React", icon: SiReact },
   { name: "TypeScript", icon: SiTypescript },
   { name: "Tailwind CSS", icon: SiTailwindcss },
-  { name: "Docker", icon: SiDocker },
+  { name: "LangGraph", icon: Workflow },
 ];
 
 export function Integrations() {

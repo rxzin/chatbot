@@ -1,7 +1,9 @@
 import {
+  Globe,
   History,
+  MessageCircleQuestion,
+  Quote,
   Radio,
-  SearchCheck,
   ShieldCheck,
   FileText,
   TicketCheck,
@@ -19,7 +21,7 @@ const features: { title: string; description: string; icon: LucideIcon }[] = [
   {
     title: "Replies that stream",
     description:
-      "Answers appear word by word as Mistral writes them, so you're never left watching an empty screen.",
+      "Answers appear word by word as Mistral writes them, and Chat shows when it's searching or checking something.",
     icon: Radio,
   },
   {
@@ -29,10 +31,16 @@ const features: { title: string; description: string; icon: LucideIcon }[] = [
     icon: FileText,
   },
   {
-    title: "Answers with sources",
+    title: "Inline citations",
     description:
-      "Chat finds the right passages with Mistral embeddings and Pinecone, reranks them with Cohere, and lists them under the answer.",
-    icon: SearchCheck,
+      "Claims from your files or the web carry a numbered citation. Hover one to see the passage or page it came from.",
+    icon: Quote,
+  },
+  {
+    title: "Searches the web when needed",
+    description:
+      "Ask about something recent and Chat searches the web with Exa, then links every page it used.",
+    icon: Globe,
   },
   {
     title: "Memory for long chats",
@@ -45,6 +53,12 @@ const features: { title: string; description: string; icon: LucideIcon }[] = [
     description:
       "Describe a problem and Chat drafts a ticket. An admin approves it before it reaches Jira, and you get an email.",
     icon: TicketCheck,
+  },
+  {
+    title: "Suggested next questions",
+    description:
+      "After each answer, Chat offers three follow-up questions you can send with one click.",
+    icon: MessageCircleQuestion,
   },
 ];
 

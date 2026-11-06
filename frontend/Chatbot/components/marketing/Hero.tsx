@@ -19,9 +19,9 @@ export default function Hero() {
         </h1>
 
         <p className="mt-6 max-w-[34rem] text-[0.95rem] leading-relaxed font-light text-muted-foreground">
-          Private AI chat that answers from the PDFs and text files you upload, with the
-          sources it used. Replies stream in as they&apos;re written, and every conversation
-          stays yours.
+          Private AI chat that answers from the PDFs and text files you upload, and from
+          the web, citing each source as it goes. Replies stream in as they&apos;re written,
+          and every conversation stays yours.
         </p>
 
         <div className="mt-9 flex flex-wrap items-center justify-center gap-4">

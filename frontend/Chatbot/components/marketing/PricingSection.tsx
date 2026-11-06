@@ -13,7 +13,7 @@ const plans = [
     description: "For trying Chat with your own documents.",
     monthly: 0,
     yearly: 0,
-    features: ["Private conversations", "Streaming replies", "PDF and TXT uploads", "Live weather"],
+    features: ["200 messages a day", "30 web searches a day", "PDF and TXT uploads", "Answers with citations"],
     popular: false,
   },
   {
@@ -21,7 +21,7 @@ const plans = [
     description: "For people who chat with documents every day.",
     monthly: 12,
     yearly: 10,
-    features: ["Everything in Free", "Larger uploads", "Longer conversation memory", "Priority replies"],
+    features: ["Everything in Free", "Higher daily limits", "Larger uploads", "Longer conversation memory"],
     popular: true,
   },
   {
@@ -74,7 +74,10 @@ export function PricingSection() {
           </div>
         </div>
         <div className="max-w-[19rem] text-sm leading-relaxed text-muted-foreground">
-          <p>Chat is free while it&apos;s in development. These plans are examples of how pricing could work.</p>
+          <p>
+            Chat is free while it&apos;s in development, with 200 messages and 30 web searches a
+            day for every account. These plans are examples of how pricing could work.
+          </p>
           <p className="mt-3 flex items-center gap-2.5 text-foreground/85">
             <span className="flex size-5 items-center justify-center rounded-[4px] border border-line">
               <Check aria-hidden className="size-3" />
