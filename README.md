@@ -18,8 +18,10 @@ runs on FastAPI Cloud.
 - **Chat with streaming replies** over Server-Sent Events, with saved conversations.
 - **Document answers (RAG):** uploads are split into chunks, embedded with
   `mistral-embed`, stored in Pinecone, reranked with Cohere, and cited as sources.
-- **Agent with tools:** the model decides when to search the user's documents, check the
-  weather, or file a bug report, and can use several tools before answering.
+- **Agent with tools:** the model decides when to search the user's documents, search
+  the web, check the weather, or file a bug report, and can use several tools before
+  answering.
+- **Web search** through Exa, with the pages it used shown as links.
 - **Bug reports:** drafted from the conversation, queued for an admin, then created in
   Jira on approval with an email to the user.
 - **Admin dashboard:** bug report approval, an audit log of every API request, and user
@@ -34,7 +36,7 @@ runs on FastAPI Cloud.
 | Layer | Tools |
 |---|---|
 | Model | Mistral `ministral-14b`, falling back to `ministral-8b` on rate limits and server errors |
-| Retrieval | `mistral-embed`, Pinecone, Cohere rerank |
+| Retrieval | `mistral-embed`, Pinecone, Cohere rerank; Exa for web search |
 | Backend | Python 3.14, FastAPI, LangGraph, SQLAlchemy (async), Alembic, uv |
 | Data | PostgreSQL 18 (ids from `uuidv7()`), Redis |
 | Frontend | Next.js 16 static export, React, Tailwind CSS v4, shadcn/ui, pnpm |
@@ -45,6 +47,7 @@ runs on FastAPI Cloud.
 ```
 Browser ──POST /api/chat──▶ FastAPI ──▶ LangGraph:  agent ⇄ tools (up to 4 rounds)
                                                       │      search_documents
+                                                      │      web_search
                                                       │      get_weather
                                                       │      report_bug
 Browser ◀──── SSE events ◀── runner ◀─────────────────┘

@@ -28,6 +28,7 @@ be set:
 MISTRAL_API_KEY=
 COHERE_API_KEY=
 PINECONE_API=
+EXA_API_KEY=                      # optional; empty turns web search off
 VECTOR_STORE_PROVIDER=pinecone
 REDIS_URL=redis://localhost:6379/0
 JWT_SECRET_KEY=                   # a long random string
@@ -57,6 +58,9 @@ Commonly changed optional settings:
 | `MISTRAL_MODEL` / `MISTRAL_FALLBACK_MODEL` | `ministral-14b-latest` / `ministral-8b-latest` | Change `MODEL_INPUT_TOKEN_LIMIT` and `MODEL_OUTPUT_TOKEN_LIMIT` with them |
 | `PINECONE_INDEX_NAME` | `documents-mistral-embed` | Created on startup if missing, 1024 dimensions |
 | `SMTP_USERNAME` / `SMTP_PASSWORD` | empty | Emails are skipped when empty |
+| `SEARCH_PROVIDER` | `exa` | `none` turns web search off. So does an empty `EXA_API_KEY` |
+| `WEB_SEARCH_RESULTS` / `WEB_SEARCH_DAILY_LIMIT_PER_USER` | `5` / `30` | Results per search, and searches per user per UTC day |
+| `AGENT_MAX_TOOL_ROUNDS` / `AGENT_MAX_CALLS_PER_ROUND` | `4` / `4` | |
 | `ALLOW_PUBLIC_REGISTRATION` | `true` | |
 | `REGISTRATION_MAX_GLOBAL` / `REGISTRATION_MAX_PER_IP` | `100` / `10` | Per `REGISTRATION_RATE_LIMIT_SECONDS` (an hour) |
 | `LOGIN_MAX_FAILURES_PER_ACCOUNT` / `_PER_IP` | `10` / `50` | Per `LOGIN_RATE_LIMIT_WINDOW_SECONDS` (15 minutes) |
@@ -95,12 +99,18 @@ streams its output as SSE:
    - `search_documents(query)`: searches Pinecone, reranks with Cohere, and returns
      passages with their sources. Only offered when the conversation has indexed
      documents.
+   - `web_search(query)`: searches the web with Exa
+     ([`services/search.py`](app/services/search.py)) and returns short excerpts with
+     their URLs. Offered when a search provider is set up. Each user gets
+     `WEB_SEARCH_DAILY_LIMIT_PER_USER` searches a day.
    - `get_weather(city)`: current weather and forecast from Open-Meteo.
    - `report_bug(title, description)`: saves a ticket for admin approval. Limited per
      user by `BUG_REPORT_RATE_LIMIT_SECONDS`.
 
    After `AGENT_MAX_TOOL_ROUNDS` rounds (4) the model must answer without tools. Tool
-   failures go back to the model as error results, never as exceptions.
+   failures go back to the model as error results, never as exceptions. Web pages are
+   untrusted, so `report_bug` is withdrawn for the rest of a turn once the web has been
+   searched, and only `http` and `https` links are kept.
 3. **`runner`** turns the graph's output into SSE events, then saves the turn to Postgres
    and the trimmed recent context to Redis.
 
@@ -111,7 +121,7 @@ Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
 | `text-delta` | `delta` | Each piece of the reply, in order |
 | `tool-start` | `toolCallId`, `toolName`, `input` | The agent started a tool |
 | `tool-result` | `toolCallId`, `toolName`, `isError` | That tool finished. Its output goes to the model only |
-| `sources` | `sources` | Once, before `done`, when documents were searched |
+| `sources` | `sources`, `webSources` | Once, before `done`, when documents or the web were searched |
 | `done` | `finishReason` | The reply finished. A stream without it was interrupted |
 | `error` | `error.code`, `error.message` | The reply failed; nothing is saved |
 

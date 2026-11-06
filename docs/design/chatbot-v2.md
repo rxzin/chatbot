@@ -113,8 +113,8 @@ a reload, a part type.
 
 ## Agent
 
-Built (2026-11-06) with `search_documents`, `get_weather` and `report_bug`; `web_search`
-comes with feature 3. `agent` and `tools` are LangGraph nodes; the cap is
+Built (2026-11-06) with `search_documents`, `get_weather`, `report_bug` and
+`web_search` (Exa, added with feature 3; see below). `agent` and `tools` are LangGraph nodes; the cap is
 `AGENT_MAX_TOOL_ROUNDS` (4) and calls per round are capped at
 `AGENT_MAX_CALLS_PER_ROUND` (4). Tool steps stream as `tool-start` and `tool-result`
 events but aren't saved as parts yet. Suggestions are not built.
@@ -131,6 +131,12 @@ agent (LLM + tools) ──tool calls──> run tools ──> back to agent
 - Web pages are untrusted input. Disable `report_bug` after a web search, limit query
   length, set per-user quotas, allow only `http` and `https` citation links, and leave
   out a `fetch_url` tool.
+
+Web search, as built: `services/search.py` holds the `SearchProvider` interface and
+`ExaSearchProvider` (`type: auto`, highlights of up to 1,200 characters per page, so the
+model reads excerpts rather than whole pages). All five protections above are in place;
+queries are capped at 500 characters and the quota is 30 a day per user. Web sources are
+saved as `webSources` on the `sources` part.
 
 ## Frontend
 

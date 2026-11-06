@@ -150,37 +150,12 @@ In this order, because each depends on the one before:
    `search_documents`, `get_weather` and `report_bug`, capped at 4 tool rounds. The
    classifier and keyword routing are gone, so a coding question that mentions "error"
    no longer files a bug report. Tool steps show as a status line while streaming.
-3. **Exa web search:** in progress (2026-11-06). Code written, not yet tested or deployed.
-   - **Done:**
-     - `services/search.py`: `SearchProvider` interface and `ExaSearchProvider` (POST
-       `https://api.exa.ai/search`, `type: auto`, highlights up to 1,200 characters per page).
-       `build_search_provider` returns None, turning the tool off, when `SEARCH_PROVIDER=none`
-       or `EXA_API_KEY` is empty. Created in `core/lifespan.py` and passed to the graph.
-     - Settings: `SEARCH_PROVIDER` (`exa`), `EXA_API_KEY`, `WEB_SEARCH_RESULTS` (5),
-       `WEB_SEARCH_DAILY_LIMIT_PER_USER` (30). `EXA_API_KEY` is set in `backend/app/.env` and
-       `.env.production`.
-     - `web_search(query)` tool in `services/graph/tools.py`. Queries are capped at 500
-       characters, with a daily per-user quota (`consume_daily_quota` in `services/memory.py`,
-       which refuses if Redis fails). Exa errors (401, 402 out of credits, 429, 5xx) go back to
-       the model as "unavailable, answer without it".
-     - Safety: `report_bug` is withdrawn for the rest of the turn once the web is searched,
-       only `http` and `https` URLs are kept (server and browser), and there's no `fetch_url`
-       tool.
-     - Web sources: a `WebSource` model (`url`, `title`, `snippet`, `publishedDate`), and
-       `webSources` on the `sources` event and saved `sources` part, so they survive a reload.
-       Older parts without the field still load.
-     - Frontend: types regenerated, "Searching the web" status, and web sources rendered as
-       links (`target=_blank`, `rel="noopener noreferrer nofollow"`) with the site name.
-   - **Checked:** the app imports, ruff passes on the changed files, the OpenAPI schema has
-     `WebSource` and `webSources`, and the tools offered are right with search on, off, and
-     after a web search.
-   - **Not done:**
-     - The frontend type check and lint were stopped before finishing; rerun
-       `pnpm exec tsc --noEmit` and `pnpm exec eslint` in `frontend/Chatbot`.
-     - No live test: the user is testing it themselves.
-     - Docs: backend README tool list and settings table, the design note, and the root
-       README feature list don't mention web search yet.
-     - Add `EXA_API_KEY` in the FastAPI Cloud dashboard before deploying.
+3. ~~**Exa web search**~~ Built (2026-11-06), not yet tested live; the user is testing it.
+   `web_search` agent tool through a `SearchProvider` interface (`services/search.py`),
+   with a 30-a-day per-user quota, `report_bug` withdrawn after a web search, http/https
+   links only, and no `fetch_url` tool. Web sources are saved as `webSources` and shown
+   as links. Type check, lint and app import pass. Before deploying, add `EXA_API_KEY`
+   in the FastAPI Cloud dashboard, or the live app runs with web search off.
 4. **Inline citations and suggested questions:** using AI Elements.
 5. **Chat UI cleanup:** `components/chat` still has raw buttons and inputs to move to
    shadcn.
