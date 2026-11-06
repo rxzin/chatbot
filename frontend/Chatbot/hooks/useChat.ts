@@ -213,10 +213,20 @@ export function useChat(conversationId: string | null, conversationKey: string) 
       const message =
         err instanceof Error ? err.message : "Failed to send message";
       setError(message);
+
+      // Refused before any reply started (e.g. the daily message limit): the message
+      // wasn't accepted, so take it back off the list and return it to the box.
+      if (err instanceof ApiRequestError) {
+        setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
+        setStreamingAssistant(null);
+        setInput(text);
+        return;
+      }
+
       setStreamingAssistant((prev) =>
         prev ? { ...prev, status: "error" } : null
       );
-      
+
       // If error occurred, move the errored streaming message to messages list
       setMessages((prev) => [
         ...prev,

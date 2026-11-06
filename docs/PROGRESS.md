@@ -52,6 +52,11 @@ Admin login and the frontend are confirmed working in production.
 
 - [x] `bug_report` wiped the conversation's recent context in Redis, because its `done`
       event has no `prepared_messages`. The runner now keeps the loaded history instead.
+- [x] Daily message limit: 200 chat messages per user per UTC day
+      (`CHAT_DAILY_LIMIT_PER_USER`, `0` turns it off), counted in Redis before any model
+      call. Over the limit, `/api/chat` returns 429 and the chat puts the message back in
+      the box with the reason. It applies to admins too. Per-message caps (4 tool rounds,
+      4 calls per round) and the 30-a-day web search quota still apply.
 - [x] Registration rate limit: 100 sign-ups an hour across the app, plus 10 an hour per IP.
       The per-IP limit only runs with `TRUST_PROXY_HEADERS=true`, so shared Wi-Fi and the
       FastAPI Cloud proxy can't lock people out. Settings: `REGISTRATION_MAX_GLOBAL`,

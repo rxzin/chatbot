@@ -59,6 +59,7 @@ Commonly changed optional settings:
 | `PINECONE_INDEX_NAME` | `documents-mistral-embed` | Created on startup if missing, 1024 dimensions |
 | `SMTP_USERNAME` / `SMTP_PASSWORD` | empty | Emails are skipped when empty |
 | `SEARCH_PROVIDER` | `exa` | `none` turns web search off. So does an empty `EXA_API_KEY` |
+| `CHAT_DAILY_LIMIT_PER_USER` | `200` | Messages per user per UTC day, checked before any model call. `0` turns it off |
 | `WEB_SEARCH_RESULTS` / `WEB_SEARCH_DAILY_LIMIT_PER_USER` | `5` / `30` | Results per search, and searches per user per UTC day |
 | `AGENT_MAX_TOOL_ROUNDS` / `AGENT_MAX_CALLS_PER_ROUND` | `4` / `4` | |
 | `SUGGESTIONS_ENABLED` / `SUGGESTIONS_TIMEOUT_SECONDS` | `true` / `8` | One extra short model call per reply |

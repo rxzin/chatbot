@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Request, Depends, Security
 from fastapi.responses import StreamingResponse
 from schemas.chat import ChatRequest, ChatStreamEvent
+from core.config import getSettings
+from core.errors import TooManyRequestsError
 from core.logging import get_request_id, log_event, set_request_context
 from sqlalchemy.ext.asyncio import AsyncSession
 from auth.service import get_current_active_user
@@ -49,6 +51,16 @@ async def chat_stream_endpoint(
         message="Conversation ownership validated for chat stream",
         conversation_id=str(chat_request.conversation_id),
     )
+
+    # Counted before any model call, so a refused message costs nothing.
+    limit = getSettings().CHAT_DAILY_LIMIT_PER_USER
+    if limit > 0 and not await request.app.state.redis_service.consume_daily_quota(
+        current_user.id, action="chat", limit=limit
+    ):
+        raise TooManyRequestsError(
+            f"You've reached today's limit of {limit} messages. "
+            "It resets at midnight UTC."
+        )
 
     log_event(
         event="chat.stream.response.started",

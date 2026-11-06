@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     EXA_API_KEY: str = ""
     WEB_SEARCH_RESULTS: int = 5
     WEB_SEARCH_DAILY_LIMIT_PER_USER: int = 30
+    # Chat messages per user per UTC day, counted before any model call. 0 turns it off.
+    CHAT_DAILY_LIMIT_PER_USER: int = 200
     # Follow-up questions after each answer: one extra short model call.
     SUGGESTIONS_ENABLED: bool = True
     SUGGESTIONS_TIMEOUT_SECONDS: float = 8.0
