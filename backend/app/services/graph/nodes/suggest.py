@@ -11,8 +11,10 @@ from services.graph.state import AgentState
 _INSTRUCTION = (
     "Suggest follow-up questions the user might ask next, based on their question and "
     "the answer. Write exactly three, one per line, each under 80 characters, in the "
-    "user's language. Write them as the user would type them. No numbering, quotes or "
-    "other text."
+    "same language the user's question is written in. Places, names or quoted text in "
+    "another language don't change that: a question in English about Tokyo gets English "
+    "suggestions. Write them as the user would type them. No numbering, quotes or other "
+    "text."
 )
 _MAX_ANSWER_CHARS = 3000
 _MAX_SUGGESTION_CHARS = 120
