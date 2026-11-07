@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Geist, Urbanist } from "next/font/google";
 import { Toaster } from "sonner";
@@ -8,6 +8,15 @@ import { site } from "@/lib/site";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const urbanist = Urbanist({ subsets: ["latin"], variable: "--font-urbanist" });
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -45,6 +54,39 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${site.url}/#website`,
+      url: site.url,
+      name: site.name,
+      description: site.description,
+    },
+    {
+      "@type": "WebApplication",
+      "@id": `${site.url}/#app`,
+      name: site.name,
+      url: site.url,
+      description: site.description,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "All",
+      browserRequirements: "Requires JavaScript. Requires HTML5.",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      creator: {
+        "@type": "Person",
+        name: site.author.name,
+        url: site.author.url,
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,6 +100,12 @@ export default function RootLayout({
       className={cn(geist.variable, urbanist.variable, "antialiased")}
     >
       <body className="min-h-full">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
