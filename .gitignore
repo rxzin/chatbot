@@ -16,3 +16,5 @@ DEPLOYMENT.md
 /graphify-out/
 .cursor/
 *.pem
+.agents/**
+tests/**
