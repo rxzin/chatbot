@@ -137,6 +137,12 @@ export function useConversation() {
     };
   }, [applyConversation]);
 
+  /** Applies a title the server generated, without refetching. */
+  const renameConversation = useCallback((id: string, title: string) => {
+    setConversations((prev) => prev.map((item) => (item.id === id ? { ...item, title } : item)));
+    setConversation((prev) => (prev && prev.id === id ? { ...prev, title } : prev));
+  }, []);
+
   return {
     conversations,
     conversationId: conversation?.id ?? null,
@@ -146,6 +152,7 @@ export function useConversation() {
     isReady: !isLoading && conversation !== null,
     selectConversation,
     startNewChat,
+    renameConversation,
     conversationKey: conversation?.id ?? "none",
   };
 }

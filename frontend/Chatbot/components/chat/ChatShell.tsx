@@ -40,6 +40,7 @@ export function ChatShell() {
     isReady,
     selectConversation,
     startNewChat,
+    renameConversation,
     conversationKey,
   } = useConversation();
   const {
@@ -68,7 +69,7 @@ export function ChatShell() {
     error,
     sendMessage,
     sendText,
-  } = useChat(conversationId, conversationKey);
+  } = useChat(conversationId, conversationKey, { onTitle: renameConversation });
 
   const {
     isRecognitionSupported,

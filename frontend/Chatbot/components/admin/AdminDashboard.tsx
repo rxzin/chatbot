@@ -13,6 +13,7 @@ import { AuditLogTab } from "./AuditLogTab";
 import { LoadingPanel } from "./StatePanels";
 import { SummaryCards } from "./SummaryCards";
 import { TicketsTab } from "./TicketsTab";
+import { UsageTab } from "./UsageTab";
 import { UsersTab } from "./UsersTab";
 
 const TABS = [
@@ -33,6 +34,12 @@ const TABS = [
     label: "Users & sessions",
     permission: "users:ban",
     content: <UsersTab />,
+  },
+  {
+    value: "usage",
+    label: "Usage",
+    permission: "audit:read",
+    content: <UsageTab />,
   },
 ];
 

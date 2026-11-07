@@ -14,6 +14,8 @@ export type AdminSummary = Schemas["AdminSummaryResponse"];
 export type AuditLogEntry = Schemas["AuditLogResponse"];
 export type AdminUser = Schemas["AdminUserResponse"];
 export type AdminSession = Schemas["AdminSessionResponse"];
+export type UsageSummary = Schemas["UsageSummaryResponse"];
+export type UsageBreakdown = Schemas["UsageBreakdown"];
 
 export type CursorPage<T> = {
   items: T[];

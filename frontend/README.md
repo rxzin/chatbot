@@ -169,7 +169,13 @@ it and skips saving if the client has already disconnected.
   like to work in voice mode?" question only plays after you've interacted with the page
   (browsers block speech before that), and speech that never starts is dropped after 3
   seconds.
-- **Admin data** is fetched with SWR in `components/admin/`.
+- **Admin data** is fetched with SWR in `components/admin/`. The Usage tab
+  (`UsageTab.tsx`) shows token KPIs, breakdowns by purpose and model, and top users from
+  `/api/admin/usage`.
+- **Titles:** a new conversation's first reply carries a `title` event; `useChat` passes it
+  to `useConversation.renameConversation`, so the header and sidebar update live.
+- **No images from replies:** `MessageBubble` renders Markdown images as their alt text,
+  so an injected image can't send data to another site.
 - **Demo video:** the landing page's `#demo` section (`components/marketing/DemoVideo.tsx`)
   loops `public/demo/chat-demo.mp4`, rendered from `demo-video/`. It plays only while on
   screen, has a pause button, and doesn't autoplay with reduced motion. Change its speed

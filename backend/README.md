@@ -63,6 +63,11 @@ Commonly changed optional settings:
 | `WEB_SEARCH_RESULTS` / `WEB_SEARCH_DAILY_LIMIT_PER_USER` | `5` / `30` | Results per search, and searches per user per UTC day |
 | `AGENT_MAX_TOOL_ROUNDS` / `AGENT_MAX_CALLS_PER_ROUND` | `4` / `4` | |
 | `SUGGESTIONS_ENABLED` / `SUGGESTIONS_TIMEOUT_SECONDS` | `true` / `8` | One extra short model call per reply |
+| `TOOL_TIMEOUT_SECONDS` / `AGENT_TURN_TIMEOUT_SECONDS` | `20` / `150` | A slow tool becomes an error the model answers around; a turn that runs over ends with a `TURN_TIMEOUT` error |
+| `TITLE_TIMEOUT_SECONDS` | `8` | For the title of a new conversation; falls back to the first words of the message |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | empty | Langfuse tracing is off unless both are set |
+| `LANGFUSE_BASE_URL` | `https://cloud.langfuse.com` | Use `https://us.cloud.langfuse.com` for a US-region project |
+| `LANGFUSE_CAPTURE_CONTENT` | `true` | `false` keeps timings, models and tokens in traces but redacts text |
 | `ALLOW_PUBLIC_REGISTRATION` | `true` | |
 | `REGISTRATION_MAX_GLOBAL` / `REGISTRATION_MAX_PER_IP` | `100` / `10` | Per `REGISTRATION_RATE_LIMIT_SECONDS` (an hour) |
 | `LOGIN_MAX_FAILURES_PER_ACCOUNT` / `_PER_IP` | `10` / `50` | Per `LOGIN_RATE_LIMIT_WINDOW_SECONDS` (15 minutes) |
@@ -82,7 +87,7 @@ Interactive docs are at `/docs`. All routes except health are under `/api`.
 | Conversations | `GET`, `POST /conversations`; `GET /conversations/{id}`; `GET /conversations/{id}/messages` |
 | Documents | `POST /conversations/{id}/documents/upload`; `GET /conversations/{id}/documents`; `DELETE /conversations/{id}/documents/{document_id}` |
 | Admin: bugs | `GET /admin/pending-tickets`; `POST /admin/approve-ticket/{id}`, `/admin/reject-ticket/{id}` |
-| Admin: audit | `GET /admin/summary`, `/admin/audit-logs` |
+| Admin: audit | `GET /admin/summary`, `/admin/audit-logs`, `/admin/usage?days=30` |
 | Admin: users | `GET /admin/users`, `/admin/users/{id}/sessions`; `DELETE /admin/sessions/{id}`; `POST /admin/users/{id}/revoke-sessions`, `/ban`, `/unban` |
 
 Admin routes check permissions (`ticket:manage`, `audit:read`, `users:ban` and others),
@@ -112,15 +117,17 @@ sequenceDiagram
     A->>P: Conversation belongs to the user
     A->>P: Indexed documents of the conversation
     A->>R: Recent messages and summary, rebuilt from PostgreSQL if cold
-    A->>G: Run the graph
+    A->>G: Run the graph (whole turn limited to AGENT_TURN_TIMEOUT_SECONDS)
+  Note over A,X: A new conversation's title is generated alongside the reply
     loop Until the model answers, at most 4 tool rounds
       G->>X: Model step, then any tool calls
       G-->>B: SSE text-delta, tool-start, tool-result
     end
     G->>X: Three suggested questions
-    A-->>B: SSE sources, suggestions, done
+    A-->>B: SSE sources, suggestions, title (first reply), done
     A->>P: Save the user message and the reply, with its parts
     A->>R: Save the trimmed recent context and summary
+    A->>P: Save each model call's tokens (llm_usage)
   end
 ```
 
@@ -175,6 +182,27 @@ on the fallback model if the main one fails before any text has streamed. A repl
 at `MODEL_OUTPUT_TOKEN_LIMIT` ends with a note telling the user to say "continue". Run
 `uv run python -m services.graph.visualize` to redraw `services/graph/graph.png`.
 
+### Prompt and guardrails
+
+[`services/graph/prompts.py`](app/services/graph/prompts.py) holds the system prompt
+(`BASE_PROMPT`) and the security rules that `instructions_for` adds to every model step,
+with today's date. The rules alone can't stop prompt injection, so the code enforces the
+important parts:
+
+- **Untrusted text is marked as data.** Results from `search_documents`, `web_search` and
+  `get_weather` reach the model inside `<untrusted source="…">` blocks
+  (`wrap_untrusted`). Any copy of the markers inside the text is neutralised, so a page
+  or document can't close the block and pose as instructions.
+- **No side effects after reading untrusted text.** `report_bug` is withdrawn for the
+  rest of a turn once documents or web pages have been read.
+- **No data leaving through the page.** The chat never loads images from a reply (an
+  injected `![](https://…?data=…)` would send data out); it shows the alt text. Links are
+  only rendered for `http` and `https`.
+- **Bounded input and output.** Messages are capped at 8,000 characters; suggestions and
+  titles are cleaned to plain text and dropped if they contain a link.
+- **Time limits.** Each tool runs under `TOOL_TIMEOUT_SECONDS` and the whole turn under
+  `AGENT_TURN_TIMEOUT_SECONDS`.
+
 ### Stream events
 
 Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
@@ -186,6 +214,7 @@ Each `data:` line is one JSON event ([`schemas/chat.py`](app/schemas/chat.py)):
 | `tool-result` | `toolCallId`, `toolName`, `isError` | That tool finished. Its output goes to the model only |
 | `sources` | `sources`, `webSources` | Once, before `done`, when documents or the web were searched |
 | `suggestions` | `suggestions` | Follow-up questions, after the text |
+| `title` | `title` | Once, on a conversation's first reply |
 | `done` | `finishReason` | The reply finished. A stream without it was interrupted |
 | `error` | `error.code`, `error.message` | The reply failed; nothing is saved |
 
@@ -222,6 +251,18 @@ flowchart TD
 - **Tool results** (document passages, web excerpts, weather data) are only kept for the
   current turn; they are not saved to either store.
 
+## Observability
+
+- **Token usage:** the Mistral provider records every call's tokens into a per-turn
+  collector ([`services/usage.py`](app/services/usage.py)), tagged `agent`,
+  `suggestions`, `title` or `summary`. They are saved to the `llm_usage` table when the
+  turn ends, even if it failed, and summarised by `GET /api/admin/usage` for the admin
+  dashboard's Usage tab. Embeddings for document search are not counted.
+- **Tracing:** with Langfuse keys set, each chat message is a `chat-turn` trace
+  ([`services/tracing.py`](app/services/tracing.py)), grouped by conversation as a
+  session and tagged with the user. It holds a `generation` for every model call (model,
+  input, output, tokens) and a `tool` observation for every tool call.
+
 ## Documents
 
 Uploads (`.pdf` or `.txt`, up to `MAX_UPLOAD_BYTES`) return straight away and are indexed in
@@ -245,7 +286,8 @@ settings → Issue types in Jira lists them.
 ## Data
 
 - **PostgreSQL:** users, roles and permissions, sessions, conversations, messages
-  (`content` and `parts`), documents, pending tickets and the audit log. Schema changes
+  (`content` and `parts`), documents, pending tickets, the audit log, and token usage
+  per model call (`llm_usage`). Schema changes
   go through Alembic in [`alembic/versions/`](app/alembic/versions/).
 - **Redis:**
   - `chat:user:{user}:conversation:{id}` and `…:summary`: the working set (24 h TTL)
@@ -266,8 +308,8 @@ app/
   core/                 Settings, database, logging, errors, middleware, startup
   schemas/              SQLAlchemy models; Pydantic schemas, stream events and parts
   services/             Mistral, fallback, memory, context budget, RAG, search (Exa),
-                        weather, Jira, email, audit
-  services/graph/       graph.py, state.py, tools.py, runner.py
+                        weather, Jira, email, audit, titles, usage, tracing
+  services/graph/       graph.py, state.py, tools.py, prompts.py, runner.py
   services/graph/nodes/ agent.py (agent and tools nodes), suggest.py
   alembic/              Migrations
   seed.py               Roles, permissions and the admin user

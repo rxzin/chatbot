@@ -14,6 +14,7 @@ export type ChatStreamEvent =
   | Schemas["ToolResultEvent"]
   | Schemas["SourcesEvent"]
   | Schemas["SuggestionsEvent"]
+  | Schemas["TitleEvent"]
   | Schemas["DoneEvent"]
   | Schemas["ErrorEvent"];
 

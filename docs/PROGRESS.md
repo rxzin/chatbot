@@ -198,11 +198,12 @@ It respects reduced motion, handles the `#section` links (including from the mob
 and pauses while a sheet or dialog locks scrolling. The mobile menu keeps native scrolling
 (`data-lenis-prevent`).
 
-## Agent hardening, in progress (2026-11-07)
+## Agent hardening, done (2026-11-07)
 
-Requested: a better system prompt with prompt-injection guardrails, automatic conversation
-titles, time limits that fail gracefully, token usage in a new admin tab, and Langfuse
-tracing. **The backend is done and checked offline; the frontend is not started.**
+A better system prompt with prompt-injection guardrails, automatic conversation titles,
+time limits that fail gracefully, token usage in a new admin tab, and Langfuse tracing.
+Built and checked offline and in a mocked browser; **not yet run against the live
+services.**
 
 ### Done (backend)
 
@@ -247,21 +248,19 @@ tracing. **The backend is done and checked offline; the frontend is not started.
   runner and finish-reason checks still pass; one old expectation now sees the weather
   result wrapped as untrusted, which is intended.
 
-### Not done (frontend)
+### Done (frontend)
 
-- `types/api.ts` is regenerated (has `TitleEvent` and the usage response), but nothing
-  uses them yet. `types/chat.ts` still needs `TitleEvent` in `ChatStreamEvent`.
-- **Title:** `useChat` should handle the `title` event and pass it to `useConversation`
-  (a local rename), so the sidebar and header update without a reload.
-- **Exfiltration guard:** `MessageBubble`'s `ReactMarkdown` should get
-  `disallowedElements={["img"]}` with `unwrapDisallowed`, so an injected Markdown image
-  can't send data to another site.
-- **Usage tab:** a new admin tab (permission `audit:read`) with KPI cards from
-  `/api/admin/usage` (tokens today, 7 days, 30 days, average per reply, model calls,
-  active users, fallback share), tables by purpose, by model and top users, and a window
-  selector. A daily chart would need the dataviz skill.
-- Docs: backend README (settings table, request flow, Data section with `llm_usage`),
-  design notes, frontend README.
+- `useChat` handles the `title` event and calls `useConversation.renameConversation`, so
+  the header and sidebar update without a reload.
+- `MessageBubble` renders Markdown images as their alt text, never as images.
+- A **Usage** admin tab (permission `audit:read`) with KPI cards (tokens today, 7 days,
+  window with the input/output split, average per reply, model calls per reply, active
+  users, fallback share, output tokens), tables by purpose, by model and top users, and a
+  7 / 30 / 90-day selector. No chart yet.
+- READMEs updated: settings, request flow, prompt and guardrails, observability, data.
+- **Checked:** type check, lint, build, and a mocked-API browser run (10 checks: the Usage
+  tab and its numbers, an injected image never requested and shown as alt text, the new
+  title in header and sidebar, no page errors).
 
 ### Before deploying
 

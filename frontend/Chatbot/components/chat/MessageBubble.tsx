@@ -100,6 +100,11 @@ export function MessageBubble({
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
+              // Never load images from a reply: an injected ![](https://…?data=…) would
+              // send data to another site. The image's alt text is shown instead.
+              img({ alt }: { alt?: string }) {
+                return alt ? <span className="text-muted-foreground">[{alt}]</span> : null;
+              },
               // This custom component intercepts <code> tags
               code({ inline, className, children, ...props }: MarkdownCodeProps) {
                 const match = /language-(\w+)/.exec(className || "");

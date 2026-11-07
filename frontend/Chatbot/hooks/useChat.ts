@@ -51,7 +51,16 @@ function fromParts(parts: MessagePart[] | undefined, fallback: string) {
   };
 }
 
-export function useChat(conversationId: string | null, conversationKey: string) {
+type UseChatOptions = {
+  /** Called when the server names a new conversation after its first reply. */
+  onTitle?: (conversationId: string, title: string) => void;
+};
+
+export function useChat(
+  conversationId: string | null,
+  conversationKey: string,
+  { onTitle }: UseChatOptions = {}
+) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [streamingAssistant, setStreamingAssistant] = useState<ChatMessage | null>(null);
   const [input, setInput] = useState("");
@@ -184,6 +193,9 @@ export function useChat(conversationId: string | null, conversationKey: string) 
             case "suggestions":
               assistantRef.current.suggestions = event.suggestions;
               break;
+            case "title":
+              onTitle?.(conversationId, event.title);
+              break;
             case "done":
               break;
           }
@@ -244,7 +256,7 @@ export function useChat(conversationId: string | null, conversationKey: string) 
       setIsLoading(false);
       abortRef.current = null;
     }
-  }, [conversationId, isLoading]);
+  }, [conversationId, isLoading, onTitle]);
 
   const sendMessage = useCallback(async () => {
     await sendText(input);
