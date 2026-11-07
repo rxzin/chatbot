@@ -1,0 +1,11 @@
+/* TEAM */
+Developer: Razin Chinwala
+Portfolio: https://rxzin.is-a.dev
+GitHub: https://github.com/rxzin
+Location: Gandhinagar, India
+
+/* SITE */
+Standards: HTML5, CSS3, ESNext
+Components: React 19, Next.js 16, Tailwind CSS v4, Motion
+Backend: Python 3.14, FastAPI, LangGraph, PostgreSQL, Redis
+AI Stack: Mistral AI, Pinecone, Cohere
