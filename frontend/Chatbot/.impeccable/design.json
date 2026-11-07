@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-06T00:00:00Z",
+  "title": "Design System: Chat",
+  "extensions": {
+    "colorMeta": {
+      "ink-black": { "role": "neutral", "displayName": "Ink Black", "canonical": "#000000", "tonalRamp": ["#000000", "#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa"] },
+      "carbon-card": { "role": "neutral", "displayName": "Carbon Card", "canonical": "#09090b", "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"] },
+      "graphite-raised": { "role": "neutral", "displayName": "Graphite Raised", "canonical": "#18181b", "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"] },
+      "rail-graphite": { "role": "neutral", "displayName": "Rail Graphite (--line, dark)", "canonical": "#27272a", "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"] },
+      "mist-zinc": { "role": "neutral", "displayName": "Mist Zinc", "canonical": "#a1a1aa", "tonalRamp": ["#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#f4f4f5"] },
+      "signal-white": { "role": "neutral", "displayName": "Signal White", "canonical": "#ffffff", "tonalRamp": ["#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5", "#fafafa", "#ffffff"] },
+      "live-emerald": { "role": "primary", "displayName": "Live Emerald (--live, dark)", "canonical": "#34d399", "tonalRamp": ["#064e3b", "#065f46", "#047857", "#059669", "#10b981", "#34d399", "#6ee7b7", "#d1fae5"] },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#fafaf9", "tonalRamp": ["#1c1917", "#44403c", "#78716c", "#a8a29e", "#d6d3d1", "#e7e5e4", "#f5f5f4", "#fafaf9"] },
+      "paper-card": { "role": "neutral", "displayName": "Paper Card", "canonical": "#ffffff", "tonalRamp": ["#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5", "#fafafa", "#ffffff"] },
+      "paper-raised": { "role": "neutral", "displayName": "Paper Raised", "canonical": "#f4f4f5", "tonalRamp": ["#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5", "#fafafa"] },
+      "rail-silver": { "role": "neutral", "displayName": "Rail Silver (--line, light)", "canonical": "#d4d4d8", "tonalRamp": ["#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5"] },
+      "slate-zinc": { "role": "neutral", "displayName": "Slate Zinc", "canonical": "#52525b", "tonalRamp": ["#09090b", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#0a0a0a", "tonalRamp": ["#0a0a0a", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8"] },
+      "live-emerald-deep": { "role": "primary", "displayName": "Live Emerald Deep (--live, light)", "canonical": "#059669", "tonalRamp": ["#022c22", "#064e3b", "#065f46", "#047857", "#059669", "#10b981", "#6ee7b7", "#d1fae5"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headline only. 2.6rem mobile, 3.75rem small, 4.25rem large; second line in a dashed box at 600." },
+      "headline": { "displayName": "Headline", "purpose": "Every section heading via the shared section heading. 2rem mobile, 2.5rem from small screens, balanced wrap." },
+      "title": { "displayName": "Title", "purpose": "Feature, plan and use-case titles." },
+      "body": { "displayName": "Body", "purpose": "Descriptions in muted zinc, 26 to 34rem wide." },
+      "lede": { "displayName": "Lede", "purpose": "Hero subtext only." },
+      "label": { "displayName": "Label", "purpose": "Chips, captions, table cells and preview UI text (0.62rem to 0.75rem)." },
+      "mono": { "displayName": "Mono", "purpose": "Request paths in the audit preview only." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-out-expo", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Shared easing for the slide label, accordion reveal and theme circle reveal." },
+      { "name": "slide-label", "value": "400ms", "purpose": "Button label slides up and is replaced by its copy on hover." },
+      { "name": "panel-reveal", "value": "500ms", "purpose": "Use-case description reveal and product preview fade-and-rise." },
+      { "name": "theme-reveal", "value": "400ms circular clip-path from the toggle", "purpose": "Theme switch; skipped under reduced motion." },
+      { "name": "marquee", "value": "48s per loop", "purpose": "Example card marquees; pause on hover and under reduced motion." },
+      { "name": "stripe-field", "value": "per-column speed 0.05 to 0.12", "purpose": "WebGL emerald stripes behind hero and final call to action; single still frame under reduced motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid white-on-black (ink-on-paper in light) sign-up action with a sliding label.",
+      "html": "<a class=\"ds-btn ds-btn-primary\" href=\"#\"><span class=\"ds-btn-label\"><span class=\"ds-btn-a\">Start chatting</span><span class=\"ds-btn-b\" aria-hidden=\"true\">Start chatting</span></span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 7h10v10\"/><path d=\"M7 17 17 7\"/></svg></a>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px; border-radius: 4px; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; text-decoration: none; transition: background-color 200ms, border-color 200ms; } .ds-btn-primary { background: #ffffff; color: #0a0a0a; font-weight: 500; } .ds-btn-primary:hover { background: rgba(255,255,255,0.9); } .ds-btn:focus-visible { outline: 2px solid #34d399; outline-offset: 3px; } .ds-btn-label { position: relative; display: block; overflow: hidden; } .ds-btn-a, .ds-btn-b { display: block; transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-b { position: absolute; inset: 0; transform: translateY(100%); } .ds-btn:hover .ds-btn-a { transform: translateY(-100%); } .ds-btn:hover .ds-btn-b { transform: translateY(0); } @media (prefers-reduced-motion: reduce) { .ds-btn-a, .ds-btn-b { transition: none; } }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action with a 1px line border and the same sliding label.",
+      "html": "<a class=\"ds-btn-o\" href=\"#\"><span class=\"ds-btn-o-label\"><span class=\"ds-btn-o-a\">See it at work</span><span class=\"ds-btn-o-b\" aria-hidden=\"true\">See it at work</span></span></a>",
+      "css": ".ds-btn-o { display: inline-flex; align-items: center; height: 40px; padding: 0 20px; border-radius: 4px; border: 1px solid #27272a; background: #000000; color: #ffffff; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; text-decoration: none; transition: border-color 200ms; } .ds-btn-o:hover { border-color: rgba(161,161,170,0.6); } .ds-btn-o:focus-visible { outline: 2px solid #34d399; outline-offset: 3px; } .ds-btn-o-label { position: relative; display: block; overflow: hidden; } .ds-btn-o-a, .ds-btn-o-b { display: block; transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-o-b { position: absolute; inset: 0; transform: translateY(100%); } .ds-btn-o:hover .ds-btn-o-a { transform: translateY(-100%); } .ds-btn-o:hover .ds-btn-o-b { transform: translateY(0); } @media (prefers-reduced-motion: reduce) { .ds-btn-o-a, .ds-btn-o-b { transition: none; } }"
+    },
+    {
+      "name": "Rail Section",
+      "kind": "custom",
+      "refersTo": "rail-section",
+      "description": "One band of the page: dashed rails either side of the content column, a dashed bottom rule, and triangle markers at the junction.",
+      "html": "<section class=\"ds-rail\"><div class=\"ds-rail-col\"><svg class=\"ds-rail-mk ds-rail-mk-l\" viewBox=\"0 0 10 9\" aria-hidden=\"true\"><path d=\"M0 0h10L5 9z\"/></svg><svg class=\"ds-rail-mk ds-rail-mk-r\" viewBox=\"0 0 10 9\" aria-hidden=\"true\"><path d=\"M0 0h10L5 9z\"/></svg><h2 class=\"ds-rail-h\">One chat for files, forecasts and bug reports.</h2><p class=\"ds-rail-p\">Upload a contract, a paper or a manual, then ask about it.</p></div></section>",
+      "css": ".ds-rail { background: #000000; color: #ffffff; border-bottom: 1px dashed #27272a; padding: 0 32px; } .ds-rail-col { position: relative; border-left: 1px dashed #27272a; border-right: 1px dashed #27272a; padding: 96px 48px; } .ds-rail-mk { position: absolute; top: 100%; width: 10px; height: 10px; fill: rgba(161,161,170,0.45); z-index: 1; } .ds-rail-mk-l { left: -5px; } .ds-rail-mk-r { right: -5.5px; } .ds-rail-h { margin: 0; max-width: 26rem; font-family: Urbanist, Geist, sans-serif; font-weight: 500; font-size: 2.5rem; line-height: 1.25; letter-spacing: -0.02em; text-wrap: balance; } .ds-rail-p { margin: 16px 0 0; max-width: 26rem; font-family: Geist, ui-sans-serif, sans-serif; font-size: 0.875rem; line-height: 1.625; color: #a1a1aa; }"
+    },
+    {
+      "name": "Example Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat carbon card with a live-emerald quote mark and an Example caption, used in the testimonial marquee.",
+      "html": "<figure class=\"ds-card\"><blockquote class=\"ds-card-q\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#34d399\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"/><path d=\"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"/></svg><p>The audit log shows every request with its status, so tracking down a failed sign-in takes seconds.</p></blockquote><figcaption class=\"ds-card-cap\"><span>IT admin</span><span class=\"ds-card-ex\">Example</span></figcaption></figure>",
+      "css": ".ds-card { width: 288px; margin: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; padding: 20px; border-radius: 14px; border: 1px solid #27272a; background: #09090b; color: #ffffff; font-family: Geist, ui-sans-serif, sans-serif; } .ds-card-q { margin: 0; font-size: 0.875rem; line-height: 1.625; color: rgba(255,255,255,0.9); } .ds-card-q p { margin: 12px 0 0; } .ds-card-cap { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 500; } .ds-card-ex { color: #a1a1aa; font-weight: 400; }"
+    },
+    {
+      "name": "Example Chip",
+      "kind": "chip",
+      "refersTo": "chip-example",
+      "description": "Marks every illustrative plan or preview as an example.",
+      "html": "<span class=\"ds-chip-ex\">Example</span>",
+      "css": ".ds-chip-ex { display: inline-block; padding: 2px 8px; border: 1px solid #27272a; border-radius: 4px; background: #000000; color: #a1a1aa; font-family: Geist, ui-sans-serif, sans-serif; font-size: 0.75rem; }"
+    },
+    {
+      "name": "Live Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-live",
+      "description": "Live-emerald text on a 15% tint, only for live or confirmed states.",
+      "html": "<span class=\"ds-chip-live\">Pending</span>",
+      "css": ".ds-chip-live { display: inline-block; padding: 2px 6px; border-radius: 4px; background: rgba(52,211,153,0.15); color: #34d399; font-family: Geist, ui-sans-serif, sans-serif; font-size: 0.65rem; font-weight: 500; }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "72px bar on the rail: logo, anchor links, sign in, and the solid Get started button.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-nav-logo\"><span class=\"ds-nav-mark\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M13 2 3 14h9l-1 8 10-12h-9l1-8z\"/></svg></span>Chat</span><ul class=\"ds-nav-links\"><li><a href=\"#\">Features</a></li><li><a href=\"#\">Use cases</a></li><li><a href=\"#\">Pricing</a></li><li><a href=\"#\">FAQ</a></li></ul><span class=\"ds-nav-end\"><a href=\"#\">Sign in</a><a class=\"ds-nav-cta\" href=\"#\">Get started</a></span></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 72px; padding: 0 24px; background: #000000; color: #ffffff; border-left: 1px dashed #27272a; border-right: 1px dashed #27272a; border-bottom: 1px dashed #27272a; font-family: Geist, ui-sans-serif, sans-serif; font-size: 0.875rem; } .ds-nav-logo { display: flex; align-items: center; gap: 8px; font-family: Urbanist, Geist, sans-serif; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; } .ds-nav-mark { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 10px; background: #ffffff; color: #000000; } .ds-nav-links { display: flex; gap: 32px; list-style: none; margin: 0; padding: 0; } .ds-nav a { color: rgba(255,255,255,0.85); text-decoration: none; transition: color 200ms; } .ds-nav a:hover { color: #ffffff; } .ds-nav a:focus-visible { outline: 2px solid #34d399; outline-offset: 3px; } .ds-nav-end { display: flex; align-items: center; gap: 12px; } .ds-nav .ds-nav-cta { display: inline-flex; align-items: center; height: 40px; padding: 0 20px; border-radius: 4px; background: #ffffff; color: #0a0a0a; font-weight: 500; } .ds-nav .ds-nav-cta:hover { background: rgba(255,255,255,0.9); color: #0a0a0a; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Live Wire on the Drafting Table",
+    "overview": "Chat is presented as a working machine laid out on an engineer's sheet: a calm black ground, white type, and a dashed 1px grid that frames the page column and cuts it into bands. Nothing glows or floats. The only colour is a single emerald that marks things that are actually running: the light travelling down the stripe field, a check beside a real capability, a status pill in a preview. Everything else is monochrome zinc, so the eye goes to the product and to whatever is live.\n\nDensity is calm and generous. Sections breathe with roughly 100px of vertical air, headings are short and set in Urbanist at weight 500 with tight negative tracking, and supporting copy is small, light Geist in a muted zinc. The product itself is shown rather than described: rebuilt chat, source chips, a drafted bug ticket and an audit table, drawn in the same tokens as the page.\n\nDark is the default and the first thing a visitor sees; a near-white paper version mirrors every role. The page rejects the generic light SaaS template: a screenshot hero, pill eyebrows over every heading, rows of identical rounded cards, gradient washes.\n\nThis world currently governs the marketing page only (the `.landing` scope). See the scope note under Do's and Don'ts.",
+    "keyCharacteristics": [
+      "Black ground (dark default) or warm paper ground (light), white or ink type, zinc secondary.",
+      "One emerald accent, reserved for live things.",
+      "Dashed 1px rails on both sides of the content column, dashed dividers between bands, small triangle markers where rails cross a divider.",
+      "Urbanist 500 display with -0.02em to -0.03em tracking; Geist for everything else.",
+      "Square-ish 4px controls, softer 10px/14px containers, flat surfaces with no shadows.",
+      "Buttons whose label slides up and is replaced by a copy of itself on hover.",
+      "Anything illustrative (testimonials, pricing, preview data) is labelled \"Example\"."
+    ],
+    "rules": [
+      { "name": "The Live-Only Rule", "body": "Emerald appears only on something that is running, true or confirmed: the stripe field, checks, status, focus. It is never a button fill, a heading colour, a link colour or decoration. If you can't say what is live about it, it stays zinc.", "section": "colors" },
+      { "name": "The One Voice Rule", "body": "There is no secondary or tertiary accent. A second hue would compete with the single signal the page relies on.", "section": "colors" },
+      { "name": "The Medium Display Rule", "body": "Display and headline type is Urbanist at 500 with -0.02em to -0.03em tracking. No bold display, no all-caps headings, no positive tracking.", "section": "typography" },
+      { "name": "The Bare Heading Rule", "body": "Headings stand alone. No eyebrow, kicker, pill or small label sits above a heading.", "section": "typography" },
+      { "name": "The Flat Sheet Rule", "body": "Surfaces never lift. Separate them with a line or a one-step tonal change, not a shadow or blur.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the line colour at 1px for every rail and divider, dashed for structure and solid for containers.",
+      "Do keep emerald for live things only: stripes, checks, status, focus, selection.",
+      "Do set display and section headings in Urbanist 500 with -0.02em to -0.03em tracking.",
+      "Do use 4px corners on buttons and chips, 10px on inner panels, 14px on outer cards.",
+      "Do label every illustrative testimonial, plan and preview as \"Example\".",
+      "Do show the real product, rebuilt in the page's own tokens, instead of a static screenshot.",
+      "Do honour reduced motion: pause marquees, freeze the stripe field, skip label slides and the theme reveal."
+    ],
+    "donts": [
+      "Don't place an eyebrow, kicker, pill or small label above a heading.",
+      "Don't introduce a second accent colour, gradient wash or coloured button fill.",
+      "Don't use shadows or blur to separate surfaces.",
+      "Don't state invented results, customers or metrics, or present planned features as available.",
+      "Don't use the older shadcn zinc and blue tokens from `:root` and `.dark` inside the landing scope. Those still govern the sign in, sign up, chat and admin pages, whose move to this system is planned but not done; they are a known gap, not part of this system."
+    ]
+  }
+}
