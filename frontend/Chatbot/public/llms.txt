@@ -1,0 +1,19 @@
+# Chat
+
+> Private AI chat that answers from your own documents, with streaming replies and inline citations.
+
+## Overview
+Chat is a full-stack, production-grade AI assistant. Users upload PDF and text files to a conversation and ask questions grounded exclusively in those documents. The model can search documents via RAG, check live weather, and file human-in-the-loop bug reports to Jira.
+
+## Tech Stack
+- Frontend: Next.js 16, React 19, Tailwind CSS v4, Motion
+- Backend: FastAPI (Python 3.14), LangGraph, SQLAlchemy (async)
+- Retrieval: Mistral Embed, Pinecone vector store, Cohere reranking
+- Models: Mistral ministral-14b (fallback to 8b)
+- Database & Memory: PostgreSQL (UUIDv7), Redis Cloud
+
+## Creator & Links
+- Creator: Razin Chinwala
+- Portfolio: https://rxzin.is-a.dev
+- App: https://razin.tech
+- GitHub: https://github.com/rxzin
