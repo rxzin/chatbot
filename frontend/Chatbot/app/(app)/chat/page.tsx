@@ -2,14 +2,7 @@
 
 import { ChatShell } from "@/components/chat/ChatShell";
 import { useAuth } from "@/hooks/useAuth";
-import type { Metadata } from "next";
-export const metadata: Metadata = {
-  title: "Chat Session",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+
 export default function ChatPage() {
   const { isAuthenticated } = useAuth({
     redirectTo: "/login?redirect=/chat",
