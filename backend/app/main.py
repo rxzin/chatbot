@@ -35,7 +35,14 @@ api_tags = [
     {"name": "Admin", "description": "Admin queues and actions"},
 ]
 
-app = FastAPI(openapi_tags=api_tags, lifespan=lifespan)
+app = FastAPI(
+    openapi_tags=api_tags,
+    lifespan=lifespan,
+    # Disable /openapi.json, /docs, and /redoc in production.
+    openapi_url="/openapi.json" if settings.ENVIRONMENT == "local" else None,
+    docs_url="/docs" if settings.ENVIRONMENT == "local" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT == "local" else None,
+)
 
 app.middleware("http")(request_logging_middleware)
 app.add_middleware(
