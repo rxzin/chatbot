@@ -97,7 +97,8 @@ class FakeVectorStore(VectorStoreService):
             VectorSearchResult(
                 document_id=chunk.document_id,
                 filename=chunk.filename,
-                page=chunk.page,
+                # Ingestion stores 0 for a file with no pages; Pinecone reads that back as None.
+                page=chunk.page or None,
                 chunk_index=chunk.chunk_index,
                 content=chunk.content,
                 score=_FAKE_SCORE,

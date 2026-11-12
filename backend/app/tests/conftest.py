@@ -89,6 +89,8 @@ async def _clean(request):
     async with engine.begin() as connection:
         await connection.execute(text(_TRUNCATE))
     await application.state.redis_service.redis_client.flushdb()
+    # The fake vector store lives as long as the app, so empty it too.
+    application.state.vector_store_service.chunks.clear()
     yield
 
 
