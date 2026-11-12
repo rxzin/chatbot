@@ -72,6 +72,8 @@ Read these before starting; the tasks refer to them as F-numbers.
 - **F26** `admin_audit.py:79-83` and `admin_users.py:62-66,107` paginate by `id`, which is only correct while ids sort by time. → Task X4.
 - **F27** The Redis client has no socket timeouts (`services/memory.py:17`), so an unreachable Redis can hang a request instead of failing. → Task X2.
 
+- **F29** (found in Task B3) A request with no `Authorization` header is rejected by FastAPI's `OAuth2PasswordBearer`, so its 401 body is `{"detail": "Not authenticated"}`. Every other error, including an invalid token, uses `{"success": false, "error": {"code", "message"}}`. Pinned by `test_no_token_is_rejected`; not changed.
+
 **Blocking the CockroachDB phases**
 
 - **F20** Every table's id defaults to `uuidv7()` (`schemas/models.py`, 8 migrations). That is a Postgres 18 built-in. CockroachDB's UUID docs list only `gen_random_uuid()` and `uuid_v4()`, so migrations are expected to fail there. `admin_audit.py:75` also relies on ids sorting by time.
