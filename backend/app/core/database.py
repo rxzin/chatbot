@@ -12,6 +12,8 @@ settings = getSettings()
 engine = create_async_engine(
     str(settings.SQLALCHEMY_DATABASE_URI),
     pool_pre_ping=True,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
 )
 SessionLocal = async_sessionmaker[AsyncSession](
     autoflush=False, bind=engine, expire_on_commit=False, class_=AsyncSession

@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal
-from pydantic import computed_field, Field, PostgresDsn
+from pydantic import computed_field, Field, PostgresDsn, model_validator
 from functools import lru_cache
 from pydantic_core import MultiHostUrl
 import os
@@ -8,15 +8,33 @@ import os
 
 API_PREFIX = "/api"
 
+_DEFAULT_ENV_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+
+
+def env_file_path() -> str:
+    """
+    The env file to load: APP_ENV_FILE if set, else backend/app/.env.
+
+    Tests and benchmarks set APP_ENV_FILE so they never read the development file,
+    which holds real keys.
+    """
+    return os.environ.get("APP_ENV_FILE") or _DEFAULT_ENV_FILE
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"),
+        env_file=_DEFAULT_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
         env_ignore_empty=True,
         case_sensitive=True,
     )
+
+    def __init__(self, **values):
+        # Resolved on each construction, not at import, so APP_ENV_FILE can be set late.
+        values.setdefault("_env_file", env_file_path())
+        super().__init__(**values)
+
     CORS_ORIGINS: list[str] = Field(default_factory=list)
     MISTRAL_API_KEY: str
     MISTRAL_MODEL: str = "ministral-14b-latest"
@@ -27,6 +45,12 @@ class Settings(BaseSettings):
     REDIS_URL: str
     DOMAIN: str = "localhost"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+    # "fake" replaces Mistral, Pinecone and Cohere with in-process stand-ins and turns
+    # tracing off. For tests and mocked benchmarks; refused in production.
+    EXTERNAL_SERVICES: Literal["live", "fake"] = "live"
+    # Shape of a fake model reply: this many chunks, this long apart.
+    FAKE_LLM_TOKEN_COUNT: int = 40
+    FAKE_LLM_TOKEN_DELAY_MS: int = 20
     JWT_SECRET_KEY: str
     JIRA_DOMAIN: str
     JIRA_EMAIL: str
@@ -96,6 +120,12 @@ class Settings(BaseSettings):
     POSTGRESQL_SERVER: str
     POSTGRESQL_PORT: int = 5432
     POSTGRESQL_DATABASE: str
+    DB_SCHEME: Literal["postgresql+asyncpg", "cockroachdb+asyncpg"] = "postgresql+asyncpg"
+    # Extra connection options, appended to the URI after "?". Example: ssl=disable
+    DB_QUERY: str = ""
+    # Connections each process keeps open, and how many more it may open under load.
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
 
     # Set for MISTRAL_MODEL; change these together. The soft input limit
     # (input * SUMMARIZE_THRESHOLD) plus the output limit must fit in the context window.
@@ -117,11 +147,19 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
         uri_string = (
-            f"postgresql+asyncpg://{self.POSTGRESQL_USERNAME}:"
+            f"{self.DB_SCHEME}://{self.POSTGRESQL_USERNAME}:"
             f"{self.POSTGRESQL_PASSWORD}@{self.POSTGRESQL_SERVER}:"
             f"{self.POSTGRESQL_PORT}/{self.POSTGRESQL_DATABASE}"
         )
+        if self.DB_QUERY:
+            uri_string += f"?{self.DB_QUERY}"
         return MultiHostUrl(uri_string)
+
+    @model_validator(mode="after")
+    def _no_fake_services_in_production(self):
+        if self.ENVIRONMENT == "production" and self.EXTERNAL_SERVICES == "fake":
+            raise ValueError("EXTERNAL_SERVICES=fake is not allowed in production")
+        return self
 
 
 @lru_cache()
