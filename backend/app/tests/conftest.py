@@ -139,12 +139,32 @@ def settings_override(monkeypatch):
 
 
 @pytest.fixture
-def scripted_llm(app, monkeypatch):
+def app_state_override(app):
+    """
+    Replace a service on app.state for one test: app_state_override(llm_service=...).
+
+    Not monkeypatch: app.state keeps its values in an inner dict, so monkeypatch
+    cannot see the original and deletes the attribute when the test ends.
+    """
+    original: dict = {}
+
+    def override(**services) -> None:
+        for name, service in services.items():
+            original.setdefault(name, getattr(app.state, name))
+            setattr(app.state, name, service)
+
+    yield override
+    for name, service in original.items():
+        setattr(app.state, name, service)
+
+
+@pytest.fixture
+def scripted_llm(app_state_override):
     """Replace the model for one test: scripted_llm([["Hi ", "there"]])."""
 
     def install(turns, completion="Test Title") -> ScriptedLLM:
         model = ScriptedLLM(turns, completion)
-        monkeypatch.setattr(app.state, "llm_service", model)
+        app_state_override(llm_service=model)
         return model
 
     return install
