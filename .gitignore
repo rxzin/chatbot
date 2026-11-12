@@ -17,4 +17,5 @@ DEPLOYMENT.md
 .cursor/
 *.pem
 .agents/**
-tests/**
+/tests/**
+bench/results/**/raw.csv.gz

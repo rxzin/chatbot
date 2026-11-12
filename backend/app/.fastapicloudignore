@@ -6,6 +6,7 @@
 .vscode/
 logs/
 __pycache__/
+tests/
 
 # The built frontend is generated and gitignored, but it must be uploaded.
 !frontend_build/

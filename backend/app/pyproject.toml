@@ -30,6 +30,28 @@ dependencies = [
 [tool.fastapi]
 entrypoint = "main:app"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+# One event loop for the whole run: the database pool and the Redis client are created
+# once per process and stay tied to the loop that first used them.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = ["distributed: needs a running bench stack (set STACK_URLS)"]
+
+[tool.coverage.run]
+omit = [".venv/*", "tests/*", "alembic/*", "frontend_build/*", "scripts/*", "services/graph/visualize.py"]
+
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[dependency-groups]
+dev = [
+    "asgi-lifespan>=2.1.0",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
+    "pytest-cov>=7.1.0",
+    "respx>=0.23.1",
+]
