@@ -272,7 +272,8 @@ def collect_meta(compose_file, ids):
         sha = hashlib.sha256(f.read()).hexdigest()
     return {
         "git_sha": git("rev-parse", "HEAD"),
-        "git_dirty": bool(git("status", "--porcelain")),
+        # Earlier runs' output is untracked; it must not mark the code dirty.
+        "git_dirty": bool(git("status", "--porcelain", "--", ".", ":(exclude)bench/results")),
         "k6_version": run(["k6", "version"]).stdout.strip(),
         "image_ids": images,
         "compose_sha256": sha,
