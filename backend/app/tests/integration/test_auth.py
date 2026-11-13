@@ -1,5 +1,6 @@
 """Registration, login, token refresh and logout through the real endpoints."""
 
+import bcrypt
 from sqlalchemy import func, select
 
 from schemas.models import Session, User
@@ -124,6 +125,65 @@ async def test_login_rejects_an_inactive_user(client, db):
 
     assert response.status_code == 401
     assert error(response)["message"] == BAD_LOGIN
+
+
+async def _make_bcrypt_user(db):
+    account = await create_user(db)
+    account.password = bcrypt.hashpw(
+        DEFAULT_PASSWORD.encode(), bcrypt.gensalt(rounds=4)
+    ).decode()
+    await db.commit()
+    await db.refresh(account)
+    return account
+
+
+async def _stored_hash(db, user_id) -> str:
+    db.expire_all()
+    return await db.scalar(select(User.password).where(User.id == user_id))
+
+
+async def test_login_upgrades_a_bcrypt_hash_to_argon2id(client, db):
+    account = await _make_bcrypt_user(db)
+    email, user_id = account.email, account.id
+    assert (await _stored_hash(db, user_id)).startswith("$2")
+
+    first = await client.post(
+        "/api/auth/login",
+        data={"username": email, "password": DEFAULT_PASSWORD},
+    )
+    assert first.status_code == 200
+    assert (await _stored_hash(db, user_id)).startswith("$argon2id$")
+
+    second = await client.post(
+        "/api/auth/login",
+        data={"username": email, "password": DEFAULT_PASSWORD},
+    )
+    assert second.status_code == 200
+
+
+async def test_wrong_password_does_not_change_a_bcrypt_hash(client, db):
+    account = await _make_bcrypt_user(db)
+    email, user_id = account.email, account.id
+    before = await _stored_hash(db, user_id)
+
+    response = await client.post(
+        "/api/auth/login", data={"username": email, "password": "wrong-one"}
+    )
+
+    assert response.status_code == 401
+    assert await _stored_hash(db, user_id) == before
+
+
+async def test_registered_user_gets_an_argon2id_hash(client, db):
+    await client.post(
+        "/api/auth/register",
+        json={"email": "argon@example.com", "password": DEFAULT_PASSWORD},
+    )
+
+    stored = await db.scalar(
+        select(User.password).where(User.email == "argon@example.com")
+    )
+    assert stored.startswith("$argon2id$")
 
 
 # --- me ----------------------------------------------------------------------------

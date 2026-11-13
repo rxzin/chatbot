@@ -1,6 +1,5 @@
 """Shared test setup. The first lines must run before anything from the app is imported."""
 
-import functools
 import os
 import subprocess
 import sys
@@ -10,14 +9,12 @@ from pathlib import Path
 # here keeps every test away from backend/app/.env, which holds real keys.
 os.environ.setdefault("APP_ENV_FILE", str(Path(__file__).parent / "test.env"))
 
-import bcrypt  # noqa: E402
 import pytest  # noqa: E402
 import pytest_asyncio  # noqa: E402
 from asgi_lifespan import LifespanManager  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
-import auth.security  # noqa: E402
 from core.config import getSettings  # noqa: E402
 from support.factories import auth_headers, create_user, login  # noqa: E402
 from support.fakes import ScriptedLLM  # noqa: E402
@@ -25,10 +22,6 @@ from support.guard import assert_safe_test_target  # noqa: E402
 
 # Refuse to go any further unless the process is pointed at the disposable test stack.
 assert_safe_test_target(getSettings())
-
-# One real bcrypt hash takes about 250 ms. Tests create many users, so use the cheapest
-# cost. Benchmarks do not load this file and keep the production cost.
-auth.security.gensalt = functools.partial(bcrypt.gensalt, rounds=4)
 
 APP_DIR = Path(__file__).resolve().parents[1]
 

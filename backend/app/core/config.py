@@ -89,6 +89,11 @@ class Settings(BaseSettings):
     REGISTRATION_MAX_GLOBAL: int = 100
     MAX_REFRESH_SESSIONS_PER_USER: int = 5
     SESSION_ABSOLUTE_LIFETIME_DAYS: int = 30
+    # Argon2id password hashing (OWASP minimum profile) and how many may run at once.
+    ARGON2_MEMORY_KIB: int = 19456
+    ARGON2_TIME_COST: int = 2
+    ARGON2_PARALLELISM: int = 1
+    PASSWORD_HASH_CONCURRENCY: int = 4
     REFRESH_REUSE_GRACE_SECONDS: int = 30
     LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = 900
     LOGIN_MAX_FAILURES_PER_ACCOUNT: int = 10
