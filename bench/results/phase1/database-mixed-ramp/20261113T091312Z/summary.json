@@ -1,0 +1,14 @@
+{
+  "total_requests": 30233,
+  "rps": 71.98333333333333,
+  "rpm": 4319,
+  "vus_max": 100,
+  "avg_ms": 620.7600148447073,
+  "p50_ms": 287.4754,
+  "p95_ms": 2351.9986199999976,
+  "p99_ms": 4223.331456000002,
+  "error_rate": 0,
+  "timeout_rate": 0,
+  "dropped_iterations": 0,
+  "checks_rate": 1
+}

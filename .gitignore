@@ -17,4 +17,8 @@ DEPLOYMENT.md
 .cursor/
 *.pem
 .agents/**
-tests/**
+/tests/**
+bench/results/**/raw.csv.gz
+# coverage data
+.coverage
+infra/bench/.run.env

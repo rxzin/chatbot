@@ -3,11 +3,12 @@ from typing import Literal, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Security, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.service import get_current_active_user
 from core.database import get_db
+from core.errors import BadRequest
 from schemas.admin import AdminSummaryResponse, AuditLogPage, AuditLogResponse
 from schemas.models import AuditLog, PendingJiraTicket, Session, User
 
@@ -72,15 +73,22 @@ async def list_audit_logs(
     db: AsyncSession = Depends(get_db),
     current_user: User = Security(get_current_active_user, scopes=["audit:read"]),
 ):
-    """List requests, newest first. uuidv7 ids sort by time, so they work as the cursor."""
+    """List requests, newest first. The cursor is a row id; paging is by (created_at, id)."""
     stmt = (
         select(AuditLog, User.email)
         .outerjoin(User, AuditLog.user_id == User.id)
-        .order_by(AuditLog.id.desc())
+        .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
         .limit(limit + 1)
     )
     if cursor:
-        stmt = stmt.where(AuditLog.id < cursor)
+        cursor_created_at = await db.scalar(
+            select(AuditLog.created_at).where(AuditLog.id == cursor)
+        )
+        if cursor_created_at is None:
+            raise BadRequest("Unknown cursor")
+        stmt = stmt.where(
+            tuple_(AuditLog.created_at, AuditLog.id) < (cursor_created_at, cursor)
+        )
     if email:
         stmt = stmt.where(User.email.icontains(email, autoescape=True))
     if path:

@@ -1,5 +1,8 @@
 # Chat
 
+![Coverage](https://img.shields.io/badge/coverage-83%25-yellowgreen)
+![Tests](https://img.shields.io/badge/tests-251%20passed-brightgreen)
+
 A private AI chat app. Users upload PDFs and text files to a conversation and ask
 questions about them, or ask anything else; the chat searches their documents or the web
 when it needs to and cites each source inline. Replies stream in as they're written. The
@@ -154,6 +157,67 @@ seed against the production database, and uploads the app. The running app reads
 settings from the **FastAPI Cloud dashboard**, not from `.env.production`, so change
 settings there too (for example `EXA_API_KEY`, `CHAT_DAILY_LIMIT_PER_USER` or the
 `JIRA_*` values).
+
+## Tests and benchmarks
+
+The backend suite has 251 tests (unit, integration, concurrency) against real Postgres
+and Redis containers, with 83 % line coverage. [docs/testing.md](docs/testing.md) explains
+how to run it.
+
+### Benchmarks: single API instance, single database node
+
+Measured with k6 against one API process (1 CPU, 512 MB) behind nginx, one PostgreSQL 18
+node (2 CPU, 1 GB) and one Redis (0.5 CPU), on a seeded dataset of 200 users, 1,000
+conversations and 20,000 messages. External services are faked: the chatbot model
+streams 40 tokens 20 ms apart (about 0.8 s per reply). Each workload ramps 10 → 25 → 50 →
+100 virtual users and holds each level for 90 s. No level of any workload returned an
+error.
+
+| Workload | Each iteration | Peak throughput | p95 at 10 VUs | p95 at 100 VUs |
+|---|---|---|---|---|
+| health | `/health`, `/auth/me` | 137 req/s (50 VUs) | 212 ms | 2.5 s |
+| auth | login, `/me`, refresh, logout | 33 req/s (25 VUs) | 831 ms | 7.2 s |
+| database-read | list conversations, list messages | 89 req/s (50 VUs) | 309 ms | 3.7 s |
+| database-write | create a conversation | 71 req/s (100 VUs) | 307 ms | 4.4 s |
+| database-mixed | 80 % reads, 20 % writes | 76 req/s (25 VUs) | 345 ms | 3.9 s |
+| conversations | browse with 1–3 s think time | 43 req/s (100 VUs, not saturated) | 28 ms | 1.3 s |
+| chatbot | one streamed chat turn | 12.5 turns/s (25 VUs) | 1.4 s | 11.1 s |
+
+Requests per minute at each number of concurrent users (the peak is in bold):
+
+| Workload | 10 users | 25 users | 50 users | 100 users |
+|---|---|---|---|---|
+| health | 6,180 | 8,086 | **8,192** | 8,023 |
+| auth | 1,746 | **2,001** | 1,693 | 1,977 |
+| database-read | 4,002 | 4,175 | **5,311** | 4,779 |
+| database-write | 4,003 | 2,855 | 3,325 | **4,255** |
+| database-mixed | 3,914 | **4,543** | 4,505 | 4,390 |
+| conversations | 303 | 776 | 1,511 | **2,593** |
+| chatbot (chat turns) | 583 | **749** | 739 | 650 |
+
+Each simulated user sends its next request as soon as the last one returns, so it is far
+busier than a real person. Only `conversations` pauses 1–3 s between requests, like
+someone reading. It grows by about 26 requests per minute per user and had not reached
+the API's limit at 100 users.
+
+At a fixed load of 50 % and 80 % of each peak, held for 3 minutes:
+
+| Workload | Load (50 % / 80 %) | p95 at 50 % | p95 at 80 % | Errors |
+|---|---|---|---|---|
+| health | 68 / 110 req/s | 78 ms | 1.19 s | 0 |
+| auth | 16 / 28 req/s | 69 ms | 159 ms | 0 |
+| database-read | 44 / 70 req/s | 626 ms | 655 ms | 0 |
+| database-write | 35 / 57 req/s | 116 ms | 995 ms | 0.02 % at 80 % |
+| database-mixed | 38 / 61 req/s | 52 ms | 509 ms | 0 |
+| conversations | 22 / 34 req/s | 31 ms | 110 ms | 0 |
+| chatbot | 6 / 10 turns/s | 940 ms | 1.65 s | 0 |
+
+In every workload except `conversations`, the API container sits at its 1 CPU limit
+while Postgres stays under 30 % of its 2 CPUs, so the single API process is the
+bottleneck. `auth` is the slowest because each login hashes a password with Argon2id.
+k6, the API and the databases share one 8-thread machine, so these numbers compare
+setups rather than predict production capacity. Results and analysis are in
+[bench/results/phase1/NOTES.md](bench/results/phase1/NOTES.md).
 
 ## Project structure
 

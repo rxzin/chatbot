@@ -1,10 +1,11 @@
 from typing import Type, TypeVar
 
 from sqlalchemy import insert, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from auth.security import get_hash
+from auth.security import hash_password
 from core.errors import ConflictError, UnknownError, BadRequest
 from schemas.models import User, Roles, user_roles_table
 from schemas.schema import UserCreate, UserResponse
@@ -31,7 +32,7 @@ async def create_user_service(db: AsyncSession, user: UserCreate) -> UserRespons
         raise ConflictError("Email already exists")
 
     try:
-        db_user = User(email=str(user.email), password=get_hash(user.password))
+        db_user = User(email=str(user.email), password=await hash_password(user.password))
         # Add to database
         db.add(db_user)
         await db.flush()
@@ -57,6 +58,11 @@ async def create_user_service(db: AsyncSession, user: UserCreate) -> UserRespons
     except BadRequest:
         await db.rollback()
         raise
+    except IntegrityError as e:
+        # A concurrent sign-up with the same email passed the check above first; the
+        # unique index caught this one (F16).
+        await db.rollback()
+        raise ConflictError("Email already exists") from e
     except Exception as e:
         await db.rollback()
         raise UnknownError(f"Failed to create user: {e}") from e

@@ -7,6 +7,7 @@ app/.env
 app/.env.*
 app/frontend_build/
 app/logs/
+app/tests
 app/chroma/
 app/graph.png
 app/services/graph/graph.png

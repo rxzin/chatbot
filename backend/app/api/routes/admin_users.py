@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request, Security, status
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -59,11 +59,16 @@ async def list_users(
         select(User, func.coalesce(session_counts.c.active_sessions, 0))
         .options(selectinload(User.roles).selectinload(Roles.permissions))
         .outerjoin(session_counts, User.id == session_counts.c.user_id)
-        .order_by(User.id.desc())
+        .order_by(User.created_at.desc(), User.id.desc())
         .limit(limit + 1)
     )
     if cursor:
-        stmt = stmt.where(User.id < cursor)
+        cursor_created_at = await db.scalar(
+            select(User.created_at).where(User.id == cursor)
+        )
+        if cursor_created_at is None:
+            raise BadRequest("Unknown cursor")
+        stmt = stmt.where(tuple_(User.created_at, User.id) < (cursor_created_at, cursor))
     if search:
         stmt = stmt.where(User.email.icontains(search, autoescape=True))
 
@@ -104,7 +109,7 @@ async def list_user_sessions(
             Session.user_id == user_id,
             *_active_session_conditions(datetime.now(timezone.utc)),
         )
-        .order_by(Session.id.desc())
+        .order_by(Session.created_at.desc(), Session.id.desc())
     )
     current_session_id = getattr(request.state, "session_id", None)
     return [
