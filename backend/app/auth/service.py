@@ -107,6 +107,10 @@ async def prune_user_sessions(
     if max_sessions <= 0:
         return
 
+    # Concurrent logins by one user each counted the same sessions and all inserted,
+    # passing the cap (F15). Locking the user's row queues them; the lock is held
+    # until create_session commits, so the next login counts the new session.
+    await db.execute(select(User.id).where(User.id == user_id).with_for_update())
     result = await db.execute(
         select(Session)
         .where(Session.user_id == user_id)

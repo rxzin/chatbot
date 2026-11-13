@@ -1,6 +1,7 @@
 from typing import Type, TypeVar
 
 from sqlalchemy import insert, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -57,6 +58,11 @@ async def create_user_service(db: AsyncSession, user: UserCreate) -> UserRespons
     except BadRequest:
         await db.rollback()
         raise
+    except IntegrityError as e:
+        # A concurrent sign-up with the same email passed the check above first; the
+        # unique index caught this one (F16).
+        await db.rollback()
+        raise ConflictError("Email already exists") from e
     except Exception as e:
         await db.rollback()
         raise UnknownError(f"Failed to create user: {e}") from e

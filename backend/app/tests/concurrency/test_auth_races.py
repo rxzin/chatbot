@@ -33,15 +33,9 @@ async def test_concurrent_registrations_of_one_email_create_one_user(make_client
 
     codes = Counter(r.status_code for r in responses)
     assert codes[201] == 1
-    assert set(codes) <= {201, 409, 500}
+    # The losers hit the unique index, not the pre-check; still a 409, never a 500 (F16).
+    assert codes == {201: 1, 409: 19}
     assert await count(db, User) == 1
-
-
-@pytest.mark.xfail(reason="F16", strict=False)
-async def test_concurrent_duplicate_registration_never_returns_500(make_client, db):
-    responses = await register_many(make_client, 20, "race2@example.com")
-
-    assert 500 not in {r.status_code for r in responses}
 
 
 async def test_concurrent_refreshes_with_one_cookie_have_one_winner(
@@ -83,19 +77,6 @@ async def concurrent_logins(make_client, db, n: int):
     return account, responses
 
 
-async def test_concurrent_logins_all_succeed_and_session_cap_is_not_exact(
-    make_client, db, settings_override
-):
-    """Pins F15: all logins succeed; the cap of 5 is not enforced under concurrency."""
-    settings_override(MAX_REFRESH_SESSIONS_PER_USER=5)
-
-    _, responses = await concurrent_logins(make_client, db, 10)
-
-    assert [r.status_code for r in responses] == [200] * 10
-    assert await count(db, Session) >= 5
-
-
-@pytest.mark.xfail(reason="F15", strict=False)
 async def test_concurrent_logins_respect_the_session_cap(
     make_client, db, settings_override
 ):

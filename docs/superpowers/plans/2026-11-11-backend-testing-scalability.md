@@ -63,8 +63,8 @@ Read these before starting; the tasks refer to them as F-numbers.
 - **F12** Redis down: `consume_daily_quota` returns `False`, so `/api/chat` answers 429 (fails closed), while login limits fail open. `replace_history` swallows errors, so `set_conversation_state` reports success even when the write failed.
 - **F13** No idempotency on `POST /api/chat` or `POST /api/conversations`. A retried request creates duplicates.
 - **F14** `replace_history` is `DELETE` then `RPUSH` (`services/memory.py:137-146`), not atomic. Two turns in one conversation race; the last writer wins in Redis.
-- **F15** `prune_user_sessions` reads then deletes without a lock (`auth/service.py:95`). Concurrent logins can exceed the session cap.
-- **F16** `create_user_service` checks then inserts (`services/user.py:30`). A concurrent duplicate hits the unique index and returns 500, not 409.
+- **F15** `prune_user_sessions` reads then deletes without a lock (`auth/service.py:95`). Concurrent logins can exceed the session cap. **Fixed** (2026-11-13): the user row is locked (`FOR UPDATE`) before counting, so logins by one user are queued.
+- **F16** `create_user_service` checks then inserts (`services/user.py:30`). A concurrent duplicate hits the unique index and returns 500, not 409. **Fixed** (2026-11-13): the `IntegrityError` from the index is returned as 409 `CONFLICT`.
 - **F17** Document ingestion runs in `BackgroundTasks` from a local temp file. If that instance dies, the document stays `processing`.
 - **F18** Audit rows are queued in memory and flushed every second. Tests must flush explicitly; a killed instance loses its queue.
 - **F19** The health route is `/health/` (`/health` redirects with 307).
