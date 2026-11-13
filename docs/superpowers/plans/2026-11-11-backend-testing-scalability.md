@@ -75,7 +75,7 @@ Read these before starting; the tasks refer to them as F-numbers.
 
 - **F29** (found in Task B3) A request with no `Authorization` header is rejected by FastAPI's `OAuth2PasswordBearer`, so its 401 body is `{"detail": "Not authenticated"}`. Every other error, including an invalid token, uses `{"success": false, "error": {"code", "message"}}`. Pinned by `test_no_token_is_rejected`; not changed.
 
-- **F30** (found in Task D1) Concurrent chat streams exhaust the default DB pool (5 + 10 overflow). A chat request holds the `get_db` connection while its stream opens more through `SessionLocal`, so with about 16 or more simultaneous chats every connection is held by a request waiting for a second one, until the 30 s pool timeout raises `QueuePool limit ... reached`. 20 concurrent users chatting once each fails this way; 6 succeed. Pinned by `test_users_chatting_concurrently_never_see_each_others_messages` (6 users); the 20-user version is `xfail(F30)`. Not changed.
+- **F30** (found in Task D1) Concurrent chat streams exhaust the default DB pool (5 + 10 overflow). A chat request holds the `get_db` connection while its stream opens more through `SessionLocal`, so with about 16 or more simultaneous chats every connection is held by a request waiting for a second one, until the 30 s pool timeout raises `QueuePool limit ... reached`. 20 concurrent users chatting once each fails this way; 6 succeed. **Fixed** (2026-11-13): the chat route closes its session before returning the stream; `test_twenty_users_chatting_concurrently_all_get_their_own_reply` now passes.
 
 **Blocking the CockroachDB phases**
 

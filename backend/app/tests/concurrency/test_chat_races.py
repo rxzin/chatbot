@@ -130,21 +130,13 @@ async def assert_no_cross_talk(db, people, responses):
         )
 
 
-async def test_users_chatting_concurrently_never_see_each_others_messages(
-    make_client, db, app_state_override
-):
-    """Pins F30: 6 concurrent streams fit the pool; 20 do not (see the xfail below)."""
-    people, responses = await chat_as_many_users(
-        make_client, db, app_state_override, 6
-    )
-
-    await assert_no_cross_talk(db, people, responses)
-
-
-@pytest.mark.xfail(reason="F30", strict=False)
 async def test_twenty_users_chatting_concurrently_all_get_their_own_reply(
     make_client, db, app_state_override
 ):
+    """
+    More streams than the pool has connections (5 + 10). Each stream used to hold the
+    request's connection while waiting for another, so 16+ streams deadlocked (F30).
+    """
     people, responses = await chat_as_many_users(
         make_client, db, app_state_override, 20
     )

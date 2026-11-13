@@ -61,6 +61,23 @@ async def chat_stream_endpoint(
     key: str | None = Depends(idempotency_key),
 ):
     """Stream a chat response via the LangGraph Intelligent Router."""
+    try:
+        return await _handle_chat(request, chat_request, db, current_user, key)
+    finally:
+        # A dependency with yield is closed only after the response has been sent,
+        # which for a stream is its very end. Holding this connection while the
+        # stream opens its own sessions deadlocked the pool at ~16 streams (F30).
+        # Everything the stream needs from the session is already loaded.
+        await db.close()
+
+
+async def _handle_chat(
+    request: Request,
+    chat_request: ChatRequest,
+    db: AsyncSession,
+    current_user: User,
+    key: str | None,
+):
     set_request_context(
         request_id=getattr(request.state, "request_id", get_request_id()),
         user_id=str(current_user.id),
