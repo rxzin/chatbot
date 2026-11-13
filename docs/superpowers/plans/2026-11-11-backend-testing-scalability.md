@@ -34,7 +34,7 @@ Things the spec implies but does not spell out, most likely first. Each has a te
 
 1. **Tests pointed at a real database.** An exported shell variable (`POSTGRESQL_SERVER`, `REDIS_URL`) beats the env file, so a truncate could hit dev data. Expect: the suite refuses to start. → Task A3, `test_guard_*`.
 2. **Real provider keys leaking into tests.** `env_ignore_empty=True` means an empty variable cannot blank a key from `.env`. Expect: tests see only dummy keys and tracing off. → Task A2, `test_settings_ignore_dev_env_file`.
-3. **A client that disconnects right at `done`.** The turn is saved *after* `done` is sent and skipped if the client has gone (`runner.py:253`). Expect: documented, and k6/tests read to end-of-stream. → Task C2, `test_disconnect_after_done_loses_turn`.
+3. **A client that disconnects right at `done`.** The turn is saved *after* `done` is sent and skipped if the client has gone (`runner.py:253`). Expect: documented, and k6/tests read to end-of-stream. → Task C2. **Fixed** (2026-11-13): the save starts before `done` and survives a disconnect; `test_disconnect_after_done_keeps_turn`.
 4. **Access tokens expiring mid-benchmark.** Tokens live 15 minutes; a longer run turns into 401s that look like capacity failures. Expect: the k6 helper re-logs in after 10 minutes. → Task E2, smoke check.
 5. **Benchmarks on a dirty dataset.** Write workloads grow tables and leave Redis keys, so run 2 is not run 1. Expect: the runner rebuilds the stack and records row counts. → Task E4, `meta.json` assertion.
 

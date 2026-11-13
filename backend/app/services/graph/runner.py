@@ -126,6 +126,24 @@ async def _events_until(graph_events, deadline: float):
         await iterator.aclose()
 
 
+# Saves that outlive their stream. The event loop keeps only weak references to
+# tasks, so they are held here until they finish.
+_background_saves: set[asyncio.Task] = set()
+
+
+def _keep_running(coro) -> asyncio.Task:
+    task = asyncio.create_task(coro)
+    _background_saves.add(task)
+    task.add_done_callback(_background_saves.discard)
+    task.add_done_callback(_log_failure)
+    return task
+
+
+def _log_failure(task: asyncio.Task) -> None:
+    if not task.cancelled() and task.exception() is not None:
+        logger.error("Background save failed", exc_info=task.exception())
+
+
 async def run_graph_stream(
     request: Request,
     chat_request: ChatRequest,
@@ -135,19 +153,29 @@ async def run_graph_stream(
 ):
     # Every model call in this turn adds its tokens here; saved when the turn ends.
     records = usage.start_collecting()
+    saves: list[asyncio.Task] = []
     try:
         with tracing.trace_turn(current_user.id, chat_request.conversation_id, chat_request.message) as trace:
             async for frame in _run_turn(
-                request, chat_request, current_user, trace, idempotency_key
+                request, chat_request, current_user, trace, idempotency_key, saves
             ):
                 yield frame
     finally:
         try:
             await usage.save(records, current_user.id, chat_request.conversation_id)
         finally:
-            # Also reached on error and on client disconnect.
+            # Also reached on error and on client disconnect. A retry with the same
+            # Idempotency-Key must wait for the save, so a save still running keeps
+            # the lock until it ends.
             if inflight_key is not None:
-                await request.app.state.redis_service.release_inflight(inflight_key)
+                redis_service = request.app.state.redis_service
+                unfinished = [task for task in saves if not task.done()]
+                if unfinished:
+                    unfinished[0].add_done_callback(
+                        lambda _: _keep_running(redis_service.release_inflight(inflight_key))
+                    )
+                else:
+                    await redis_service.release_inflight(inflight_key)
 
 
 async def _run_turn(
@@ -156,6 +184,7 @@ async def _run_turn(
     current_user: User,
     trace,
     idempotency_key: str | None = None,
+    saves: list[asyncio.Task] | None = None,
 ):
     app_state = request.app.state
     memory_service = app_state.redis_service
@@ -261,13 +290,9 @@ async def _run_turn(
             except Exception:
                 logger.exception("Couldn't save the conversation's title")
 
-        yield sse(DoneEvent())
-        trace.update(output=tracing.clip(full_model_response), metadata={"sources": len(sources) + len(web_sources)})
-
-        if await request.is_disconnected():
-            return
-
-        await persist_turn(
+        # The save starts before `done` and runs in its own task. A client that hangs
+        # up on `done` ends this generator, but not the save, so the turn is kept.
+        save = _keep_running(persist_turn(
             memory_service=memory_service,
             llm=llm_service,
             user_id=current_user.id,
@@ -280,7 +305,16 @@ async def _run_turn(
             web_sources=web_sources,
             suggestions=suggestions,
             idempotency_key=idempotency_key,
-        )
+        ))
+        if saves is not None:
+            saves.append(save)
+
+        yield sse(DoneEvent())
+        trace.update(output=tracing.clip(full_model_response), metadata={"sources": len(sources) + len(web_sources)})
+
+        # Shielded so that a disconnect cancelling this generator leaves the save
+        # running. A save that raises still reports an error after done (F10).
+        await asyncio.shield(save)
 
     except TurnTimeout:
         logger.warning(

@@ -2,16 +2,18 @@
 
 ## Known issues
 
-### A client that closes the stream on `done` can lose the turn
+### Fixed: a client that closed the stream on `done` lost the turn
 
-In `backend/app/services/graph/runner.py` the turn is saved after the `done`
-event is sent, and the save is skipped if the client has already disconnected.
-A client that closes the connection as soon as it receives `done` therefore
-never gets its messages written to Postgres (or Redis).
+The turn used to be saved after `done` was sent, and the save was skipped once the
+client had gone, so a client that hung up on `done` lost the turn (0 rows in 16 of
+16 runs, 2026-11-13; finding F10, Review Focus 3). The save now starts in its own
+task before `done` and keeps running after a disconnect, and an `Idempotency-Key`
+lock is held until it ends. Pinned by `test_disconnect_after_done_keeps_turn` and
+`test_retry_after_hanging_up_at_done_never_runs_the_model_twice` in
+`backend/app/tests/integration/test_chat_failures.py`.
 
-Observed in `tests/integration/test_chat_failures.py::test_disconnect_after_done_loses_turn`:
-0 rows saved in 16 of 16 counted runs against a real socket (2026-11-13). See finding F10 and Review
-Focus 3 in `docs/superpowers/plans/2026-11-11-backend-testing-scalability.md`.
+Still true: a save in flight lives in that instance's memory. If the instance is
+killed in the moment between `done` and the end of the save, the turn is lost.
 
 ### The model can miss turns after a Redis outage
 

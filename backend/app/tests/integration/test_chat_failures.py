@@ -246,30 +246,63 @@ async def test_interrupted_stream(live_server, user, db, redis, scripted_llm):
         assert (await http.get("/health/")).status_code == 200
 
 
-async def test_disconnect_after_done_loses_turn(live_server, user, db, scripted_llm):
-    """
-    A client that closes the stream as soon as it sees `done` races the server's save,
-    which runs after `done` is sent and is skipped if the client has disconnected
-    (services/graph/runner.py). F10, Review Focus 3.
-
-    Either 0 rows (turn lost) or 2 rows (saved) is accepted.
-    OBSERVED (2026-11-13): 0 rows in 16 of 16 counted runs; the turn is lost every time.
-    Recorded as a known issue in docs/multi-instance.md.
-    """
-    account, headers = user
-    conversation = await create_conversation(db, account.id)
-    scripted_llm([["Hi ", "there"]])
-
-    async with httpx.AsyncClient(base_url=live_server, timeout=10) as http:
+async def _chat_and_hang_up_at_done(base_url, headers, conversation_id, extra=None):
+    async with httpx.AsyncClient(base_url=base_url, timeout=10) as http:
         async with http.stream(
-            "POST", "/api/chat", headers=headers, json=_post_body(conversation.id)
+            "POST",
+            "/api/chat",
+            headers={**headers, **(extra or {})},
+            json=_post_body(conversation_id),
         ) as response:
+            assert response.status_code == 200
             async for line in response.aiter_lines():
                 if line.startswith("data:") and json.loads(line[5:])["type"] == "done":
                     break
 
+
+async def test_disconnect_after_done_keeps_turn(
+    live_server, user, db, redis, scripted_llm
+):
+    """
+    A client that closes the stream as soon as it sees `done` (Review Focus 3).
+    The save used to run after `done` and was skipped once the client had gone, so the
+    turn was lost in 16 of 16 runs. It now starts before `done` and outlives the client.
+    """
+    account, headers = user
+    conversation = await create_conversation(db, account.id)
+    scripted_llm([["Hi ", "there"]])
+    history_key = f"chat:user:{account.id}:conversation:{conversation.id}"
+
+    await _chat_and_hang_up_at_done(live_server, headers, conversation.id)
+
     async def saved():
         return await _row_count(db, conversation.id) == 2
 
-    await _eventually(saved)
-    assert await _row_count(db, conversation.id) in (0, 2)
+    assert await _eventually(saved)
+    assert await redis.llen(history_key) == 2
+
+
+async def test_retry_after_hanging_up_at_done_never_runs_the_model_twice(
+    live_server, user, db, scripted_llm
+):
+    """The Idempotency-Key lock is held until the save ends, not until the client goes."""
+    account, headers = user
+    conversation = await create_conversation(db, account.id, title="Existing chat")
+    scripted = scripted_llm([["Hi ", "there"]])
+    key = {"Idempotency-Key": "retry-1"}
+
+    await _chat_and_hang_up_at_done(live_server, headers, conversation.id, key)
+    async with httpx.AsyncClient(base_url=live_server, timeout=10) as http:
+        retry = await http.post(
+            "/api/chat",
+            headers={**headers, **key},
+            json=_post_body(conversation.id),
+        )
+
+    assert retry.status_code in (200, 409)
+    assert len(scripted.calls) == 1
+
+    async def saved():
+        return await _row_count(db, conversation.id) == 2
+
+    assert await _eventually(saved)
