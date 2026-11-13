@@ -19,3 +19,5 @@ DEPLOYMENT.md
 .agents/**
 /tests/**
 bench/results/**/raw.csv.gz
+# coverage data
+.coverage
