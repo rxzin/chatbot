@@ -1,0 +1,377 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\Asus\OneDrive\Documents\chatbot\backend\app\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Asus\Onedrive\Documents\chatbot\backend\app
+configfile: pyproject.toml
+plugins: anyio-4.13.0, langsmith-0.8.9, asyncio-1.4.1.post1, cov-7.1.0, respx-0.23.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=session, asyncio_default_test_loop_scope=session
+collecting ... collected 251 items
+
+tests/agent/test_agent_tools.py::test_model_calls_a_tool_and_answers_from_its_result PASSED [  0%]
+tests/agent/test_agent_tools.py::test_tool_result_reaches_the_model_marked_as_untrusted PASSED [  0%]
+tests/agent/test_agent_tools.py::test_failing_tool_becomes_an_error_result_and_the_reply_continues PASSED [  1%]
+tests/agent/test_agent_tools.py::test_unknown_city_is_reported_to_the_model PASSED [  1%]
+tests/agent/test_agent_tools.py::test_unknown_tool_name_is_an_error_result PASSED [  1%]
+tests/agent/test_agent_tools.py::test_slow_tool_times_out PASSED         [  2%]
+tests/agent/test_agent_tools.py::test_tools_are_withdrawn_after_the_round_limit PASSED [  2%]
+tests/agent/test_agent_tools.py::test_calls_beyond_the_per_round_limit_are_skipped PASSED [  3%]
+tests/agent/test_agent_tools.py::test_only_available_tools_are_offered PASSED [  3%]
+tests/agent/test_agent_tools.py::test_bug_report_is_saved_once_per_window PASSED [  3%]
+tests/agent/test_agent_tools.py::test_incomplete_bug_report_is_not_saved PASSED [  4%]
+tests/agent/test_agent_tools.py::test_fallback_model_answers_when_the_primary_fails PASSED [  4%]
+tests/agent/test_sse_stream.py::test_plain_reply_streams_text_then_done_and_is_saved PASSED [  5%]
+tests/agent/test_sse_stream.py::test_response_headers_are_set_for_streaming PASSED [  5%]
+tests/agent/test_sse_stream.py::test_first_turn_of_an_untitled_conversation_gets_a_title PASSED [  5%]
+tests/agent/test_sse_stream.py::test_suggestions_are_sent_before_done_and_saved PASSED [  6%]
+tests/agent/test_sse_stream.py::test_failed_suggestions_do_not_fail_the_reply PASSED [  6%]
+tests/agent/test_sse_stream.py::test_model_error_ends_the_stream_with_one_error_event PASSED [  7%]
+tests/agent/test_sse_stream.py::test_turn_that_runs_too_long_is_stopped PASSED [  7%]
+tests/agent/test_sse_stream.py::test_invalid_message_is_rejected_before_streaming PASSED [  7%]
+tests/concurrency/test_auth_races.py::test_concurrent_registrations_of_one_email_create_one_user PASSED [  8%]
+tests/concurrency/test_auth_races.py::test_concurrent_refreshes_with_one_cookie_have_one_winner PASSED [  8%]
+tests/concurrency/test_auth_races.py::test_concurrent_logins_respect_the_session_cap PASSED [  9%]
+tests/concurrency/test_chat_races.py::test_daily_quota_admits_exactly_the_limit_under_concurrency PASSED [  9%]
+tests/concurrency/test_chat_races.py::test_concurrent_turns_in_one_conversation_are_all_stored PASSED [  9%]
+tests/concurrency/test_chat_races.py::test_concurrent_turns_keep_every_message_in_redis PASSED [ 10%]
+tests/concurrency/test_chat_races.py::test_twenty_users_chatting_concurrently_all_get_their_own_reply PASSED [ 10%]
+tests/concurrency/test_chat_races.py::test_concurrent_bug_reports_by_one_user_save_one_ticket PASSED [ 11%]
+tests/concurrency/test_resource_races.py::test_concurrent_conversation_creation_makes_distinct_rows PASSED [ 11%]
+tests/concurrency/test_resource_races.py::test_concurrent_listing_beyond_the_pool_size_all_succeed PASSED [ 11%]
+tests/concurrency/test_resource_races.py::test_two_admins_approving_one_ticket_call_jira_once PASSED [ 12%]
+tests/integration/test_auth.py::test_register_creates_a_user_with_the_users_role PASSED [ 12%]
+tests/integration/test_auth.py::test_register_duplicate_email_conflicts PASSED [ 13%]
+tests/integration/test_auth.py::test_register_rejects_a_short_password PASSED [ 13%]
+tests/integration/test_auth.py::test_register_can_be_turned_off PASSED   [ 13%]
+tests/integration/test_auth.py::test_login_returns_a_token_and_sets_the_refresh_cookie PASSED [ 14%]
+tests/integration/test_auth.py::test_login_failures_do_not_reveal_which_part_was_wrong PASSED [ 14%]
+tests/integration/test_auth.py::test_login_rejects_an_inactive_user PASSED [ 15%]
+tests/integration/test_auth.py::test_login_upgrades_a_bcrypt_hash_to_argon2id PASSED [ 15%]
+tests/integration/test_auth.py::test_wrong_password_does_not_change_a_bcrypt_hash PASSED [ 15%]
+tests/integration/test_auth.py::test_registered_user_gets_an_argon2id_hash PASSED [ 16%]
+tests/integration/test_auth.py::test_me_returns_sorted_permissions PASSED [ 16%]
+tests/integration/test_auth.py::test_me_requires_a_token PASSED          [ 17%]
+tests/integration/test_auth.py::test_me_rejects_a_refresh_token_used_as_an_access_token PASSED [ 17%]
+tests/integration/test_auth.py::test_refresh_rotates_the_cookie_and_issues_a_new_access_token PASSED [ 17%]
+tests/integration/test_auth.py::test_refresh_requires_the_cookie PASSED  [ 18%]
+tests/integration/test_auth.py::test_refresh_rejects_an_access_token_in_the_cookie PASSED [ 18%]
+tests/integration/test_auth.py::test_old_cookie_inside_the_grace_period_gets_a_conflict PASSED [ 19%]
+tests/integration/test_auth.py::test_old_cookie_outside_the_grace_period_revokes_the_session PASSED [ 19%]
+tests/integration/test_auth.py::test_logout_ends_the_session PASSED      [ 19%]
+tests/integration/test_auth.py::test_logout_requires_an_access_token PASSED [ 20%]
+tests/integration/test_auth.py::test_clear_session_works_without_an_access_token PASSED [ 20%]
+tests/integration/test_chat_failures.py::test_agent_failure_streams_an_error_and_saves_nothing PASSED [ 21%]
+tests/integration/test_chat_failures.py::test_chat_works_when_redis_is_down PASSED [ 21%]
+tests/integration/test_chat_failures.py::test_second_turn_during_outage_reads_history_from_postgres PASSED [ 21%]
+tests/integration/test_chat_failures.py::test_health_reports_redis_down PASSED [ 22%]
+tests/integration/test_chat_failures.py::test_history_not_stale_after_outage PASSED [ 22%]
+tests/integration/test_chat_failures.py::test_history_in_sync_with_postgres_is_read_from_redis PASSED [ 23%]
+tests/integration/test_chat_failures.py::test_chat_works_without_redis_when_the_quota_is_off PASSED [ 23%]
+tests/integration/test_chat_failures.py::test_postgres_failure_after_done_is_silent_to_the_client PASSED [ 23%]
+tests/integration/test_chat_failures.py::test_postgres_exception_after_done_adds_an_error_event PASSED [ 24%]
+tests/integration/test_chat_failures.py::test_refused_requests_do_not_use_quota PASSED [ 24%]
+tests/integration/test_chat_failures.py::test_interrupted_stream PASSED  [ 25%]
+tests/integration/test_chat_failures.py::test_disconnect_after_done_keeps_turn PASSED [ 25%]
+tests/integration/test_chat_failures.py::test_retry_after_hanging_up_at_done_never_runs_the_model_twice PASSED [ 25%]
+tests/integration/test_chat_lifecycle.py::test_chat_lifecycle_end_to_end PASSED [ 26%]
+tests/integration/test_chat_lifecycle.py::test_turn_that_needs_compaction_replaces_the_cached_history PASSED [ 26%]
+tests/integration/test_conversations.py::test_create_uses_the_default_title PASSED [ 27%]
+tests/integration/test_conversations.py::test_create_with_a_title PASSED [ 27%]
+tests/integration/test_conversations.py::test_create_rejects_a_title_over_100_characters PASSED [ 27%]
+tests/integration/test_conversations.py::test_list_returns_only_the_callers_conversations_newest_first PASSED [ 28%]
+tests/integration/test_conversations.py::test_get_one_conversation PASSED [ 28%]
+tests/integration/test_conversations.py::test_another_users_conversation_looks_like_it_does_not_exist PASSED [ 29%]
+tests/integration/test_conversations.py::test_messages_of_a_new_conversation_are_empty PASSED [ 29%]
+tests/integration/test_conversations.py::test_malformed_id_is_a_validation_error PASSED [ 29%]
+tests/integration/test_database.py::test_deleting_a_user_removes_everything_they_own PASSED [ 30%]
+tests/integration/test_database.py::test_deleting_a_conversation_keeps_its_usage_rows PASSED [ 30%]
+tests/integration/test_database.py::test_deleting_a_user_keeps_their_audit_rows PASSED [ 31%]
+tests/integration/test_database.py::test_email_must_be_unique PASSED     [ 31%]
+tests/integration/test_database.py::test_save_turn_writes_both_messages_or_neither PASSED [ 31%]
+tests/integration/test_database.py::test_save_turn_stores_the_user_and_model_messages PASSED [ 32%]
+tests/integration/test_database.py::test_ids_follow_the_configured_strategy PASSED [ 32%]
+tests/integration/test_database.py::test_message_parts_round_trip_unchanged PASSED [ 33%]
+tests/integration/test_documents.py::test_upload_is_accepted_then_indexed PASSED [ 33%]
+tests/integration/test_documents.py::test_invalid_uploads_are_rejected[empty] PASSED [ 33%]
+tests/integration/test_documents.py::test_invalid_uploads_are_rejected[wrong type] PASSED [ 34%]
+tests/integration/test_documents.py::test_invalid_uploads_are_rejected[too large] PASSED [ 34%]
+tests/integration/test_documents.py::test_upload_to_another_users_conversation_is_refused PASSED [ 35%]
+tests/integration/test_documents.py::test_indexing_failure_is_recorded_on_the_document PASSED [ 35%]
+tests/integration/test_documents.py::test_file_with_no_readable_text_fails_indexing PASSED [ 35%]
+tests/integration/test_documents.py::test_list_shows_only_this_conversations_documents PASSED [ 36%]
+tests/integration/test_documents.py::test_delete_removes_the_row_and_its_chunks PASSED [ 36%]
+tests/integration/test_documents.py::test_another_user_cannot_see_or_delete_a_document PASSED [ 37%]
+tests/integration/test_documents.py::test_chat_can_search_an_indexed_document PASSED [ 37%]
+tests/integration/test_documents.py::test_search_is_not_offered_while_a_document_is_unindexed PASSED [ 37%]
+tests/integration/test_documents.py::test_search_cannot_reach_another_users_document PASSED [ 38%]
+tests/integration/test_health.py::test_health_ok PASSED                  [ 38%]
+tests/integration/test_health.py::test_health_redirect PASSED            [ 39%]
+tests/integration/test_health.py::test_fixtures_log_a_user_in PASSED     [ 39%]
+tests/integration/test_health.py::test_chat_round_trip_with_scripted_model PASSED [ 39%]
+tests/integration/test_health.py::test_database_is_empty_at_the_start_of_each_test PASSED [ 40%]
+tests/integration/test_id_strategy.py::test_messages_of_20_turns_alternate_and_keep_send_order PASSED [ 40%]
+tests/integration/test_id_strategy.py::test_audit_logs_page_newest_first_with_every_row_once PASSED [ 41%]
+tests/integration/test_id_strategy.py::test_admin_users_page_newest_first_with_every_row_once PASSED [ 41%]
+tests/integration/test_id_strategy.py::test_unknown_cursor_is_a_bad_request PASSED [ 41%]
+tests/integration/test_id_strategy.py::test_id_server_default_follows_the_strategy PASSED [ 42%]
+tests/integration/test_idempotency.py::test_conversation_same_key_twice_returns_the_same_conversation PASSED [ 42%]
+tests/integration/test_idempotency.py::test_conversation_same_key_from_another_user_is_a_new_conversation PASSED [ 43%]
+tests/integration/test_idempotency.py::test_conversation_without_a_key_is_created_each_time PASSED [ 43%]
+tests/integration/test_idempotency.py::test_chat_repeat_is_replayed_without_a_second_model_call PASSED [ 43%]
+tests/integration/test_idempotency.py::test_chat_in_flight_duplicate_gets_409 PASSED [ 44%]
+tests/integration/test_idempotency.py::test_chat_replay_still_works_when_redis_is_down PASSED [ 44%]
+tests/integration/test_idempotency.py::test_ten_concurrent_chats_with_one_key_store_one_turn PASSED [ 45%]
+tests/integration/test_idempotency.py::test_duplicate_that_gets_the_lock_after_the_first_finishes_is_replayed PASSED [ 45%]
+tests/integration/test_idempotency.py::test_a_key_longer_than_128_characters_is_rejected PASSED [ 45%]
+tests/integration/test_idempotency.py::test_an_empty_key_is_rejected PASSED [ 46%]
+tests/integration/test_idempotency.py::test_migration_downgrades_and_upgrades_cleanly PASSED [ 46%]
+tests/integration/test_permissions.py::test_every_route_is_either_public_or_checked_below PASSED [ 47%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/admin/users] PASSED [ 47%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/admin/users/{id}/sessions] PASSED [ 47%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[DELETE /api/admin/sessions/{id}] PASSED [ 48%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/admin/users/{id}/revoke-sessions] PASSED [ 48%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/admin/users/{id}/ban] PASSED [ 49%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/admin/users/{id}/unban] PASSED [ 49%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/admin/pending-tickets] PASSED [ 49%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/admin/approve-ticket/{id}] PASSED [ 50%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/admin/reject-ticket/{id}] PASSED [ 50%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/admin/summary] PASSED [ 50%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/admin/audit-logs] PASSED [ 51%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/admin/usage] PASSED [ 51%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/auth/me] PASSED [ 52%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/auth/logout] PASSED [ 52%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/conversations] PASSED [ 52%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/conversations] PASSED [ 53%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/conversations/{id}] PASSED [ 53%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/conversations/{id}/messages] PASSED [ 54%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/chat] PASSED [ 54%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[POST /api/conversations/{id}/documents/upload] PASSED [ 54%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[GET /api/conversations/{id}/documents] PASSED [ 55%]
+tests/integration/test_permissions.py::test_no_token_is_rejected[DELETE /api/conversations/{id}/documents/{id}] PASSED [ 55%]
+tests/integration/test_permissions.py::test_invalid_token_uses_the_app_error_body PASSED [ 56%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[GET /api/admin/users] PASSED [ 56%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[GET /api/admin/users/{id}/sessions] PASSED [ 56%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[DELETE /api/admin/sessions/{id}] PASSED [ 57%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[POST /api/admin/users/{id}/revoke-sessions] PASSED [ 57%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[POST /api/admin/users/{id}/ban] PASSED [ 58%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[POST /api/admin/users/{id}/unban] PASSED [ 58%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[GET /api/admin/pending-tickets] PASSED [ 58%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[POST /api/admin/approve-ticket/{id}] PASSED [ 59%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[POST /api/admin/reject-ticket/{id}] PASSED [ 59%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[GET /api/admin/summary] PASSED [ 60%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[GET /api/admin/audit-logs] PASSED [ 60%]
+tests/integration/test_permissions.py::test_ordinary_user_cannot_use_admin_routes[GET /api/admin/usage] PASSED [ 60%]
+tests/integration/test_permissions.py::test_admin_can_read_admin_pages[/api/admin/users] PASSED [ 61%]
+tests/integration/test_permissions.py::test_admin_can_read_admin_pages[/api/admin/pending-tickets] PASSED [ 61%]
+tests/integration/test_permissions.py::test_admin_can_read_admin_pages[/api/admin/summary] PASSED [ 62%]
+tests/integration/test_permissions.py::test_admin_can_read_admin_pages[/api/admin/audit-logs] PASSED [ 62%]
+tests/integration/test_permissions.py::test_admin_can_read_admin_pages[/api/admin/usage] PASSED [ 62%]
+tests/integration/test_permissions.py::test_user_without_a_role_has_no_access PASSED [ 63%]
+tests/integration/test_permissions.py::test_removing_a_role_takes_effect_on_the_next_request PASSED [ 63%]
+tests/integration/test_permissions.py::test_denied_request_is_attributed_in_the_audit_log PASSED [ 64%]
+tests/integration/test_permissions.py::test_unauthenticated_request_is_logged_without_a_user PASSED [ 64%]
+tests/integration/test_rate_limits.py::test_chat_is_refused_once_the_daily_quota_is_used PASSED [ 64%]
+tests/integration/test_rate_limits.py::test_quota_is_counted_per_user PASSED [ 65%]
+tests/integration/test_rate_limits.py::test_a_limit_of_zero_turns_the_quota_off PASSED [ 65%]
+tests/integration/test_rate_limits.py::test_account_is_locked_after_repeated_failures PASSED [ 66%]
+tests/integration/test_rate_limits.py::test_a_successful_login_clears_the_failure_count PASSED [ 66%]
+tests/integration/test_rate_limits.py::test_failures_for_one_account_do_not_lock_another PASSED [ 66%]
+tests/integration/test_rate_limits.py::test_signups_pause_at_the_global_cap PASSED [ 67%]
+tests/integration/test_rate_limits.py::test_per_ip_cap_is_ignored_unless_the_proxy_is_trusted PASSED [ 67%]
+tests/integration/test_rate_limits.py::test_per_ip_cap_applies_when_the_proxy_is_trusted PASSED [ 68%]
+tests/integration/test_rate_limits.py::test_rate_limit_slot_is_exclusive_until_released PASSED [ 68%]
+tests/integration/test_redis_memory.py::test_state_written_to_redis_is_read_back PASSED [ 68%]
+tests/integration/test_redis_memory.py::test_cold_cache_is_rebuilt_from_postgres PASSED [ 69%]
+tests/integration/test_redis_memory.py::test_cold_cache_for_someone_elses_conversation_is_refused PASSED [ 69%]
+tests/integration/test_redis_memory.py::test_history_and_summary_expire_after_a_day PASSED [ 70%]
+tests/integration/test_redis_memory.py::test_a_later_write_refreshes_the_summary_expiry PASSED [ 70%]
+tests/integration/test_redis_memory.py::test_replacing_history_with_nothing_deletes_the_key PASSED [ 70%]
+tests/integration/test_redis_memory.py::test_replacing_history_does_not_append PASSED [ 71%]
+tests/integration/test_redis_memory.py::test_reads_return_empty_when_redis_is_down PASSED [ 71%]
+tests/integration/test_redis_memory.py::test_limits_refuse_when_redis_is_down PASSED [ 72%]
+tests/integration/test_redis_memory.py::test_failed_write_is_reported_as_saved_when_a_summary_is_given PASSED [ 72%]
+tests/integration/test_redis_memory.py::test_failed_write_without_a_summary_is_reported_as_failed PASSED [ 72%]
+tests/integration/test_sessions.py::test_expired_session_stops_working_and_is_removed[expires_at] PASSED [ 73%]
+tests/integration/test_sessions.py::test_expired_session_stops_working_and_is_removed[absolute_expires_at] PASSED [ 73%]
+tests/integration/test_sessions.py::test_each_login_is_its_own_session PASSED [ 74%]
+tests/integration/test_sessions.py::test_oldest_session_is_dropped_at_the_cap PASSED [ 74%]
+tests/integration/test_sessions.py::test_admin_revokes_one_session PASSED [ 74%]
+tests/integration/test_sessions.py::test_admin_cannot_revoke_their_own_current_session PASSED [ 75%]
+tests/integration/test_sessions.py::test_admin_revokes_all_of_a_users_sessions PASSED [ 75%]
+tests/integration/test_sessions.py::test_ban_ends_sessions_and_blocks_login_until_unbanned PASSED [ 76%]
+tests/integration/test_sessions.py::test_admin_cannot_ban_themselves_or_another_admin PASSED [ 76%]
+tests/unit/test_client_info.py::test_proxy_header_is_ignored_by_default PASSED [ 76%]
+tests/unit/test_client_info.py::test_proxy_header_is_used_when_trusted PASSED [ 77%]
+tests/unit/test_config.py::test_settings_ignore_dev_env_file PASSED      [ 77%]
+tests/unit/test_config.py::test_fake_services_rejected_in_production PASSED [ 78%]
+tests/unit/test_config.py::test_fake_services_allowed_outside_production PASSED [ 78%]
+tests/unit/test_config.py::test_database_uri_uses_scheme_and_query PASSED [ 78%]
+tests/unit/test_config.py::test_defaults_unchanged PASSED                [ 79%]
+tests/unit/test_context_budget.py::test_history_within_limits_is_returned_unchanged PASSED [ 79%]
+tests/unit/test_context_budget.py::test_oldest_turns_are_evicted_and_summarized_once PASSED [ 80%]
+tests/unit/test_context_budget.py::test_existing_summary_is_passed_to_the_summarizer PASSED [ 80%]
+tests/unit/test_context_budget.py::test_never_keeps_fewer_than_the_minimum_recent_turns PASSED [ 80%]
+tests/unit/test_context_budget.py::test_token_limit_also_evicts PASSED   [ 81%]
+tests/unit/test_fakes.py::test_fake_llm_reports_history_length_and_token_count PASSED [ 81%]
+tests/unit/test_fakes.py::test_fake_embeddings_are_deterministic_and_sized PASSED [ 82%]
+tests/unit/test_fakes.py::test_fake_vector_store_scopes_by_user_and_document PASSED [ 82%]
+tests/unit/test_fakes.py::test_fake_reranker_scores_every_document PASSED [ 82%]
+tests/unit/test_fallback_llm.py::test_failure_before_any_output_uses_the_fallback PASSED [ 83%]
+tests/unit/test_fallback_llm.py::test_failure_after_output_is_not_retried PASSED [ 83%]
+tests/unit/test_fallback_llm.py::test_error_that_should_not_fall_back_propagates PASSED [ 84%]
+tests/unit/test_fallback_llm.py::test_complete_text_falls_back_too PASSED [ 84%]
+tests/unit/test_fallback_llm.py::test_which_errors_count_as_transient PASSED [ 84%]
+tests/unit/test_guard.py::test_guard_rejects_non_test_database PASSED    [ 85%]
+tests/unit/test_guard.py::test_guard_rejects_remote_host PASSED          [ 85%]
+tests/unit/test_guard.py::test_guard_rejects_live_services PASSED        [ 86%]
+tests/unit/test_guard.py::test_guard_rejects_default_redis_port PASSED   [ 86%]
+tests/unit/test_guard.py::test_guard_rejects_dev_database PASSED         [ 86%]
+tests/unit/test_guard.py::test_guard_rejects_dev_database_on_default_port PASSED [ 87%]
+tests/unit/test_guard.py::test_guard_never_prints_dev_values PASSED      [ 87%]
+tests/unit/test_guard.py::test_guard_accepts_test_env PASSED             [ 88%]
+tests/unit/test_security.py::test_hash_round_trip PASSED                 [ 88%]
+tests/unit/test_security.py::test_new_hashes_are_argon2id PASSED         [ 88%]
+tests/unit/test_security.py::test_a_bcrypt_hash_still_verifies_and_needs_rehash PASSED [ 89%]
+tests/unit/test_security.py::test_weaker_argon2_parameters_need_rehash PASSED [ 89%]
+tests/unit/test_security.py::test_async_hashing_runs_off_the_event_loop_thread PASSED [ 90%]
+tests/unit/test_security.py::test_same_password_hashes_differently_each_time PASSED [ 90%]
+tests/unit/test_security.py::test_verify_rejects_a_value_that_is_not_a_hash PASSED [ 90%]
+tests/unit/test_security.py::test_hash_token_is_stable_sha256_hex PASSED [ 91%]
+tests/unit/test_sse_format.py::test_done_event_frame PASSED              [ 91%]
+tests/unit/test_sse_format.py::test_frames_round_trip_through_the_test_parser PASSED [ 92%]
+tests/unit/test_suggestions.py::test_keeps_three_distinct_plain_questions PASSED [ 92%]
+tests/unit/test_suggestions.py::test_drops_lines_that_are_too_short_or_too_long PASSED [ 92%]
+tests/unit/test_suggestions.py::test_empty_text_gives_no_suggestions PASSED [ 93%]
+tests/unit/test_titles.py::test_is_untitled PASSED                       [ 93%]
+tests/unit/test_titles.py::test_fallback_title_keeps_at_most_six_words PASSED [ 94%]
+tests/unit/test_titles.py::test_fallback_title_for_an_empty_message PASSED [ 94%]
+tests/unit/test_titles.py::test_generate_title_uses_the_first_line_of_the_model_reply PASSED [ 94%]
+tests/unit/test_titles.py::test_generate_title_falls_back_when_the_model_raises PASSED [ 95%]
+tests/unit/test_titles.py::test_generate_title_falls_back_on_timeout PASSED [ 95%]
+tests/unit/test_titles.py::test_generate_title_rejects_a_link PASSED     [ 96%]
+tests/unit/test_tokens.py::test_access_token_payload PASSED              [ 96%]
+tests/unit/test_tokens.py::test_refresh_token_payload PASSED             [ 96%]
+tests/unit/test_tokens.py::test_tokens_for_the_same_inputs_differ PASSED [ 97%]
+tests/unit/test_tokens.py::test_tampered_token_is_rejected PASSED        [ 97%]
+tests/unit/test_tokens.py::test_token_signed_with_another_key_is_rejected PASSED [ 98%]
+tests/unit/test_upload_validation.py::test_empty_file_is_rejected PASSED [ 98%]
+tests/unit/test_upload_validation.py::test_oversized_file_is_rejected PASSED [ 98%]
+tests/unit/test_upload_validation.py::test_unsupported_type_is_rejected PASSED [ 99%]
+tests/unit/test_upload_validation.py::test_text_file_is_accepted PASSED  [ 99%]
+tests/unit/test_upload_validation.py::test_extension_is_enough_when_the_content_type_is_generic PASSED [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\anyio\pytest_plugin.py:14
+  C:\Users\Asus\OneDrive\Documents\chatbot\backend\app\.venv\Lib\site-packages\anyio\pytest_plugin.py:14: PytestRemovedIn10Warning: _pytest.python.CallSpec2 has been renamed to CallSpec.
+  The CallSpec2 alias will be removed in pytest 10.
+  Update imports to use CallSpec instead.
+  See https://docs.pytest.org/en/stable/deprecations.html#callspec2-renamed
+    from _pytest.python import CallSpec2
+
+tests/integration/test_chat_failures.py::test_interrupted_stream
+  C:\Users\Asus\OneDrive\Documents\chatbot\backend\app\.venv\Lib\site-packages\websockets\legacy\__init__.py:6: DeprecationWarning: websockets.legacy is deprecated; see https://websockets.readthedocs.io/en/stable/howto/upgrade.html for upgrade instructions
+    warnings.warn(  # deprecated in 14.0 - 2024-11-09
+
+tests/integration/test_chat_failures.py::test_interrupted_stream
+  C:\Users\Asus\OneDrive\Documents\chatbot\backend\app\.venv\Lib\site-packages\uvicorn\protocols\websockets\websockets_impl.py:17: DeprecationWarning: websockets.server.WebSocketServerProtocol is deprecated
+    from websockets.server import WebSocketServerProtocol
+
+tests/integration/test_documents.py::test_invalid_uploads_are_rejected[empty]
+tests/unit/test_upload_validation.py::test_empty_file_is_rejected
+  C:\Users\Asus\Onedrive\Documents\chatbot\backend\app\services\documents.py:57: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise ValidationError("Uploaded file is empty")
+
+tests/integration/test_documents.py::test_invalid_uploads_are_rejected[wrong type]
+tests/unit/test_upload_validation.py::test_unsupported_type_is_rejected
+  C:\Users\Asus\Onedrive\Documents\chatbot\backend\app\services\documents.py:64: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise ValidationError("Only PDF and TXT files are supported")
+
+tests/integration/test_documents.py::test_invalid_uploads_are_rejected[too large]
+tests/unit/test_upload_validation.py::test_oversized_file_is_rejected
+  C:\Users\Asus\Onedrive\Documents\chatbot\backend\app\services\documents.py:59: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise ValidationError("Uploaded file is too large")
+
+tests/integration/test_documents.py::test_file_with_no_readable_text_fails_indexing
+  C:\Users\Asus\Onedrive\Documents\chatbot\backend\app\services\documents.py:286: DeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise ValidationError("No readable text was found in the document")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.14.3-final-0 _______________
+
+Name                              Stmts   Miss  Cover   Missing
+---------------------------------------------------------------
+api\__init__.py                       0      0   100%
+api\routes\__init__.py                0      0   100%
+api\routes\admin.py                 100     44    56%   113, 117-121, 141, 144, 191-225, 242-305
+api\routes\admin_audit.py            41      4    90%   93, 97, 99-100
+api\routes\admin_usage.py            33      0   100%
+api\routes\admin_users.py            81      8    90%   35, 73, 105-115, 146, 169
+api\routes\conversations.py          24      0   100%
+api\routes\documents.py              38      0   100%
+api\routes\health.py                 35      5    86%   14-19, 42-53
+api\routes\streamchat.py             66      3    95%   38, 40, 129
+auth\__init__.py                      0      0   100%
+auth\cookies.py                      13      0   100%
+auth\handler.py                      20      0   100%
+auth\model.py                         4      0   100%
+auth\rate_limit.py                   62     11    82%   19, 29-32, 48-49, 58-59, 98-101
+auth\router.py                       81      7    91%   86-87, 157, 162-165
+auth\security.py                     43      2    95%   46-47
+auth\service.py                     153     17    89%   63-64, 108, 147, 157, 173, 187-188, 230, 232, 243-245, 253, 255, 265, 269
+core\__init__.py                      0      0   100%
+core\client_info.py                  14      0   100%
+core\config.py                      102      3    97%   121-123
+core\database.py                     11      0   100%
+core\errors.py                       53      4    92%   78, 87, 143-155
+core\idempotency.py                   6      1    83%   16
+core\ids.py                           5      0   100%
+core\lifespan.py                     74     13    82%   23, 80-93, 112-117, 127
+core\logging.py                      79      5    94%   43, 101-104, 136
+core\middleware.py                   34      7    79%   24, 48-62
+main.py                              36      0   100%
+schemas\__init__.py                   0      0   100%
+schemas\admin.py                     14      0   100%
+schemas\chat.py                      59      0   100%
+schemas\models.py                   123      0   100%
+schemas\rag.py                       21      0   100%
+schemas\schema.py                    32      1    97%   65
+seed.py                              75     40    47%   55-57, 76-77, 82, 96-120, 125-139, 143
+services\__init__.py                  0      0   100%
+services\audit.py                    73     10    86%   53, 65-68, 78, 83-84, 94-95
+services\base.py                     57      1    98%   116
+services\context_budget.py           49      0   100%
+services\conversation.py             34      2    94%   27, 37
+services\documents.py               161     22    86%   92-95, 106-112, 119, 229-246, 292
+services\email.py                    45     23    49%   28-50, 108-150
+services\embeddings.py               32     13    59%   48-49, 54-57, 60-66, 69-72
+services\fakes.py                    49      1    98%   89
+services\fallback.py                 33      2    94%   29, 40
+services\graph\__init__.py            0      0   100%
+services\graph\graph.py              16      0   100%
+services\graph\nodes\agent.py        62      0   100%
+services\graph\nodes\suggest.py      44      0   100%
+services\graph\prompts.py            19      0   100%
+services\graph\runner.py            161     13    92%   93-96, 105-107, 118, 234, 278, 290-291, 345
+services\graph\state.py               4      0   100%
+services\graph\tools.py             152     37    76%   67, 172, 188, 231, 250, 271-319, 361-365, 397-399
+services\jira.py                     61     12    80%   21, 35, 55, 82-83, 113, 115-120
+services\memory.py                  164     12    93%   63-64, 73-74, 76, 105-106, 150-151, 320-321, 345
+services\message.py                  35      1    97%   110
+services\mistral.py                 127     98    23%   26, 35-43, 53-57, 62-67, 71, 83-111, 115-125, 131-140, 158-170, 175-177, 190-248, 253-265
+services\rag.py                      38      5    87%   17, 45, 59, 84-86
+services\reranker.py                 17     11    35%   6-9, 12-29, 32
+services\search.py                   57     33    42%   32-36, 54, 60-95, 98, 103-107
+services\streaming.py                36      2    94%   45, 102
+services\titles.py                   24      0   100%
+services\tracing.py                  48     25    48%   22-41, 46-50, 59-63, 72-73, 79
+services\usage.py                    38     11    71%   41, 55-58, 72-87
+services\user.py                     39      6    85%   43, 59-60, 66-68
+services\vector_store.py             81     37    54%   45, 57, 62, 77-80, 90-106, 110, 113-137, 150-187, 190
+services\weather.py                  31      6    81%   16, 33-34, 62-64
+---------------------------------------------------------------
+TOTAL                              3319    558    83%
+====================== 251 passed, 10 warnings in 54.26s ======================
+
+real	1m0.032s
+user	0m0.000s
+sys	0m0.015s

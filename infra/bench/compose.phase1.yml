@@ -7,7 +7,7 @@ x-backend: &backend
   environment:
     APP_ENV_FILE: /run/bench.env
   volumes:
-    - ./bench.env:/run/bench.env:ro
+    - ${BENCH_ENV_FILE:-./bench.env}:/run/bench.env:ro
 
 services:
   db:

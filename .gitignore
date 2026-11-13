@@ -21,3 +21,4 @@ DEPLOYMENT.md
 bench/results/**/raw.csv.gz
 # coverage data
 .coverage
+infra/bench/.run.env
