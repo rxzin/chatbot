@@ -62,7 +62,7 @@ Read these before starting; the tasks refer to them as F-numbers.
 - **F11** `save_turn` swallows database errors and returns `False` (`services/message.py:63`). The client is never told.
 - **F12** Redis down: `consume_daily_quota` returns `False`, so `/api/chat` answers 429 (fails closed), while login limits fail open. `replace_history` swallows errors, so `set_conversation_state` reports success even when the write failed.
 - **F13** No idempotency on `POST /api/chat` or `POST /api/conversations`. A retried request creates duplicates.
-- **F14** `replace_history` is `DELETE` then `RPUSH` (`services/memory.py:137-146`), not atomic. Two turns in one conversation race; the last writer wins in Redis.
+- **F14** `replace_history` is `DELETE` then `RPUSH` (`services/memory.py:137-146`), not atomic. Two turns in one conversation race; the last writer wins in Redis. **Fixed** (2026-11-13): a turn that needs no compaction is appended by one Lua script (`append_turn`); only a compaction turn replaces the list.
 - **F15** `prune_user_sessions` reads then deletes without a lock (`auth/service.py:95`). Concurrent logins can exceed the session cap. **Fixed** (2026-11-13): the user row is locked (`FOR UPDATE`) before counting, so logins by one user are queued.
 - **F16** `create_user_service` checks then inserts (`services/user.py:30`). A concurrent duplicate hits the unique index and returns 500, not 409. **Fixed** (2026-11-13): the `IntegrityError` from the index is returned as 409 `CONFLICT`.
 - **F17** Document ingestion runs in `BackgroundTasks` from a local temp file. If that instance dies, the document stays `processing`.

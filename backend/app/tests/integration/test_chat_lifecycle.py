@@ -1,5 +1,7 @@
 """One conversation followed through two chat turns, across the API, Postgres and Redis."""
 
+import json
+
 from sqlalchemy import func, select
 
 from schemas.models import Conversation, LlmUsage, Message
@@ -78,3 +80,26 @@ async def test_chat_lifecycle_end_to_end(
     assert len(scripted.calls[1]["history"]) == 2
     assert await redis.llen(history_key) == 4
     assert len(await _stored_messages(db, conversation.id)) == 4
+
+
+async def test_turn_that_needs_compaction_replaces_the_cached_history(
+    client, user, db, redis, scripted_llm, settings_override
+):
+    """Appending is for turns that fit; a turn past the budget rewrites the list."""
+    settings_override(MAX_REDIS_MESSAGES=4, MIN_RECENT_TURNS=1)
+    account, headers = user
+    conversation = await create_conversation(db, account.id, title="Existing chat")
+    scripted_llm([["a1"], ["a2"], ["a3"]], completion="the summary")
+    history_key = f"chat:user:{account.id}:conversation:{conversation.id}"
+
+    for message in ("q1", "q2"):
+        await chat(client, headers, conversation.id, message)
+    assert await redis.llen(history_key) == 4  # appended, within budget
+
+    await chat(client, headers, conversation.id, "q3")
+
+    cached = [json.loads(m)["content"] for m in await redis.lrange(history_key, 0, -1)]
+    assert len(cached) <= 4
+    assert cached[-2:] == ["q3", "a3"]
+    assert await redis.get(f"{history_key}:summary") == "the summary"
+    assert len(await _stored_messages(db, conversation.id)) == 6

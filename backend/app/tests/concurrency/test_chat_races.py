@@ -3,7 +3,6 @@
 import asyncio
 from collections import Counter
 
-import pytest
 from sqlalchemy import func, select
 
 from schemas.models import Message, PendingJiraTicket
@@ -71,26 +70,16 @@ async def test_concurrent_turns_in_one_conversation_are_all_stored(
     assert await message_count(db, conversation.id) == 20
 
 
-@pytest.mark.xfail(reason="F14", strict=False)
 async def test_concurrent_turns_keep_every_message_in_redis(
     make_client, user, db, scripted_llm, app, redis
 ):
+    """Each turn appends its 2 messages instead of replacing the list (F14)."""
     account, conversation = await concurrent_turns(make_client, user, db, scripted_llm)
 
-    key = app.state.redis_service._history_key(account.id, conversation.id)
-    assert await redis.llen(key) == 20
-
-
-async def test_concurrent_turns_leave_a_whole_number_of_turns_in_redis(
-    make_client, user, db, scripted_llm, app, redis
-):
-    """Pins F14: Redis holds whatever the last writer left, an even count."""
-    account, conversation = await concurrent_turns(make_client, user, db, scripted_llm)
-
-    key = app.state.redis_service._history_key(account.id, conversation.id)
-    length = await redis.llen(key)
-    assert 2 <= length <= 20
-    assert length % 2 == 0
+    memory = app.state.redis_service
+    assert await redis.llen(memory._history_key(account.id, conversation.id)) == 20
+    # The cache is still in sync with Postgres, so the next turn will trust it.
+    assert await redis.get(memory._synced_key(account.id, conversation.id)) == "20"
 
 
 async def chat_as_many_users(make_client, db, app_state_override, n):

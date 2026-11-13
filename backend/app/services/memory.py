@@ -223,6 +223,51 @@ class RedisMemoryService:
                 f"Failed to replace Redis history for {conversation_id}: {e}"
             )
 
+    # Appends the turn to a list that exists; writes the whole history to one that
+    # has expired or was never built. One script, so no other write lands in between.
+    _APPEND_TURN = """
+    local turn_size = tonumber(ARGV[2])
+    local first, last = 3, 2 + turn_size
+    if redis.call('exists', KEYS[1]) == 0 then
+        first, last = 3 + turn_size, #ARGV
+    end
+    for i = first, last do
+        redis.call('rpush', KEYS[1], ARGV[i])
+    end
+    redis.call('expire', KEYS[1], ARGV[1])
+    if redis.call('exists', KEYS[2]) == 1 then
+        redis.call('expire', KEYS[2], ARGV[1])
+    end
+    """
+
+    async def append_turn(
+        self,
+        user_id: UUID,
+        conversation_id: UUID,
+        turn: list[MessageParam],
+        full_history: list[MessageParam],
+    ) -> bool:
+        """Add one turn's messages to the cached history. False if Redis failed."""
+
+        def encode(messages: list[MessageParam]) -> list[str]:
+            return [m.model_dump_json(by_alias=True) for m in messages]
+
+        try:
+            await self.redis_client.eval(
+                self._APPEND_TURN,
+                2,
+                self._history_key(user_id, conversation_id),
+                self._summary_key(user_id, conversation_id),
+                self.conversation_ttl,
+                len(turn),
+                *encode(turn),
+                *encode(full_history),
+            )
+            return True
+        except Exception as e:
+            logger.exception(f"Failed to append turn for {conversation_id}: {e}")
+            return False
+
     async def set_conversation_state(
         self,
         user_id: UUID,
