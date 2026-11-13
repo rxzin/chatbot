@@ -1,0 +1,214 @@
+{
+  "before": {
+    "pg_stat_database": {
+      "datid": "16384",
+      "datname": "chatbot_bench",
+      "numbackends": 2,
+      "xact_commit": 21,
+      "xact_rollback": 9,
+      "blks_read": 325,
+      "blks_hit": 280510,
+      "tup_returned": 56862,
+      "tup_fetched": 55544,
+      "tup_inserted": 22717,
+      "tup_updated": 119,
+      "tup_deleted": 304,
+      "conflicts": 0,
+      "temp_files": 0,
+      "temp_bytes": 0,
+      "deadlocks": 0,
+      "checksum_failures": 0,
+      "checksum_last_failure": null,
+      "blk_read_time": 0,
+      "blk_write_time": 0,
+      "session_time": 2480.008,
+      "active_time": 163.76,
+      "idle_in_transaction_time": 524.852,
+      "sessions": 14,
+      "sessions_abandoned": 2,
+      "sessions_fatal": 0,
+      "sessions_killed": 0,
+      "parallel_workers_to_launch": 0,
+      "parallel_workers_launched": 0,
+      "stats_reset": null
+    },
+    "connections": 2
+  },
+  "after": {
+    "pg_stat_database": {
+      "datid": "16384",
+      "datname": "chatbot_bench",
+      "numbackends": 10,
+      "xact_commit": 5234,
+      "xact_rollback": 8188,
+      "blks_read": 391,
+      "blks_hit": 625989,
+      "tup_returned": 4408376,
+      "tup_fetched": 153033,
+      "tup_inserted": 30249,
+      "tup_updated": 3254,
+      "tup_deleted": 1806,
+      "conflicts": 0,
+      "temp_files": 0,
+      "temp_bytes": 0,
+      "deadlocks": 0,
+      "checksum_failures": 0,
+      "checksum_last_failure": null,
+      "blk_read_time": 0,
+      "blk_write_time": 0,
+      "session_time": 1872134.322,
+      "active_time": 15873.016,
+      "idle_in_transaction_time": 272438.494,
+      "sessions": 92,
+      "sessions_abandoned": 2,
+      "sessions_fatal": 0,
+      "sessions_killed": 0,
+      "parallel_workers_to_launch": 0,
+      "parallel_workers_launched": 0,
+      "stats_reset": null
+    },
+    "connections": 10
+  },
+  "top_statements": [
+    {
+      "calls": 1499,
+      "total_exec_time": 1032.98,
+      "mean_exec_time": 0.689,
+      "rows": 1499,
+      "query": "SELECT users.id \nFROM users \nWHERE users.id = $1::UUID FOR UPDATE"
+    },
+    {
+      "calls": 5996,
+      "total_exec_time": 578.5,
+      "mean_exec_time": 0.096,
+      "rows": 5996,
+      "query": "SELECT users_1.id AS users_1_id, roles.id AS roles_id, roles.name AS roles_name \nFROM users AS users_1 JOIN users_roles AS users_roles_1 ON users_1.id = users_roles_1.user_id JOIN roles ON roles.id = "
+    },
+    {
+      "calls": 4130,
+      "total_exec_time": 551.06,
+      "mean_exec_time": 0.133,
+      "rows": 4130,
+      "query": "INSERT INTO audit_logs (user_id, method, path, status_code, duration_ms, ip_address, user_agent, request_id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::INTEGER, $5::INTEGER, $6::VARCHAR, $7::VARC"
+    },
+    {
+      "calls": 5996,
+      "total_exec_time": 534.91,
+      "mean_exec_time": 0.089,
+      "rows": 65956,
+      "query": "SELECT roles_1.id AS roles_1_id, permissions.id AS permissions_id, permissions.name AS permissions_name, permissions.resource AS permissions_resource, permissions.action AS permissions_action, permiss"
+    },
+    {
+      "calls": 5996,
+      "total_exec_time": 282.53,
+      "mean_exec_time": 0.047,
+      "rows": 5996,
+      "query": "SELECT users.id, users.email, users.password, users.is_active, users.created_at \nFROM users \nWHERE users.email = $1::VARCHAR"
+    },
+    {
+      "calls": 1499,
+      "total_exec_time": 276.56,
+      "mean_exec_time": 0.184,
+      "rows": 1499,
+      "query": "INSERT INTO session (user_id, refresh_token, expires_at, absolute_expires_at, previous_refresh_token, rotated_at, ip_address, user_agent) VALUES ($1::UUID, $2::VARCHAR, $3::TIMESTAMP WITH TIME ZONE, $"
+    },
+    {
+      "calls": 1499,
+      "total_exec_time": 205.86,
+      "mean_exec_time": 0.137,
+      "rows": 1499,
+      "query": "UPDATE session SET refresh_token=$1::VARCHAR WHERE session.id = $2::UUID"
+    },
+    {
+      "calls": 1499,
+      "total_exec_time": 148.08,
+      "mean_exec_time": 0.099,
+      "rows": 1499,
+      "query": "UPDATE session SET refresh_token=$1::VARCHAR, expires_at=$2::TIMESTAMP WITH TIME ZONE, previous_refresh_token=$3::VARCHAR, rotated_at=$4::TIMESTAMP WITH TIME ZONE WHERE session.id = $5::UUID"
+    },
+    {
+      "calls": 2998,
+      "total_exec_time": 133.94,
+      "mean_exec_time": 0.045,
+      "rows": 2998,
+      "query": "SELECT session.id AS session_id, session.user_id AS session_user_id, session.refresh_token AS session_refresh_token, session.created_at AS session_created_at, session.expires_at AS session_expires_at,"
+    },
+    {
+      "calls": 1393,
+      "total_exec_time": 110.29,
+      "mean_exec_time": 0.079,
+      "rows": 1393,
+      "query": "INSERT INTO audit_logs (method, path, status_code, duration_ms, ip_address, user_agent, request_id) VALUES ($1::VARCHAR, $2::VARCHAR, $3::INTEGER, $4::INTEGER, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR) R"
+    },
+    {
+      "calls": 1499,
+      "total_exec_time": 88.7,
+      "mean_exec_time": 0.059,
+      "rows": 0,
+      "query": "SELECT session.id, session.user_id, session.refresh_token, session.created_at, session.expires_at, session.absolute_expires_at, session.previous_refresh_token, session.rotated_at, session.ip_address, "
+    },
+    {
+      "calls": 367,
+      "total_exec_time": 86.7,
+      "mean_exec_time": 0.236,
+      "rows": 367,
+      "query": "INSERT INTO audit_logs (user_id, method, path, status_code, duration_ms, ip_address, user_agent, request_id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::INTEGER, $5::INTEGER, $6::VARCHAR, $7::VARC"
+    },
+    {
+      "calls": 1499,
+      "total_exec_time": 82.89,
+      "mean_exec_time": 0.055,
+      "rows": 1499,
+      "query": "SELECT session.id, session.user_id, session.refresh_token, session.created_at, session.expires_at, session.absolute_expires_at, session.previous_refresh_token, session.rotated_at, session.ip_address, "
+    },
+    {
+      "calls": 1499,
+      "total_exec_time": 65.25,
+      "mean_exec_time": 0.044,
+      "rows": 1499,
+      "query": "DELETE FROM session WHERE session.id = $1::UUID"
+    },
+    {
+      "calls": 1499,
+      "total_exec_time": 54.98,
+      "mean_exec_time": 0.037,
+      "rows": 1499,
+      "query": "SELECT session.id, session.user_id, session.refresh_token, session.created_at, session.expires_at, session.absolute_expires_at, session.previous_refresh_token, session.rotated_at, session.ip_address, "
+    },
+    {
+      "calls": 13296,
+      "total_exec_time": 14.53,
+      "mean_exec_time": 0.001,
+      "rows": 0,
+      "query": "BEGIN"
+    },
+    {
+      "calls": 8196,
+      "total_exec_time": 9.97,
+      "mean_exec_time": 0.001,
+      "rows": 0,
+      "query": "ROLLBACK"
+    },
+    {
+      "calls": 106,
+      "total_exec_time": 6.9,
+      "mean_exec_time": 0.065,
+      "rows": 106,
+      "query": "INSERT INTO audit_logs (method, path, status_code, duration_ms, ip_address, user_agent, request_id) VALUES ($1::VARCHAR, $2::VARCHAR, $3::INTEGER, $4::INTEGER, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR)"
+    },
+    {
+      "calls": 5100,
+      "total_exec_time": 6.72,
+      "mean_exec_time": 0.001,
+      "rows": 0,
+      "query": "COMMIT"
+    },
+    {
+      "calls": 2,
+      "total_exec_time": 0.65,
+      "mean_exec_time": 0.327,
+      "rows": 2,
+      "query": "SELECT json_build_object($1, (SELECT row_to_json(d) FROM pg_stat_database d WHERE datname=$2),$3, (SELECT count(*) FROM pg_stat_activity WHERE datname=$4))"
+    }
+  ]
+}

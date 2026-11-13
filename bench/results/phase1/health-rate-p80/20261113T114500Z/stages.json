@@ -1,0 +1,15 @@
+{
+  "test_start_unix": 1794570334.0,
+  "windows": [
+    {
+      "window": "main",
+      "vus": null,
+      "start_s": null,
+      "length_s": 180,
+      "requests": 19760,
+      "rps": 109.77777777777777,
+      "p95_ms": 1187.2863,
+      "error_rate": 0.0
+    }
+  ]
+}

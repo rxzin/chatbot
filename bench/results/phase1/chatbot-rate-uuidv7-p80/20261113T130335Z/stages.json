@@ -1,0 +1,16 @@
+{
+  "test_start_unix": 1794575048.0,
+  "windows": [
+    {
+      "window": "main",
+      "vus": null,
+      "start_s": null,
+      "length_s": 180,
+      "requests": 1801,
+      "rps": 10.005555555555556,
+      "p95_ms": 1344.0133,
+      "error_rate": 0.0,
+      "chat_incomplete_rate": 0.0
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "before": {
+    "used_memory": "1065216",
+    "used_cpu_sys": "0.060079",
+    "used_cpu_user": "0.143694",
+    "instantaneous_ops_per_sec": "0",
+    "commandstats": {
+      "hello": {
+        "calls": 1,
+        "usec_per_call": 8.0
+      },
+      "ping": {
+        "calls": 9,
+        "usec_per_call": 1.44
+      },
+      "client|setinfo": {
+        "calls": 2,
+        "usec_per_call": 1.0
+      }
+    }
+  },
+  "after": {
+    "used_memory": "1159752",
+    "used_cpu_sys": "0.256076",
+    "used_cpu_user": "1.239077",
+    "instantaneous_ops_per_sec": "0",
+    "commandstats": {
+      "info": {
+        "calls": 1,
+        "usec_per_call": 277.0
+      },
+      "del": {
+        "calls": 200,
+        "usec_per_call": 2.58
+      },
+      "hello": {
+        "calls": 1,
+        "usec_per_call": 8.0
+      },
+      "ping": {
+        "calls": 134,
+        "usec_per_call": 1.62
+      },
+      "get": {
+        "calls": 200,
+        "usec_per_call": 4.24
+      },
+      "client|setinfo": {
+        "calls": 2,
+        "usec_per_call": 1.0
+      }
+    }
+  }
+}

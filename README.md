@@ -183,12 +183,24 @@ error.
 | conversations | browse with 1–3 s think time | 43 req/s (100 VUs, not saturated) | 28 ms | 1.3 s |
 | chatbot | one streamed chat turn | 12.5 turns/s (25 VUs) | 1.4 s | 11.1 s |
 
+At a fixed load of 50 % and 80 % of each peak, held for 3 minutes:
+
+| Workload | Load (50 % / 80 %) | p95 at 50 % | p95 at 80 % | Errors |
+|---|---|---|---|---|
+| health | 68 / 110 req/s | 78 ms | 1.19 s | 0 |
+| auth | 16 / 28 req/s | 69 ms | 159 ms | 0 |
+| database-read | 44 / 70 req/s | 626 ms | 655 ms | 0 |
+| database-write | 35 / 57 req/s | 116 ms | 995 ms | 0.02 % at 80 % |
+| database-mixed | 38 / 61 req/s | 52 ms | 509 ms | 0 |
+| conversations | 22 / 34 req/s | 31 ms | 110 ms | 0 |
+| chatbot | 6 / 10 turns/s | 940 ms | 1.65 s | 0 |
+
 In every workload except `conversations`, the API container sits at its 1 CPU limit
 while Postgres stays under 30 % of its 2 CPUs, so the single API process is the
 bottleneck. `auth` is the slowest because each login hashes a password with Argon2id.
 k6, the API and the databases share one 8-thread machine, so these numbers compare
-setups rather than predict production capacity. Raw results are in
-[bench/results/phase1](bench/results/phase1).
+setups rather than predict production capacity. Results and analysis are in
+[bench/results/phase1/NOTES.md](bench/results/phase1/NOTES.md).
 
 ## Project structure
 

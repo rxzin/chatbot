@@ -1,0 +1,214 @@
+{
+  "before": {
+    "pg_stat_database": {
+      "datid": "16384",
+      "datname": "chatbot_bench",
+      "numbackends": 2,
+      "xact_commit": 24,
+      "xact_rollback": 11,
+      "blks_read": 329,
+      "blks_hit": 280818,
+      "tup_returned": 57026,
+      "tup_fetched": 55702,
+      "tup_inserted": 22717,
+      "tup_updated": 119,
+      "tup_deleted": 304,
+      "conflicts": 0,
+      "temp_files": 0,
+      "temp_bytes": 0,
+      "deadlocks": 0,
+      "checksum_failures": 0,
+      "checksum_last_failure": null,
+      "blk_read_time": 0,
+      "blk_write_time": 0,
+      "session_time": 4214.176,
+      "active_time": 165.411,
+      "idle_in_transaction_time": 502.652,
+      "sessions": 16,
+      "sessions_abandoned": 2,
+      "sessions_fatal": 0,
+      "sessions_killed": 0,
+      "parallel_workers_to_launch": 0,
+      "parallel_workers_launched": 0,
+      "stats_reset": null
+    },
+    "connections": 2
+  },
+  "after": {
+    "pg_stat_database": {
+      "datid": "16384",
+      "datname": "chatbot_bench",
+      "numbackends": 11,
+      "xact_commit": 1605,
+      "xact_rollback": 18994,
+      "blks_read": 391,
+      "blks_hit": 955095,
+      "tup_returned": 6613825,
+      "tup_fetched": 449730,
+      "tup_inserted": 32250,
+      "tup_updated": 388,
+      "tup_deleted": 343,
+      "conflicts": 0,
+      "temp_files": 0,
+      "temp_bytes": 0,
+      "deadlocks": 0,
+      "checksum_failures": 0,
+      "checksum_last_failure": null,
+      "blk_read_time": 0,
+      "blk_write_time": 0,
+      "session_time": 3574059.782,
+      "active_time": 11510.066,
+      "idle_in_transaction_time": 864388.499,
+      "sessions": 406,
+      "sessions_abandoned": 2,
+      "sessions_fatal": 0,
+      "sessions_killed": 0,
+      "parallel_workers_to_launch": 0,
+      "parallel_workers_launched": 0,
+      "stats_reset": null
+    },
+    "connections": 11
+  },
+  "top_statements": [
+    {
+      "calls": 9025,
+      "total_exec_time": 1056.4,
+      "mean_exec_time": 0.117,
+      "rows": 9025,
+      "query": "SELECT users_1.id AS users_1_id, roles.id AS roles_id, roles.name AS roles_name \nFROM users AS users_1 JOIN users_roles AS users_roles_1 ON users_1.id = users_roles_1.user_id JOIN roles ON roles.id = "
+    },
+    {
+      "calls": 9025,
+      "total_exec_time": 1017.53,
+      "mean_exec_time": 0.113,
+      "rows": 99275,
+      "query": "SELECT roles_1.id AS roles_1_id, permissions.id AS permissions_id, permissions.name AS permissions_name, permissions.resource AS permissions_resource, permissions.action AS permissions_action, permiss"
+    },
+    {
+      "calls": 8906,
+      "total_exec_time": 807.63,
+      "mean_exec_time": 0.091,
+      "rows": 8906,
+      "query": "INSERT INTO audit_logs (user_id, method, path, status_code, duration_ms, ip_address, user_agent, request_id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::INTEGER, $5::INTEGER, $6::VARCHAR, $7::VARC"
+    },
+    {
+      "calls": 8925,
+      "total_exec_time": 524.98,
+      "mean_exec_time": 0.059,
+      "rows": 8925,
+      "query": "SELECT session.id AS session_id, session.user_id AS session_user_id, session.refresh_token AS session_refresh_token, session.created_at AS session_created_at, session.expires_at AS session_expires_at,"
+    },
+    {
+      "calls": 9025,
+      "total_exec_time": 502.42,
+      "mean_exec_time": 0.056,
+      "rows": 9025,
+      "query": "SELECT users.id, users.email, users.password, users.is_active, users.created_at \nFROM users \nWHERE users.email = $1::VARCHAR"
+    },
+    {
+      "calls": 2873,
+      "total_exec_time": 365.31,
+      "mean_exec_time": 0.127,
+      "rows": 44260,
+      "query": "SELECT messages.id, messages.conversation_id, messages.role, messages.content, messages.parts, messages.created_at, messages.idempotency_key \nFROM messages \nWHERE messages.conversation_id = $1::UUID O"
+    },
+    {
+      "calls": 5746,
+      "total_exec_time": 334.74,
+      "mean_exec_time": 0.058,
+      "rows": 5746,
+      "query": "SELECT conversations.id, conversations.user_id, conversations.title, conversations.created_at, conversations.idempotency_key \nFROM conversations \nWHERE conversations.id = $1::UUID AND conversations.us"
+    },
+    {
+      "calls": 2873,
+      "total_exec_time": 235.82,
+      "mean_exec_time": 0.082,
+      "rows": 20272,
+      "query": "SELECT conversations.id, conversations.user_id, conversations.title, conversations.created_at, conversations.idempotency_key \nFROM conversations \nWHERE conversations.user_id = $1::UUID ORDER BY conver"
+    },
+    {
+      "calls": 306,
+      "total_exec_time": 114.76,
+      "mean_exec_time": 0.375,
+      "rows": 306,
+      "query": "INSERT INTO conversations (user_id, title, idempotency_key) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR) RETURNING conversations.id, conversations.created_at"
+    },
+    {
+      "calls": 119,
+      "total_exec_time": 49.84,
+      "mean_exec_time": 0.419,
+      "rows": 119,
+      "query": "INSERT INTO audit_logs (user_id, method, path, status_code, duration_ms, ip_address, user_agent, request_id) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::INTEGER, $5::INTEGER, $6::VARCHAR, $7::VARC"
+    },
+    {
+      "calls": 18990,
+      "total_exec_time": 31.72,
+      "mean_exec_time": 0.002,
+      "rows": 0,
+      "query": "ROLLBACK"
+    },
+    {
+      "calls": 100,
+      "total_exec_time": 31.53,
+      "mean_exec_time": 0.315,
+      "rows": 100,
+      "query": "INSERT INTO session (user_id, refresh_token, expires_at, absolute_expires_at, previous_refresh_token, rotated_at, ip_address, user_agent) VALUES ($1::UUID, $2::VARCHAR, $3::TIMESTAMP WITH TIME ZONE, $"
+    },
+    {
+      "calls": 20123,
+      "total_exec_time": 27.69,
+      "mean_exec_time": 0.001,
+      "rows": 0,
+      "query": "BEGIN"
+    },
+    {
+      "calls": 100,
+      "total_exec_time": 20.6,
+      "mean_exec_time": 0.206,
+      "rows": 100,
+      "query": "UPDATE session SET refresh_token=$1::VARCHAR WHERE session.id = $2::UUID"
+    },
+    {
+      "calls": 306,
+      "total_exec_time": 19.62,
+      "mean_exec_time": 0.064,
+      "rows": 306,
+      "query": "SELECT conversations.id, conversations.user_id, conversations.title, conversations.created_at, conversations.idempotency_key \nFROM conversations \nWHERE conversations.id = $1::UUID"
+    },
+    {
+      "calls": 100,
+      "total_exec_time": 6.97,
+      "mean_exec_time": 0.07,
+      "rows": 0,
+      "query": "SELECT session.id, session.user_id, session.refresh_token, session.created_at, session.expires_at, session.absolute_expires_at, session.previous_refresh_token, session.rotated_at, session.ip_address, "
+    },
+    {
+      "calls": 100,
+      "total_exec_time": 6.68,
+      "mean_exec_time": 0.067,
+      "rows": 100,
+      "query": "SELECT users.id \nFROM users \nWHERE users.id = $1::UUID FOR UPDATE"
+    },
+    {
+      "calls": 123,
+      "total_exec_time": 1.76,
+      "mean_exec_time": 0.014,
+      "rows": 123,
+      "query": "SELECT 1"
+    },
+    {
+      "calls": 1133,
+      "total_exec_time": 1.66,
+      "mean_exec_time": 0.001,
+      "rows": 0,
+      "query": "COMMIT"
+    },
+    {
+      "calls": 2,
+      "total_exec_time": 0.54,
+      "mean_exec_time": 0.272,
+      "rows": 2,
+      "query": "SELECT json_build_object($1, (SELECT row_to_json(d) FROM pg_stat_database d WHERE datname=$2),$3, (SELECT count(*) FROM pg_stat_activity WHERE datname=$4))"
+    }
+  ]
+}
