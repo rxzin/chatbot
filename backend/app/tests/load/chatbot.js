@@ -5,6 +5,7 @@ import { BASE_URL, options as opts, record, isLiveChat } from "./lib/config.js";
 import { session, conversationIds } from "./lib/auth.js";
 
 export { handleSummary } from "./lib/summary.js";
+export { setup } from "./lib/auth.js";
 
 // Paid-call guard: live mode talks to real Mistral and costs money.
 if (isLiveChat() && __ENV.CONFIRM_PAID_CALLS !== "yes") {
@@ -22,8 +23,8 @@ export const options = opts("chatbot", {
 
 // Posts to one of the VU's seeded conversations. k6 reads the whole body, so
 // the server never sees a client that leaves before `done`.
-export default function () {
-  const s = session();
+export default function (data) {
+  const s = session(data);
   const ids = conversationIds();
   const id = ids[(__ITER + __VU) % ids.length];
 

@@ -4,6 +4,7 @@ import { BASE_URL, options as opts, record } from "./lib/config.js";
 import { session, conversationIds } from "./lib/auth.js";
 
 export { handleSummary } from "./lib/summary.js";
+export { setup } from "./lib/auth.js";
 export const options = opts("database");
 
 const MIX = __ENV.MIX || "mixed"; // read | write | mixed
@@ -29,8 +30,8 @@ function write(s) {
   check(res, { "create 201": (r) => r.status === 201 });
 }
 
-export default function () {
-  const s = session();
+export default function (data) {
+  const s = session(data);
   const ids = conversationIds();
   if (MIX === "read") read(s, ids);
   else if (MIX === "write") write(s);

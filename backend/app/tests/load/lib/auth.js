@@ -1,7 +1,7 @@
 import http from "k6/http";
 import { check, fail } from "k6";
 import { Counter } from "k6/metrics";
-import { BASE_URL, USERS, PASSWORD, record } from "./config.js";
+import { BASE_URL, USERS, PASSWORD, PROFILE, record } from "./config.js";
 
 export const sessionLogins = new Counter("session_logins");
 
@@ -40,8 +40,36 @@ function fresh() {
   state = { token: res.json("access_token"), at: Date.now() };
 }
 
+// Rate runs start iterations on up to maxVUs fresh VUs at once. If each one logged
+// in (an Argon2 hash) on its first iteration, the first minute would measure a
+// login storm, not the workload. So for rate runs, setup() logs every seeded user
+// in before the test starts, and VUs take their user's token and conversations.
+// Ramp runs add VUs gradually and keep logging in themselves.
+export function setup() {
+  if (PROFILE !== "rate") return {};
+  const users = [];
+  for (let i = 0; i < USERS; i++) {
+    const res = login(`bench${i}@example.com`, "setup_login");
+    if (res.status !== 200) fail(`setup login failed for user ${i}: ${res.status}`);
+    const token = res.json("access_token");
+    const list = http.get(`${BASE_URL}/api/conversations`, {
+      headers: jsonHeaders(token),
+      tags: { name: "setup_conversations" },
+    });
+    if (list.status !== 200) fail(`setup conversations failed for user ${i}: ${list.status}`);
+    users.push({ token, ids: list.json().map((c) => c.id) });
+  }
+  return { users, at: Date.now() };
+}
+
 // Log in once per VU, and again when the token is older than TOKEN_MAX_AGE_S.
-export function session() {
+// data is what setup() returned; a pooled token is used instead of logging in.
+export function session(data) {
+  if (!state && data && data.users) {
+    const u = data.users[(__VU - 1) % USERS];
+    state = { token: u.token, at: data.at };
+    if (u.ids.length > 0) convIds = u.ids;
+  }
   if (!state || Date.now() - state.at > maxAgeS() * 1000) fresh();
   return { token: state.token, headers: jsonHeaders(state.token) };
 }

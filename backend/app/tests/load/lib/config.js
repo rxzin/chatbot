@@ -103,6 +103,7 @@ export function options(workload, extra = {}) {
   return {
     scenarios: scenarios(workload),
     thresholds: th,
+    setupTimeout: "5m", // rate runs log in all seeded users first
     summaryTrendStats: ["avg", "min", "med", "p(90)", "p(95)", "p(99)", "max"],
   };
 }

@@ -4,6 +4,7 @@ import { BASE_URL, options as opts, record } from "./lib/config.js";
 import { session } from "./lib/auth.js";
 
 export { handleSummary } from "./lib/summary.js";
+export { setup } from "./lib/auth.js";
 export const options = opts("conversations");
 
 randomSeed(42);
@@ -13,8 +14,8 @@ function think() {
 }
 
 // list conversations -> open one -> read its messages -> 1 in 10 creates one.
-export default function () {
-  const s = session();
+export default function (data) {
+  const s = session(data);
 
   const list = record(http.get(`${BASE_URL}/api/conversations`, { headers: s.headers, tags: { name: "list_conversations" } }));
   check(list, { "list 200": (r) => r.status === 200 });
