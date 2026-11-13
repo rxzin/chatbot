@@ -212,7 +212,8 @@ async def test_disconnect_after_done_loses_turn(live_server, user, db, scripted_
     (services/graph/runner.py). F10, Review Focus 3.
 
     Either 0 rows (turn lost) or 2 rows (saved) is accepted.
-    OBSERVED: 0 rows in every run (11 of 11). The turn is lost, so this pins F10.
+    OBSERVED (2026-11-13): 0 rows in 16 of 16 counted runs; the turn is lost every time.
+    Recorded as a known issue in docs/multi-instance.md.
     """
     account, headers = user
     conversation = await create_conversation(db, account.id)
