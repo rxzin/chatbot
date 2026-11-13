@@ -182,6 +182,42 @@ async def test_ten_concurrent_chats_with_one_key_store_one_turn(
     assert await message_count(db, conversation.id) == 2
 
 
+async def test_duplicate_that_gets_the_lock_after_the_first_finishes_is_replayed(
+    client, user, db, redis, scripted_llm, monkeypatch
+):
+    """
+    The window between "is there a saved turn?" and taking the lock: a duplicate checks,
+    finds nothing, then the original finishes and releases the lock. The duplicate
+    must look again once it holds the lock, or it runs the model a second time and
+    appends the turn to the Redis history twice.
+    """
+    import api.routes.streamchat as streamchat
+
+    account, headers = user
+    conversation = await create_conversation(db, account.id, title="Existing chat")
+    scripted = scripted_llm([["Hi ", "there"], ["second answer"]])
+    first = await post_chat(client, {**headers, **KEY}, conversation.id)
+
+    # The duplicate's first look happens "before" the original was saved.
+    real_lookup = streamchat.get_turn_by_key
+    lookups = 0
+
+    async def lookup_that_misses_once(*args, **kwargs):
+        nonlocal lookups
+        lookups += 1
+        return None if lookups == 1 else await real_lookup(*args, **kwargs)
+
+    monkeypatch.setattr(streamchat, "get_turn_by_key", lookup_that_misses_once)
+    second = await post_chat(client, {**headers, **KEY}, conversation.id)
+
+    assert second.status_code == 200
+    assert joined_text(second) == joined_text(first) == "Hi there"
+    assert len(scripted.calls) == 1
+    history_key = f"chat:user:{account.id}:conversation:{conversation.id}"
+    assert await redis.llen(history_key) == 2
+    assert await message_count(db, conversation.id) == 2
+
+
 # --- the header itself -----------------------------------------------------------------
 
 

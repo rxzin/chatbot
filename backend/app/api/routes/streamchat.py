@@ -83,27 +83,24 @@ async def chat_stream_endpoint(
     inflight_key = None
     if key is not None:
         # 1. Already answered: replay it. No model call, no quota use, no writes.
-        saved = await get_turn_by_key(db, chat_request.conversation_id, key)
-        if saved is not None:
-            log_event(
-                event="chat.idempotency.replayed",
-                message="Chat turn replayed from a saved Idempotency-Key",
-                conversation_id=str(chat_request.conversation_id),
-            )
-            return StreamingResponse(
-                _replay_stream(saved[1]),
-                media_type="text/event-stream",
-                headers=_SSE_HEADERS,
-            )
+        if replay := await _replay_if_saved(db, chat_request.conversation_id, key):
+            return replay
         # 2. Being answered right now by another request with this key.
         inflight_key = f"idem:chat:{chat_request.conversation_id}:{key}"
-        acquired = await request.app.state.redis_service.acquire_inflight(
+        redis_service = request.app.state.redis_service
+        acquired = await redis_service.acquire_inflight(
             inflight_key, int(getSettings().AGENT_TURN_TIMEOUT_SECONDS) + 30
         )
         if acquired is False:
             raise ConflictError("This message is already being processed.")
         if acquired is None:  # Redis is down: the unique index still holds
             inflight_key = None
+        else:
+            # The holder releases the lock only after saving, so a request that
+            # finished between step 1 and taking the lock is visible now.
+            if replay := await _replay_if_saved(db, chat_request.conversation_id, key):
+                await redis_service.release_inflight(inflight_key)
+                return replay
 
     try:
         return await _start_stream(
@@ -114,6 +111,22 @@ async def chat_stream_endpoint(
         if inflight_key is not None:
             await request.app.state.redis_service.release_inflight(inflight_key)
         raise
+
+
+async def _replay_if_saved(
+    db: AsyncSession, conversation_id, key: str
+) -> StreamingResponse | None:
+    saved = await get_turn_by_key(db, conversation_id, key)
+    if saved is None:
+        return None
+    log_event(
+        event="chat.idempotency.replayed",
+        message="Chat turn replayed from a saved Idempotency-Key",
+        conversation_id=str(conversation_id),
+    )
+    return StreamingResponse(
+        _replay_stream(saved[1]), media_type="text/event-stream", headers=_SSE_HEADERS
+    )
 
 
 async def _start_stream(
