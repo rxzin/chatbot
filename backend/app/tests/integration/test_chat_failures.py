@@ -2,8 +2,10 @@
 
 import asyncio
 import json
+import time
 
 import httpx
+import pytest
 from sqlalchemy import func, select
 
 from schemas.models import Message
@@ -64,26 +66,65 @@ async def test_agent_failure_streams_an_error_and_saves_nothing(
 # --- Redis is down -------------------------------------------------------------------
 
 
-async def test_chat_is_refused_when_redis_is_down(
+async def test_chat_works_when_redis_is_down(
     client, user, db, app_state_override, scripted_llm
 ):
     account, headers = user
     conversation = await create_conversation(db, account.id)
-    model = scripted_llm([["never sent"]])
+    scripted_llm([["Hi ", "there"]])
     app_state_override(redis_service=unreachable_memory_service())
 
-    refused = await client.post(
-        "/api/chat", headers=headers, json=_post_body(conversation.id)
-    )
+    started = time.monotonic()
+    events = await chat(client, headers, conversation.id, "hello")
+    elapsed = time.monotonic() - started
 
-    # F12: the quota check fails closed, so a Redis outage takes chat down with it.
-    # Task X2 changes this on purpose; flip this assertion then.
-    assert refused.status_code == 429
-    assert model.calls == []
+    # D2: the daily quota is skipped during the outage (fail open), chat carries on.
+    assert [e["type"] for e in events][-1] == "done"
+    assert await _row_count(db, conversation.id) == 2
+    assert elapsed < 10
+
+
+async def test_second_turn_during_outage_reads_history_from_postgres(
+    client, user, db, app_state_override, scripted_llm
+):
+    account, headers = user
+    conversation = await create_conversation(db, account.id)
+    model = scripted_llm([["one"], ["two"]])
+    app_state_override(redis_service=unreachable_memory_service())
+
+    await chat(client, headers, conversation.id, "first")
+    await chat(client, headers, conversation.id, "second")
+
+    assert len(model.calls[1]["history"]) == 2
+    assert await _row_count(db, conversation.id) == 4
+
+
+async def test_health_reports_redis_down(client, app_state_override):
+    app_state_override(redis_service=unreachable_memory_service())
 
     health = await client.get("/health/")
+
     assert health.status_code == 503
     assert health.json()["redis"] is False
+
+
+@pytest.mark.xfail(reason="F28", strict=False)
+async def test_history_not_stale_after_outage(
+    client, user, db, app, app_state_override, scripted_llm
+):
+    account, headers = user
+    conversation = await create_conversation(db, account.id)
+    model = scripted_llm([["one"], ["two"], ["three"]])
+    await chat(client, headers, conversation.id, "first")  # Redis now holds 2 messages
+    working = app.state.redis_service
+
+    app_state_override(redis_service=unreachable_memory_service())
+    await chat(client, headers, conversation.id, "second")  # saved to Postgres only
+    app_state_override(redis_service=working)
+    await chat(client, headers, conversation.id, "third")
+
+    # Desired: all 4 earlier messages. Actual: Redis still holds the pre-outage 2.
+    assert len(model.calls[2]["history"]) == 4
 
 
 async def test_chat_works_without_redis_when_the_quota_is_off(

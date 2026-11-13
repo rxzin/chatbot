@@ -1,7 +1,9 @@
+import logging
+
 import redis.asyncio as redis
 from schemas.chat import MessageParam
 from core.config import getSettings
-from core.logging import logger
+from core.logging import log_event, logger
 from datetime import datetime, timezone
 from uuid import UUID
 from typing import TYPE_CHECKING, Optional, Tuple
@@ -14,7 +16,12 @@ if TYPE_CHECKING:
 class RedisMemoryService:
     def __init__(self):
         settings = getSettings()
-        self.redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        self.redis_client = redis.from_url(
+            settings.REDIS_URL,
+            decode_responses=True,
+            socket_connect_timeout=1.0,
+            socket_timeout=2.0,
+        )
         self.conversation_ttl = 86400
 
     def _history_key(self, user_id: UUID, conversation_id: UUID) -> str:
@@ -55,11 +62,12 @@ class RedisMemoryService:
             )
 
     async def consume_daily_quota(
-        self, user_id: str | UUID, action: str, limit: int
+        self, user_id: str | UUID, action: str, limit: int, *, fail_open: bool = False
     ) -> bool:
         """
         Count one use of action for today (UTC). False once the day's limit is used.
-        Like try_acquire_rate_limit, a Redis failure refuses, to protect paid APIs.
+        On a Redis failure returns fail_open: False by default, to protect paid APIs;
+        the chat route passes True so an outage does not take chat down.
         """
         day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         key = f"quota:{action}:{user_id}:{day}"
@@ -70,7 +78,14 @@ class RedisMemoryService:
             return count <= limit
         except Exception:
             logger.exception(f"Failed to count {action} quota for user {user_id}")
-            return False
+            if fail_open:
+                log_event(
+                    event="chat.quota.check.skipped",
+                    message=f"Redis unavailable; {action} quota check skipped",
+                    level=logging.WARNING,
+                    action=action,
+                )
+            return fail_open
 
     async def get_rate_limit_ttl(
         self, user_id: str | UUID, action: str

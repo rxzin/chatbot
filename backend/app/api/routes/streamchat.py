@@ -55,7 +55,7 @@ async def chat_stream_endpoint(
     # Counted before any model call, so a refused message costs nothing.
     limit = getSettings().CHAT_DAILY_LIMIT_PER_USER
     if limit > 0 and not await request.app.state.redis_service.consume_daily_quota(
-        current_user.id, action="chat", limit=limit
+        current_user.id, action="chat", limit=limit, fail_open=True
     ):
         raise TooManyRequestsError(
             f"You've reached today's limit of {limit} messages. "

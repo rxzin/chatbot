@@ -136,11 +136,15 @@ async def test_reads_return_empty_when_redis_is_down(ids):
 
 
 async def test_limits_refuse_when_redis_is_down(ids):
-    """Fails closed: these guard paid calls. Finding F12; Task X2 changes the chat quota."""
+    """Fails closed: these guard paid calls. Finding F12; the chat route opts in to fail_open (Task X2)."""
     memory = unreachable_memory_service()
     user_id, _ = ids
 
     assert await memory.consume_daily_quota(user_id, "chat", limit=100) is False
+    assert (
+        await memory.consume_daily_quota(user_id, "chat", limit=100, fail_open=True)
+        is True
+    )
     assert await memory.try_acquire_rate_limit(user_id, "bug_report") is False
 
 

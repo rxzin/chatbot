@@ -71,6 +71,7 @@ Read these before starting; the tasks refer to them as F-numbers.
 - **F25** `save_turn` inserts the user and model messages in one transaction, so both get the same `created_at` (`now()` is the transaction start). `list_messages` orders by `created_at` alone, so their order is not guaranteed. → Task X4.
 - **F26** `admin_audit.py:79-83` and `admin_users.py:62-66,107` paginate by `id`, which is only correct while ids sort by time. → Task X4.
 - **F27** The Redis client has no socket timeouts (`services/memory.py:17`), so an unreachable Redis can hang a request instead of failing. → Task X2.
+- **F28** (found in Task X2) After a Redis outage, Redis still holds the pre-outage history list, so turns saved only to Postgres during the outage are invisible to the model once Redis returns. Pinned by `test_history_not_stale_after_outage` (xfail). Fix (compare with Postgres before trusting the cache) is a follow-up.
 
 - **F29** (found in Task B3) A request with no `Authorization` header is rejected by FastAPI's `OAuth2PasswordBearer`, so its 401 body is `{"detail": "Not authenticated"}`. Every other error, including an invalid token, uses `{"success": false, "error": {"code", "message"}}`. Pinned by `test_no_token_is_rejected`; not changed.
 
