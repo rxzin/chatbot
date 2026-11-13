@@ -87,6 +87,23 @@ class RedisMemoryService:
                 )
             return fail_open
 
+    async def acquire_inflight(self, key: str, ttl_seconds: int) -> bool | None:
+        """
+        Claim key (SET NX EX). True when claimed, False when someone else holds it,
+        None when Redis fails, so the caller can carry on without the lock.
+        """
+        try:
+            return bool(await self.redis_client.set(key, "1", ex=ttl_seconds, nx=True))
+        except Exception:
+            logger.exception(f"Failed to acquire in-flight lock {key}")
+            return None
+
+    async def release_inflight(self, key: str) -> None:
+        try:
+            await self.redis_client.delete(key)
+        except Exception:
+            logger.exception(f"Failed to release in-flight lock {key}")
+
     async def get_rate_limit_ttl(
         self, user_id: str | UUID, action: str
     ) -> Optional[int]:

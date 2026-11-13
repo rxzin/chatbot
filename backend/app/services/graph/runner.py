@@ -130,18 +130,33 @@ async def run_graph_stream(
     request: Request,
     chat_request: ChatRequest,
     current_user: User,
+    idempotency_key: str | None = None,
+    inflight_key: str | None = None,
 ):
     # Every model call in this turn adds its tokens here; saved when the turn ends.
     records = usage.start_collecting()
     try:
         with tracing.trace_turn(current_user.id, chat_request.conversation_id, chat_request.message) as trace:
-            async for frame in _run_turn(request, chat_request, current_user, trace):
+            async for frame in _run_turn(
+                request, chat_request, current_user, trace, idempotency_key
+            ):
                 yield frame
     finally:
-        await usage.save(records, current_user.id, chat_request.conversation_id)
+        try:
+            await usage.save(records, current_user.id, chat_request.conversation_id)
+        finally:
+            # Also reached on error and on client disconnect.
+            if inflight_key is not None:
+                await request.app.state.redis_service.release_inflight(inflight_key)
 
 
-async def _run_turn(request: Request, chat_request: ChatRequest, current_user: User, trace):
+async def _run_turn(
+    request: Request,
+    chat_request: ChatRequest,
+    current_user: User,
+    trace,
+    idempotency_key: str | None = None,
+):
     app_state = request.app.state
     memory_service = app_state.redis_service
     llm_service = app_state.llm_service
@@ -264,6 +279,7 @@ async def _run_turn(request: Request, chat_request: ChatRequest, current_user: U
             sources=sources,
             web_sources=web_sources,
             suggestions=suggestions,
+            idempotency_key=idempotency_key,
         )
 
     except TurnTimeout:

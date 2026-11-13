@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.service import get_current_active_user
 from core.database import get_db
+from core.idempotency import idempotency_key
 from schemas.models import User
 from schemas.schema import ConversationCreate, ConversationResponse, MessageResponse
 from services.conversation import (
@@ -65,9 +66,10 @@ async def start_conversation(
     current_user: User = Security(
         get_current_active_user, scopes=["conversations:create"]
     ),
+    key: str | None = Depends(idempotency_key),
 ):
     """Create a new conversation row for the authenticated user."""
     conversation = await create_conversation(
-        db, user_id=current_user.id, title=body.title
+        db, user_id=current_user.id, title=body.title, idempotency_key=key
     )
     return conversation

@@ -39,6 +39,7 @@ async def persist_turn(
     sources: Optional[list[SourceReference]] = None,
     web_sources: Optional[list[WebSource]] = None,
     suggestions: Optional[list[str]] = None,
+    idempotency_key: Optional[str] = None,
 ) -> None:
     if not model_response:
         return
@@ -71,6 +72,7 @@ async def persist_turn(
             user_message,
             model_response,
             _model_parts(model_response, sources, web_sources, suggestions),
+            idempotency_key=idempotency_key,
         )
 
     if redis_saved and postgres_saved:

@@ -10,6 +10,7 @@ from sqlalchemy import (
     JSON,
     Column,
     Table,
+    Index,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
@@ -83,6 +84,9 @@ class User(Base):
 
 class Conversation(Base):
     __tablename__ = "conversations"
+    __table_args__ = (
+        Index("uq_conversations_user_idem", "user_id", "idempotency_key", unique=True),
+    )
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
@@ -97,6 +101,8 @@ class Conversation(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+    # Client-supplied Idempotency-Key; null never collides.
+    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     user: Mapped["User"] = relationship(back_populates="conversations")
     messages: Mapped[List["Message"]] = relationship(
         back_populates="conversation", cascade="all, delete-orphan"
@@ -108,6 +114,14 @@ class Conversation(Base):
 
 class Message(Base):
     __tablename__ = "messages"
+    __table_args__ = (
+        Index(
+            "uq_messages_conversation_idem",
+            "conversation_id",
+            "idempotency_key",
+            unique=True,
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
@@ -125,6 +139,8 @@ class Message(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+    # Set on the user message of a turn sent with an Idempotency-Key.
+    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
 
 
