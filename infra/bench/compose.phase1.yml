@@ -1,0 +1,91 @@
+name: chatbot-bench-p1
+
+x-backend: &backend
+  image: chatbot-bench-backend:latest
+  build:
+    context: ../../backend
+  environment:
+    APP_ENV_FILE: /run/bench.env
+  volumes:
+    - ./bench.env:/run/bench.env:ro
+
+services:
+  db:
+    image: postgres:18-alpine
+    command: postgres -c shared_preload_libraries=pg_stat_statements
+    environment:
+      POSTGRES_USER: chatbot_bench
+      POSTGRES_PASSWORD: chatbot_bench
+      POSTGRES_DB: chatbot_bench
+    volumes:
+      - ./pg-init.sql:/docker-entrypoint-initdb.d/10-pg-stat-statements.sql:ro
+    ports:
+      - "127.0.0.1:55433:5432"
+    cpus: 2.0
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatbot_bench -d chatbot_bench"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save "" --appendonly no
+    ports:
+      - "127.0.0.1:56380:6379"
+    cpus: 0.5
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    working_dir: /app
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  seed:
+    <<: *backend
+    command: ["sh", "-c", "python seed.py && python -m scripts.bench_seed"]
+    working_dir: /app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  api1:
+    <<: *backend
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:58001:8000"
+    cpus: 1.0
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx/phase1.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "127.0.0.1:58080:80"
+    cpus: 0.5
+    mem_limit: 128m
+    depends_on:
+      api1:
+        condition: service_healthy
