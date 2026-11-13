@@ -183,6 +183,23 @@ error.
 | conversations | browse with 1–3 s think time | 43 req/s (100 VUs, not saturated) | 28 ms | 1.3 s |
 | chatbot | one streamed chat turn | 12.5 turns/s (25 VUs) | 1.4 s | 11.1 s |
 
+Requests per minute at each number of concurrent users (the peak is in bold):
+
+| Workload | 10 users | 25 users | 50 users | 100 users |
+|---|---|---|---|---|
+| health | 6,180 | 8,086 | **8,192** | 8,023 |
+| auth | 1,746 | **2,001** | 1,693 | 1,977 |
+| database-read | 4,002 | 4,175 | **5,311** | 4,779 |
+| database-write | 4,003 | 2,855 | 3,325 | **4,255** |
+| database-mixed | 3,914 | **4,543** | 4,505 | 4,390 |
+| conversations | 303 | 776 | 1,511 | **2,593** |
+| chatbot (chat turns) | 583 | **749** | 739 | 650 |
+
+Each simulated user sends its next request as soon as the last one returns, so it is far
+busier than a real person. Only `conversations` pauses 1–3 s between requests, like
+someone reading. It grows by about 26 requests per minute per user and had not reached
+the API's limit at 100 users.
+
 At a fixed load of 50 % and 80 % of each peak, held for 3 minutes:
 
 | Workload | Load (50 % / 80 %) | p95 at 50 % | p95 at 80 % | Errors |
