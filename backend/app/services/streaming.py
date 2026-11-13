@@ -76,6 +76,7 @@ async def persist_turn(
         )
 
     if redis_saved and postgres_saved:
+        await memory_service.record_saved_turn(user_id, conversation_id)
         logger.info(f"Saved turn for user {user_id}, conversation {conversation_id}")
     elif redis_saved:
         logger.warning(

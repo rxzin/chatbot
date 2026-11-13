@@ -15,11 +15,15 @@ lock is held until it ends. Pinned by `test_disconnect_after_done_keeps_turn` an
 Still true: a save in flight lives in that instance's memory. If the instance is
 killed in the moment between `done` and the end of the save, the turn is lost.
 
-### The model can miss turns after a Redis outage
+### Fixed: the model missed turns after a Redis outage
 
-While Redis is down, chat keeps working and reads history from Postgres, but the
-turns are saved only to Postgres. When Redis returns it still holds the list from
-before the outage, and the model is given that stale list. Observed in
-`tests/integration/test_chat_failures.py::test_history_not_stale_after_outage`
-(xfail). See finding F28 in `docs/superpowers/plans/2026-11-11-backend-testing-scalability.md`.
-The fix, comparing with Postgres before trusting the cache, is a follow-up.
+While Redis is down, chat keeps working and turns are saved only to Postgres. When
+Redis came back it still held the list from before the outage, and the model was
+given that stale list (finding F28). Now a `chat:user:{u}:conversation:{c}:synced`
+key records how many Postgres messages the cached history reflects. Each turn
+compares it with a count from Postgres; on a mismatch, or with no marker, the
+history and summary are rebuilt from Postgres. The marker moves on only when a turn
+reached both stores. Pinned by `test_history_not_stale_after_outage` and
+`test_history_in_sync_with_postgres_is_read_from_redis`.
+
+Cost: one indexed `COUNT` per chat turn.

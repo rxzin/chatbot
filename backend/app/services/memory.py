@@ -30,6 +30,52 @@ class RedisMemoryService:
     def _summary_key(self, user_id: UUID, conversation_id: UUID) -> str:
         return f"chat:user:{user_id}:conversation:{conversation_id}:summary"
 
+    def _synced_key(self, user_id: UUID, conversation_id: UUID) -> str:
+        """How many Postgres messages the cached history reflects."""
+        return f"chat:user:{user_id}:conversation:{conversation_id}:synced"
+
+    async def _set_synced(
+        self, user_id: UUID, conversation_id: UUID, message_count: int
+    ) -> None:
+        try:
+            await self.redis_client.set(
+                self._synced_key(user_id, conversation_id),
+                message_count,
+                ex=self.conversation_ttl,
+            )
+        except Exception as e:
+            logger.exception(f"Failed to record sync marker for {conversation_id}: {e}")
+
+    async def record_saved_turn(self, user_id: UUID, conversation_id: UUID) -> None:
+        """
+        A turn reached both Redis and Postgres: move the marker on by its 2 messages.
+        A missing marker stays missing, so the next turn rebuilds from Postgres.
+        """
+        try:
+            await self.redis_client.eval(
+                "if redis.call('exists', KEYS[1]) == 1 then "
+                "redis.call('incrby', KEYS[1], 2) "
+                "redis.call('expire', KEYS[1], ARGV[1]) end",
+                1,
+                self._synced_key(user_id, conversation_id),
+                self.conversation_ttl,
+            )
+        except Exception as e:
+            logger.exception(f"Failed to advance sync marker for {conversation_id}: {e}")
+
+    async def _in_sync_with_postgres(
+        self, user_id: UUID, conversation_id: UUID, db: "AsyncSession"
+    ) -> bool:
+        from services.message import count_messages
+
+        try:
+            marker = await self.redis_client.get(self._synced_key(user_id, conversation_id))
+        except Exception:
+            return True  # Redis just answered for the history; don't rebuild on a blip.
+        if marker is None:
+            return False
+        return int(marker) == await count_messages(db, conversation_id)
+
     def _rate_limit_key(self, user_id: str | UUID, action: str) -> str:
         return f"rate_limit:{action}:{user_id}"
 
@@ -209,17 +255,31 @@ class RedisMemoryService:
     ) -> Tuple[list[MessageParam], Optional[str]]:
         """
         Fetch the current conversation working set from Redis.
-        Hydrates from Postgres when the cache is cold, compacting before seeding Redis.
+        Hydrates from Postgres when the cache is cold or behind Postgres (a turn saved
+        while Redis was down, F28), compacting before seeding Redis.
         """
         history = await self.get_history(
             user_id=user_id, conversation_id=conversation_id
         )
         summary = await self.get_summary(user_id, conversation_id)
 
+        if history and db is not None:
+            if not await self._in_sync_with_postgres(user_id, conversation_id, db):
+                # Rebuilt from the full Postgres history, which the old summary
+                # would describe a second time.
+                history, summary = [], None
+                try:
+                    await self.redis_client.delete(
+                        self._summary_key(user_id, conversation_id)
+                    )
+                except Exception as e:
+                    logger.exception(f"Failed to drop stale summary for {conversation_id}: {e}")
+
         if not history and db is not None:
             from services.message import get_history as get_postgres_history
 
             history = await get_postgres_history(db, conversation_id, user_id)
+            await self._set_synced(user_id, conversation_id, len(history))
             if history and llm is not None:
                 from services.context_budget import compact_history
 

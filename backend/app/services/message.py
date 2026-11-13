@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select, tuple_
+from sqlalchemy import func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from schemas.chat import MessageParam
@@ -21,6 +21,14 @@ async def list_messages(
         .order_by(Message.created_at.asc(), Message.id.asc())
     )
     return list(result.scalars().all())
+
+
+async def count_messages(db: AsyncSession, conversation_id: UUID) -> int:
+    return await db.scalar(
+        select(func.count())
+        .select_from(Message)
+        .where(Message.conversation_id == conversation_id)
+    )
 
 
 async def get_history(

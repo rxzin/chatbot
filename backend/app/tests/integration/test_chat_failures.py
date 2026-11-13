@@ -5,7 +5,6 @@ import json
 import time
 
 import httpx
-import pytest
 from sqlalchemy import func, select
 
 from schemas.models import Message
@@ -57,7 +56,8 @@ async def test_agent_failure_streams_an_error_and_saves_nothing(
     assert [e["type"] for e in events] == ["error"]
     assert events[0]["error"]["code"] == "STREAM_GENERATION_FAILED"
     assert await _row_count(db, conversation.id) == 0
-    assert await redis.keys("chat:user:*") == []
+    history_key = f"chat:user:{account.id}:conversation:{conversation.id}"
+    assert not await redis.exists(history_key)
     # A failed turn still uses up one message of the day's quota. Pinned as is.
     (key,) = await redis.keys(f"quota:chat:{account.id}:*")
     assert await redis.get(key) == "1"
@@ -108,7 +108,6 @@ async def test_health_reports_redis_down(client, app_state_override):
     assert health.json()["redis"] is False
 
 
-@pytest.mark.xfail(reason="F28", strict=False)
 async def test_history_not_stale_after_outage(
     client, user, db, app, app_state_override, scripted_llm
 ):
@@ -123,8 +122,36 @@ async def test_history_not_stale_after_outage(
     app_state_override(redis_service=working)
     await chat(client, headers, conversation.id, "third")
 
-    # Desired: all 4 earlier messages. Actual: Redis still holds the pre-outage 2.
-    assert len(model.calls[2]["history"]) == 4
+    # Redis still held the pre-outage 2 messages; Postgres has 4, so the cache is
+    # rebuilt rather than trusted (F28).
+    assert [m.content for m in model.calls[2]["history"]] == [
+        "first",
+        "one",
+        "second",
+        "two",
+    ]
+
+
+async def test_history_in_sync_with_postgres_is_read_from_redis(
+    client, user, db, redis, scripted_llm
+):
+    """The staleness check must not turn every turn into a Postgres rebuild."""
+    account, headers = user
+    conversation = await create_conversation(db, account.id)
+    model = scripted_llm([["one"], ["two"]])
+    await chat(client, headers, conversation.id, "first")
+    history_key = f"chat:user:{account.id}:conversation:{conversation.id}"
+    # Mark the cached copy, so a rebuild from Postgres would be visible.
+    cached = json.loads(await redis.lindex(history_key, 1))
+    cached["content"] = "one (from redis)"
+    await redis.lset(history_key, 1, json.dumps(cached))
+
+    await chat(client, headers, conversation.id, "second")
+
+    assert [m.content for m in model.calls[1]["history"]] == [
+        "first",
+        "one (from redis)",
+    ]
 
 
 async def test_chat_works_without_redis_when_the_quota_is_off(
