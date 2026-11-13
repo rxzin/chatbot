@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -17,7 +18,7 @@ async def list_messages(
     result = await db.execute(
         select(Message)
         .where(Message.conversation_id == conversation_id)
-        .order_by(Message.created_at.asc())
+        .order_by(Message.created_at.asc(), Message.id.asc())
     )
     return list(result.scalars().all())
 
@@ -41,11 +42,14 @@ async def save_turn(
     model_parts: Optional[list[dict]] = None,
     idempotency_key: Optional[str] = None,
 ) -> bool:
+    # Explicit timestamps: both rows share one transaction, so now() would tie them.
+    now = datetime.now(timezone.utc)
     try:
         db.add(
             Message(
                 conversation_id=conversation_id,
                 role="user",
+                created_at=now,
                 content=user_message,
                 parts=[{"type": "text", "text": user_message}],
                 idempotency_key=idempotency_key,
@@ -55,6 +59,7 @@ async def save_turn(
             Message(
                 conversation_id=conversation_id,
                 role="model",
+                created_at=now + timedelta(microseconds=1),
                 content=model_response,
                 parts=model_parts or [{"type": "text", "text": model_response}],
             )
@@ -80,7 +85,6 @@ async def get_turn_by_key(
     ).scalar_one_or_none()
     if user_message is None:
         return None
-    # Both rows of a turn share one commit time, so the id breaks the tie.
     model_message = (
         await db.execute(
             select(Message)

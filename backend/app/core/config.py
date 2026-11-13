@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     COHERE_API_KEY: str
     REDIS_URL: str
     DOMAIN: str = "localhost"
+    # How new rows get their primary key. "random" suits databases without uuidv7().
+    ID_STRATEGY: Literal["uuidv7", "random"] = "uuidv7"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
     # "fake" replaces Mistral, Pinecone and Cohere with in-process stand-ins and turns
     # tracing off. For tests and mocked benchmarks; refused in production.

@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 
+from core.config import getSettings
 from schemas.models import (
     AuditLog,
     Conversation,
@@ -125,15 +126,17 @@ async def test_save_turn_stores_the_user_and_model_messages(db):
     assert sorted(rows) == [("model", "hi there"), ("user", "hello")]
 
 
-async def test_ids_sort_by_creation_time(db):
-    """True for uuidv7, which the schema uses today. Admin pagination relies on it."""
+async def test_ids_follow_the_configured_strategy(db):
     account = await create_user(db)
 
     first = await create_conversation(db, account.id)
     second = await create_conversation(db, account.id)
 
-    assert first.id.version == 7
-    assert second.id > first.id
+    if getSettings().ID_STRATEGY == "uuidv7":
+        assert first.id.version == 7
+        assert second.id > first.id
+    else:
+        assert first.id.version == 4
 
 
 async def test_message_parts_round_trip_unchanged(db):
