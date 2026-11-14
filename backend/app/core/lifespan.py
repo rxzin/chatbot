@@ -35,6 +35,29 @@ def _build_llm(settings) -> FallbackLLM:
     )
 
 
+def _use_fake_services(app: FastAPI):
+    """
+    Install the in-process stand-ins. Nothing here opens a network connection.
+
+    Returns the vector store and reranker so shutdown closes them like the real ones.
+    """
+    from services.fakes import (
+        FakeEmbeddingService,
+        FakeLLM,
+        FakeReranker,
+        FakeVectorStore,
+    )
+
+    vector_store = FakeVectorStore()
+    reranker = FakeReranker()
+    app.state.llm_service = FakeLLM(system_prompt=SYSTEM_PROMPT)
+    app.state.embedding_service = FakeEmbeddingService()
+    app.state.vector_store_service = vector_store
+    app.state.reranker_service = reranker
+    app.state.search_provider = None
+    return vector_store, reranker
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Create shared services on startup and release them on shutdown."""
@@ -51,28 +74,35 @@ async def lifespan(app: FastAPI):
         await redis_service.redis_client.ping()
         app.state.redis_service = redis_service
 
-        app.state.llm_service = _build_llm(settings)
-        app.state.embedding_service = MistralEmbeddingService(
-            api_key=settings.MISTRAL_API_KEY,
-            model=settings.MISTRAL_EMBED_MODEL,
-        )
+        if settings.EXTERNAL_SERVICES == "fake":
+            pinecone_service, reranker_service = _use_fake_services(app)
+        else:
+            app.state.llm_service = _build_llm(settings)
+            app.state.embedding_service = MistralEmbeddingService(
+                api_key=settings.MISTRAL_API_KEY,
+                model=settings.MISTRAL_EMBED_MODEL,
+            )
 
-        pinecone_service = PineconeVectorStoreService()
-        await pinecone_service.initialize()
-        app.state.vector_store_service = pinecone_service
+            pinecone_service = PineconeVectorStoreService()
+            await pinecone_service.initialize()
+            app.state.vector_store_service = pinecone_service
 
-        reranker_service = RerankerService()
-        app.state.reranker_service = reranker_service
+            reranker_service = RerankerService()
+            app.state.reranker_service = reranker_service
 
-        app.state.search_provider = build_search_provider(
-            settings.SEARCH_PROVIDER, settings.EXA_API_KEY
-        )
+            app.state.search_provider = build_search_provider(
+                settings.SEARCH_PROVIDER, settings.EXA_API_KEY
+            )
 
         app.state.agent_graph = graph_builder()
-        tracing_enabled = init_tracing(settings)
+        # Fake mode never traces, whatever keys are set.
+        tracing_enabled = (
+            init_tracing(settings) if settings.EXTERNAL_SERVICES == "live" else False
+        )
         log_event(
             event="app.lifecycle.startup.succeeded",
             message="Application services initialized",
+            external_services=settings.EXTERNAL_SERVICES,
             redis_connected=True,
             vector_store_initialized=True,
             reranker_initialized=True,

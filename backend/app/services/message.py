@@ -1,7 +1,8 @@
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from schemas.chat import MessageParam
@@ -17,9 +18,17 @@ async def list_messages(
     result = await db.execute(
         select(Message)
         .where(Message.conversation_id == conversation_id)
-        .order_by(Message.created_at.asc())
+        .order_by(Message.created_at.asc(), Message.id.asc())
     )
     return list(result.scalars().all())
+
+
+async def count_messages(db: AsyncSession, conversation_id: UUID) -> int:
+    return await db.scalar(
+        select(func.count())
+        .select_from(Message)
+        .where(Message.conversation_id == conversation_id)
+    )
 
 
 async def get_history(
@@ -39,20 +48,26 @@ async def save_turn(
     user_message: str,
     model_response: str,
     model_parts: Optional[list[dict]] = None,
+    idempotency_key: Optional[str] = None,
 ) -> bool:
+    # Explicit timestamps: both rows share one transaction, so now() would tie them.
+    now = datetime.now(timezone.utc)
     try:
         db.add(
             Message(
                 conversation_id=conversation_id,
                 role="user",
+                created_at=now,
                 content=user_message,
                 parts=[{"type": "text", "text": user_message}],
+                idempotency_key=idempotency_key,
             )
         )
         db.add(
             Message(
                 conversation_id=conversation_id,
                 role="model",
+                created_at=now + timedelta(microseconds=1),
                 content=model_response,
                 parts=model_parts or [{"type": "text", "text": model_response}],
             )
@@ -62,3 +77,35 @@ async def save_turn(
     except Exception:
         await db.rollback()
         return False
+
+
+async def get_turn_by_key(
+    db: AsyncSession, conversation_id: UUID, key: str
+) -> tuple[Message, Message] | None:
+    """The user message saved with this Idempotency-Key and the model reply after it."""
+    user_message = (
+        await db.execute(
+            select(Message).where(
+                Message.conversation_id == conversation_id,
+                Message.idempotency_key == key,
+            )
+        )
+    ).scalar_one_or_none()
+    if user_message is None:
+        return None
+    model_message = (
+        await db.execute(
+            select(Message)
+            .where(
+                Message.conversation_id == conversation_id,
+                Message.role == "model",
+                tuple_(Message.created_at, Message.id)
+                > tuple_(user_message.created_at, user_message.id),
+            )
+            .order_by(Message.created_at.asc(), Message.id.asc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if model_message is None:
+        return None
+    return user_message, model_message

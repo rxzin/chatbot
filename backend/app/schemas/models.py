@@ -4,16 +4,17 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
-    text,
     Text,
     Integer,
     JSON,
     Column,
     Table,
+    Index,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
 from core.database import Base
+from core.ids import id_server_default
 from typing import Optional, List
 
 
@@ -56,7 +57,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password: Mapped[str] = mapped_column(String(255))
@@ -83,9 +84,12 @@ class User(Base):
 
 class Conversation(Base):
     __tablename__ = "conversations"
+    __table_args__ = (
+        Index("uq_conversations_user_idem", "user_id", "idempotency_key", unique=True),
+    )
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
@@ -97,6 +101,8 @@ class Conversation(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+    # Client-supplied Idempotency-Key; null never collides.
+    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     user: Mapped["User"] = relationship(back_populates="conversations")
     messages: Mapped[List["Message"]] = relationship(
         back_populates="conversation", cascade="all, delete-orphan"
@@ -108,9 +114,17 @@ class Conversation(Base):
 
 class Message(Base):
     __tablename__ = "messages"
+    __table_args__ = (
+        Index(
+            "uq_messages_conversation_idem",
+            "conversation_id",
+            "idempotency_key",
+            unique=True,
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     conversation_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -125,6 +139,8 @@ class Message(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+    # Set on the user message of a turn sent with an Idempotency-Key.
+    idempotency_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
 
 
@@ -134,7 +150,7 @@ class LlmUsage(Base):
     __tablename__ = "llm_usage"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
@@ -158,7 +174,7 @@ class Session(Base):
     __tablename__ = "session"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
@@ -185,7 +201,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     user_id: Mapped[Optional[UUID]] = mapped_column(
         UUID(as_uuid=True),
@@ -211,7 +227,7 @@ class Roles(Base):
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        server_default=text("uuidv7()"),
+        server_default=id_server_default(),
     )
     name: Mapped[str] = mapped_column(String(20), unique=True)
     permissions: Mapped[list["Permission"]] = relationship(
@@ -228,7 +244,7 @@ class Roles(Base):
 class Permission(Base):
     __tablename__ = "permissions"
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     name: Mapped[str] = mapped_column(String(100), unique=True)
     resource: Mapped[str] = mapped_column(String(50))
@@ -244,7 +260,7 @@ class Document(Base):
     __tablename__ = "documents"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
@@ -276,7 +292,7 @@ class PendingJiraTicket(Base):
     __tablename__ = "pending_jira_tickets"
 
     id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("uuidv7()")
+        UUID(as_uuid=True), primary_key=True, server_default=id_server_default()
     )
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True

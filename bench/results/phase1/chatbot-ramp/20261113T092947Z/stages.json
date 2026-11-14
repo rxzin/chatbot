@@ -1,0 +1,49 @@
+{
+  "test_start_unix": 1794562220.0,
+  "windows": [
+    {
+      "window": "hold_10vu",
+      "vus": 10,
+      "start_s": 45,
+      "length_s": 90,
+      "requests": 875,
+      "rps": 9.722222222222221,
+      "p95_ms": 1379.7323,
+      "error_rate": 0.0,
+      "chat_incomplete_rate": 0.0
+    },
+    {
+      "window": "hold_25vu",
+      "vus": 25,
+      "start_s": 150,
+      "length_s": 90,
+      "requests": 1123,
+      "rps": 12.477777777777778,
+      "p95_ms": 3296.4324,
+      "error_rate": 0.0,
+      "chat_incomplete_rate": 0.0
+    },
+    {
+      "window": "hold_50vu",
+      "vus": 50,
+      "start_s": 255,
+      "length_s": 90,
+      "requests": 1108,
+      "rps": 12.311111111111112,
+      "p95_ms": 5227.1923,
+      "error_rate": 0.0,
+      "chat_incomplete_rate": 0.0
+    },
+    {
+      "window": "hold_100vu",
+      "vus": 100,
+      "start_s": 360,
+      "length_s": 90,
+      "requests": 975,
+      "rps": 10.833333333333334,
+      "p95_ms": 11059.4418,
+      "error_rate": 0.0,
+      "chat_incomplete_rate": 0.0
+    }
+  ]
+}

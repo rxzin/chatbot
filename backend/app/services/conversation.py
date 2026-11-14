@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.errors import NotFoundError
@@ -8,11 +9,33 @@ from schemas.models import Conversation
 
 
 async def create_conversation(
-    db: AsyncSession, user_id: UUID, title: str = "New Conversation"
+    db: AsyncSession,
+    user_id: UUID,
+    title: str = "New Conversation",
+    idempotency_key: str | None = None,
 ) -> Conversation:
-    conversation = Conversation(user_id=user_id, title=title)
+    conversation = Conversation(
+        user_id=user_id, title=title, idempotency_key=idempotency_key
+    )
     db.add(conversation)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        # The unique index on (user_id, idempotency_key): this key already made one.
+        await db.rollback()
+        if idempotency_key is None:
+            raise
+        existing = (
+            await db.execute(
+                select(Conversation).where(
+                    Conversation.user_id == user_id,
+                    Conversation.idempotency_key == idempotency_key,
+                )
+            )
+        ).scalar_one_or_none()
+        if existing is None:
+            raise
+        return existing
     await db.refresh(conversation)
     return conversation
 

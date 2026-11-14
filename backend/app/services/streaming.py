@@ -39,6 +39,7 @@ async def persist_turn(
     sources: Optional[list[SourceReference]] = None,
     web_sources: Optional[list[WebSource]] = None,
     suggestions: Optional[list[str]] = None,
+    idempotency_key: Optional[str] = None,
 ) -> None:
     if not model_response:
         return
@@ -55,12 +56,22 @@ async def persist_turn(
         prompt="",
     )
 
-    redis_saved = await memory_service.set_conversation_state(
-        user_id=user_id,
-        conversation_id=conversation_id,
-        messages=compacted.messages,
-        summary=compacted.summary,
-    )
+    if len(compacted.messages) == len(new_history):
+        # Nothing was summarised away: append this turn, so turns running at the same
+        # time in one conversation all keep their messages (F14).
+        redis_saved = await memory_service.append_turn(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            turn=new_history[-2:],
+            full_history=new_history,
+        )
+    else:
+        redis_saved = await memory_service.set_conversation_state(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            messages=compacted.messages,
+            summary=compacted.summary,
+        )
 
     postgres_saved = False
     async with SessionLocal() as db:
@@ -71,9 +82,11 @@ async def persist_turn(
             user_message,
             model_response,
             _model_parts(model_response, sources, web_sources, suggestions),
+            idempotency_key=idempotency_key,
         )
 
     if redis_saved and postgres_saved:
+        await memory_service.record_saved_turn(user_id, conversation_id)
         logger.info(f"Saved turn for user {user_id}, conversation {conversation_id}")
     elif redis_saved:
         logger.warning(

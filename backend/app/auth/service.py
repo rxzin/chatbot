@@ -9,7 +9,13 @@ from jwt.exceptions import InvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from auth import handler
-from auth.security import get_hash, hash_token, verify_hash
+from auth.security import (
+    get_hash,
+    hash_password,
+    hash_token,
+    needs_rehash,
+    verify_password,
+)
 from core.config import API_PREFIX, getSettings
 from core.database import get_db
 from core.errors import BadRequest, ConflictError, UnauthorizedError, ForbiddenError
@@ -29,12 +35,15 @@ _DUMMY_PASSWORD_HASH = get_hash("timing-equalizer")
 async def authenticate_user(email: str, password: str, db: AsyncSession) -> User | None:
     user = await get_user_by_email(db, email)
     if not user:
-        verify_hash(password, _DUMMY_PASSWORD_HASH)
+        await verify_password(password, _DUMMY_PASSWORD_HASH)
         return None
-    if not verify_hash(password, user.password):
+    if not await verify_password(password, user.password):
         return None
     if not user.is_active:
         return None
+    if needs_rehash(user.password):
+        # Committed with the session the login creates next.
+        user.password = await hash_password(password)
     return user
 
 
@@ -98,6 +107,10 @@ async def prune_user_sessions(
     if max_sessions <= 0:
         return
 
+    # Concurrent logins by one user each counted the same sessions and all inserted,
+    # passing the cap (F15). Locking the user's row queues them; the lock is held
+    # until create_session commits, so the next login counts the new session.
+    await db.execute(select(User.id).where(User.id == user_id).with_for_update())
     result = await db.execute(
         select(Session)
         .where(Session.user_id == user_id)

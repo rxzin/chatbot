@@ -9,6 +9,7 @@ Create Date: 2026-11-07 10:00:00.000000
 from typing import Sequence, Union
 
 import sqlalchemy as sa
+from core.ids import id_server_default
 from alembic import op
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -24,7 +25,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "llm_usage",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("uuidv7()")),
+        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=id_server_default()),
         sa.Column("user_id", UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
         sa.Column("conversation_id", UUID(as_uuid=True), sa.ForeignKey("conversations.id", ondelete="SET NULL"), nullable=True),
         sa.Column("purpose", sa.String(32), nullable=False),

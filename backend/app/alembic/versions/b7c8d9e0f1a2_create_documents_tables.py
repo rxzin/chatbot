@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 from alembic import op
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func, text
+from core.ids import id_server_default
 from sqlalchemy.dialects.postgresql import JSON, UUID
 
 
@@ -26,7 +27,7 @@ def upgrade() -> None:
             "id",
             UUID(as_uuid=True),
             primary_key=True,
-            server_default=text("uuidv7()"),
+            server_default=id_server_default(),
         ),
         Column(
             "user_id",

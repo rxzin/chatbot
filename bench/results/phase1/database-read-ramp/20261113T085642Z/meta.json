@@ -1,0 +1,48 @@
+{
+  "git_sha": "3ad946e16b544c018edbad2ebb647784ea11b43a",
+  "git_dirty": true,
+  "k6_version": "k6.exe v2.3.0 (commit/e088784614, go1.26.8, windows/amd64)",
+  "image_ids": {
+    "chatbot-bench-p1-api1-1": "sha256:2ba8583ae75442b62abb673e7d1be361a0cbf3cc437efb73d333fcc30f500351",
+    "chatbot-bench-p1-db-1": "sha256:10a5c69a83035ab5239f5620d708520e8b28f5aa1f2b20143e6024532edadfb5",
+    "chatbot-bench-p1-nginx-1": "sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10",
+    "chatbot-bench-p1-redis-1": "sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe"
+  },
+  "compose_sha256": "2779589a4082702dd9f3acf0cf21eb17911cb878d83543e16a0639018505fcc0",
+  "container_limits": {
+    "chatbot-bench-p1-api1-1": {
+      "cpus": 1.0,
+      "memory_bytes": 536870912
+    },
+    "chatbot-bench-p1-db-1": {
+      "cpus": 2.0,
+      "memory_bytes": 1073741824
+    },
+    "chatbot-bench-p1-nginx-1": {
+      "cpus": 0.5,
+      "memory_bytes": 134217728
+    },
+    "chatbot-bench-p1-redis-1": {
+      "cpus": 0.5,
+      "memory_bytes": 268435456
+    }
+  },
+  "docker_ncpu": 8,
+  "docker_mem_total": 3971649536,
+  "phase": "phase1",
+  "workload": "database-read",
+  "profile": "ramp",
+  "rate": null,
+  "label": null,
+  "env_overrides": {},
+  "seed": {
+    "users": 200,
+    "conversations": 1000,
+    "messages": 20000
+  },
+  "k6_exit_code": 0,
+  "start_utc": "2026-11-13T08:56:42.497554+00:00",
+  "k6_start_utc": "2026-11-13T08:57:25.481830+00:00",
+  "k6_end_utc": "2026-11-13T09:04:58.579786+00:00",
+  "end_utc": "2026-11-13T09:05:02.484017+00:00"
+}

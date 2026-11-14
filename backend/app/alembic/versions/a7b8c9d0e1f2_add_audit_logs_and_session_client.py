@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from core.ids import id_server_default
 
 
 # revision identifiers, used by Alembic.
@@ -26,7 +27,7 @@ def upgrade() -> None:
     op.create_table(
         "audit_logs",
         sa.Column(
-            "id", sa.UUID(), server_default=sa.text("uuidv7()"), nullable=False
+            "id", sa.UUID(), server_default=id_server_default(), nullable=False
         ),
         sa.Column("user_id", sa.UUID(), nullable=True),
         sa.Column("method", sa.String(10), nullable=False),
