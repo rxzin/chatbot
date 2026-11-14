@@ -19,6 +19,7 @@ import {
   login,
   register,
 } from "@/lib/api/authApi";
+import { useAuthReactions, type AuthField } from "./avatar/reactions";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -34,67 +35,104 @@ async function defaultPathAfterLogin(): Promise<string> {
   }
 }
 
+/** Long enough for the avatar's success reaction to be seen before the page changes. */
+const SUCCESS_PAUSE_MS = 900;
+
+/** What is wrong with a filled-in field, or "" when nothing is. */
+function problemWith(field: AuthField, value: string): string {
+  if (field === "email") {
+    return /^\S+@\S+\.\S+$/.test(value.trim()) ? "" : "That doesn't look like an email address.";
+  }
+  return value.length >= 8 ? "" : "Use at least 8 characters.";
+}
+
 const inputClass =
-  "h-10 rounded-[4px] border-line bg-background px-3 text-foreground dark:bg-background";
+  "h-11 rounded-[4px] border-line bg-background px-3 text-foreground dark:bg-background";
 
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const reactions = useAuthReactions();
   const errorId = useId();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [problems, setProblems] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const isLogin = mode === "login";
   const registered = searchParams.get("registered") === "success";
 
+  /** An empty field is left alone on blur: tabbing through isn't a mistake yet. */
+  const checkOnBlur = (field: AuthField, value: string) => {
+    const problem = value.trim() ? problemWith(field, value) : "";
+    setProblems((before) => ({ ...before, [field]: problem }));
+    reactions.fieldBlurred(field, !problem);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
     if (!trimmedEmail || !trimmedPassword) {
       setError("Enter your email and password.");
-      setIsLoading(false);
+      reactions.submitted(false);
       return;
     }
 
+    const found = {
+      email: problemWith("email", trimmedEmail),
+      password: problemWith("password", trimmedPassword),
+    };
+    setProblems(found);
+    if (found.email || found.password) {
+      reactions.submitted(false);
+      return;
+    }
+
+    setIsLoading(true);
     try {
+      let destination: string;
       if (isLogin) {
         await login(trimmedEmail, trimmedPassword);
         const redirect = searchParams.get("redirect");
         // "//evil.com" also starts with "/", but browsers treat it as another site.
         const isLocalPath =
           redirect?.startsWith("/") && !/^\/[/\\]/.test(redirect);
-        router.push(
-          isLocalPath && redirect ? redirect : await defaultPathAfterLogin()
-        );
+        destination = isLocalPath && redirect ? redirect : await defaultPathAfterLogin();
       } else {
         await register(trimmedEmail, trimmedPassword);
-        router.push("/login?registered=success");
+        destination = "/login?registered=success";
       }
+      reactions.submitted(true);
+      await new Promise((resolve) => setTimeout(resolve, SUCCESS_PAUSE_MS));
+      router.push(destination);
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
           : "Something went wrong. Please try again.";
       setError(message);
-    } finally {
+      reactions.submitted(false);
+      // Only a failure hands the form back. After a success it stays busy until the
+      // next page replaces it, so it can't be submitted twice.
       setIsLoading(false);
     }
   };
 
+  const describedBy = (field: AuthField, hint?: string) =>
+    problems[field] ? `${errorId}-${field}` : error ? errorId : hint;
+
   return (
-    <div className="w-full max-w-[24rem] rounded-xl border border-line bg-background p-7 sm:p-9">
-      <h1 className="font-display text-[1.9rem] leading-tight font-medium tracking-[-0.02em]">
+    <div className="w-full max-w-[24rem]">
+      <h1 className="font-display text-[2.2rem] leading-tight font-medium tracking-[-0.02em]">
         {isLogin ? "Welcome back" : "Create your account"}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
         {isLogin
           ? "Sign in to pick up your conversations where you left them."
           : "All you need is an email address and a password."}
@@ -109,26 +147,31 @@ export default function AuthForm({ mode }: AuthFormProps) {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-8">
+      <form onSubmit={handleSubmit} noValidate className="mt-10">
         <FieldGroup>
-          <Field data-invalid={error ? true : undefined}>
+          <Field data-invalid={problems.email || error ? true : undefined}>
             <FieldLabel htmlFor="email">Email</FieldLabel>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onFocus={(e) => reactions.fieldFocused("email", e.currentTarget)}
+              onBlur={() => checkOnBlur("email", email)}
               placeholder="you@example.com"
               required
               disabled={isLoading}
               autoComplete="email"
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? errorId : undefined}
+              aria-invalid={problems.email || error ? true : undefined}
+              aria-describedby={describedBy("email")}
               className={inputClass}
             />
+            {problems.email && (
+              <FieldError id={`${errorId}-email`}>{problems.email}</FieldError>
+            )}
           </Field>
 
-          <Field data-invalid={error ? true : undefined}>
+          <Field data-invalid={problems.password || error ? true : undefined}>
             <FieldLabel htmlFor="password">Password</FieldLabel>
             <div className="relative">
               <Input
@@ -136,12 +179,14 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={(e) => reactions.fieldFocused("password", e.currentTarget)}
+                onBlur={() => checkOnBlur("password", password)}
                 required
                 disabled={isLoading}
                 minLength={8}
                 autoComplete={isLogin ? "current-password" : "new-password"}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? errorId : !isLogin ? "password-hint" : undefined}
+                aria-invalid={problems.password || error ? true : undefined}
+                aria-describedby={describedBy("password", !isLogin ? "password-hint" : undefined)}
                 className={`${inputClass} pr-16`}
               />
               <button
@@ -155,8 +200,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
-            {!isLogin && (
-              <FieldDescription id="password-hint">At least 8 characters.</FieldDescription>
+            {problems.password ? (
+              <FieldError id={`${errorId}-password`}>{problems.password}</FieldError>
+            ) : (
+              !isLogin && (
+                <FieldDescription id="password-hint">At least 8 characters.</FieldDescription>
+              )
             )}
           </Field>
 
@@ -165,7 +214,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           <Button
             type="submit"
             disabled={isLoading}
-            className="h-10 w-full rounded-[4px] font-medium"
+            className="h-11 w-full rounded-[4px] font-medium"
           >
             {isLoading && <Loader2 aria-hidden className="animate-spin" />}
             {isLoading

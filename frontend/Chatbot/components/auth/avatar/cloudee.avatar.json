@@ -1,0 +1,90 @@
+{
+  "name": "Cloudee",
+  "body": {
+    "primary": {
+      "type": "sphere",
+      "width": 159.79,
+      "height": 159.79,
+      "depth": 159.78,
+      "roundness": 1
+    },
+    "nodes": [
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 81.6,
+          "height": 81.6,
+          "depth": 81.6,
+          "roundness": 1
+        },
+        "position": [
+          -54.21,
+          -19.98,
+          -18
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 108.64,
+          "height": 87.1,
+          "depth": 91.0,
+          "roundness": 1
+        },
+        "position": [
+          -64.07,
+          18.35,
+          -18
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 97.79,
+          "height": 96.84,
+          "depth": 89.56,
+          "roundness": 1
+        },
+        "position": [
+          61.23,
+          18.96,
+          -18
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": {
+          "type": "sphere",
+          "width": 94.35,
+          "height": 94.35,
+          "depth": 100.54,
+          "roundness": 1
+        },
+        "position": [
+          41.49,
+          -37.64,
+          -17.99
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+}
