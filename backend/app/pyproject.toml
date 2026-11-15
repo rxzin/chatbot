@@ -26,6 +26,7 @@ dependencies = [
     "mistralai>=3.7.0",
     "langfuse>=5.2.0",
     "argon2-cffi>=25.1.0",
+    "fastapi-cloud-cli>=0.28.0",
 ]
 
 [tool.fastapi]
