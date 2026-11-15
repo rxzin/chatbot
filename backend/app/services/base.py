@@ -2,14 +2,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, AsyncGenerator, Optional, Sequence, Union
 
-import tiktoken
 from fastapi.concurrency import run_in_threadpool
 
 from schemas.chat import MessageParam
-
-# An approximation: no provider's tokenizer is exactly cl100k_base. The budget in
-# context_budget.py keeps a safety margin (SUMMARIZE_THRESHOLD) to absorb the error.
-_ENCODING = tiktoken.get_encoding("cl100k_base")
+from services.tokenizer import ENCODING
 
 # Mirrored by context_budget.PER_MESSAGE_TOKENS.
 _PER_MESSAGE_TOKENS = 4
@@ -61,7 +57,7 @@ TurnChunk = Union[str, list[ToolCall]]
 
 
 def _count_texts_tokens_sync(texts: list[str]) -> list[int]:
-    return [len(_ENCODING.encode(text)) if text else 0 for text in texts]
+    return [len(ENCODING.encode(text)) if text else 0 for text in texts]
 
 
 class AIPlatform(ABC):
