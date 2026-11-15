@@ -1,1 +1,4 @@
 *.sh text eol=lf
+
+# tiktoken verifies a sha256 of this file, so it must never get CRLF or other conversion.
+backend/app/services/tiktoken_cache/* binary -text

@@ -8,7 +8,7 @@ _BATCH_SIZE = 32
 _TIMEOUT_MS = 60_000
 
 
-def _retry_for(max_elapsed_ms: int) -> RetryConfig:
+def retry_for(max_elapsed_ms: int) -> RetryConfig:
     """Back off on 429 and 5xx, honoring Retry-After when the API sends it."""
     return RetryConfig(
         "backoff",
@@ -23,9 +23,9 @@ def _retry_for(max_elapsed_ms: int) -> RetryConfig:
 
 
 # Ingestion runs in the background and can wait out a rate-limit window.
-_INGEST_RETRY = _retry_for(300_000)
+_INGEST_RETRY = retry_for(300_000)
 # A query blocks a live chat reply, so it gives up much sooner.
-_QUERY_RETRY = _retry_for(15_000)
+_QUERY_RETRY = retry_for(15_000)
 
 
 class EmbeddingService(ABC):

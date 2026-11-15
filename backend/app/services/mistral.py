@@ -12,12 +12,17 @@ from core.logging import logger
 from schemas.chat import MessageParam
 from services import tracing, usage
 from services.base import AIPlatform, ToolCall, ToolExchange, ToolSpec, TurnChunk
+from services.embeddings import retry_for
 
 # Storage and the frontend use "model" for the assistant; Mistral expects "assistant".
 _API_ROLES = {"user": "user", "model": "assistant"}
 
 # Applies per read while streaming, so it bounds a stalled stream, not a long reply.
 _TIMEOUT_MS = 120_000
+# A chat call blocks a live reply, so it waits out a brief rate-limit window (about 10 s)
+# before FallbackLLM switches models. Title and suggestion calls are also bounded by
+# their own 8 s asyncio.wait_for timeouts.
+_CHAT_RETRY = retry_for(10_000)
 
 
 def is_transient_error(exc: Exception) -> bool:
@@ -211,6 +216,7 @@ class MistralProvider(AIPlatform):
                 model=self.model,
                 messages=messages,
                 max_tokens=getSettings().MODEL_OUTPUT_TOKEN_LIMIT,
+                retries=_CHAT_RETRY,
                 **tool_args,
             )
 
@@ -258,6 +264,7 @@ class MistralProvider(AIPlatform):
                 model=self.model,
                 messages=messages,
                 max_tokens=max_output_tokens,
+                retries=_CHAT_RETRY,
             )
             text = _extract_text(response.choices[0].message.content) if response.choices else ""
             _record_usage(generation, self.model, response.usage)

@@ -10,7 +10,6 @@ import aiofiles
 
 import fitz
 from fastapi import UploadFile
-import tiktoken
 from fastapi.concurrency import run_in_threadpool
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sqlalchemy import select
@@ -23,6 +22,7 @@ from core.logging import logger
 from schemas.models import Document
 from services.conversation import get_user_conversation
 from services.embeddings import EmbeddingService
+from services.tokenizer import ENCODING
 from services.vector_store import VectorChunk, VectorStoreService
 
 
@@ -120,7 +120,7 @@ def extract_text_pages(
 
 
 def get_token_length(text: str) -> int:
-    return len(tiktoken.get_encoding("cl100k_base").encode(text))
+    return len(ENCODING.encode(text))
 
 
 def split_pages_hierarchical(pages: list[ExtractedPage]) -> list[ExtractedChunk]:
