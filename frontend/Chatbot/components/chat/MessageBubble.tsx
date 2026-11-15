@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/chat";
 import { StreamingCursor } from "./StreamingCursor";
 import ReactMarkdown from "react-markdown";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -35,6 +35,26 @@ type MarkdownLinkProps = {
   href?: string;
   children?: ReactNode;
 };
+
+// The user bubble is bg-primary, which is near-black in light mode and white in dark
+// mode: the reverse of the page. The typography colors assume the page background, so
+// links, lists and quotes would vanish there. Set inline so it also beats prose-invert.
+const USER_PROSE_COLORS = Object.fromEntries(
+  [
+    "body",
+    "headings",
+    "links",
+    "bold",
+    "counters",
+    "bullets",
+    "quotes",
+    "quote-borders",
+    "captions",
+    "hr",
+    "th-borders",
+    "td-borders",
+  ].map((name) => [`--tw-prose-${name}`, "var(--primary-foreground)"]),
+) as CSSProperties;
 
 export function MessageBubble({
   message,
@@ -90,12 +110,8 @@ export function MessageBubble({
           </p>
         )}
         <div
-          className={cn(
-            "prose max-w-none wrap-break-word dark:prose-invert prose-p:leading-relaxed prose-pre:p-0",
-            // If it's a user message, we want to force the prose text to be white/foreground
-            isUser &&
-              "prose-p:text-primary-foreground prose-headings:text-primary-foreground prose-strong:text-primary-foreground",
-          )}
+          className="prose max-w-none wrap-break-word dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
+          style={isUser ? USER_PROSE_COLORS : undefined}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}

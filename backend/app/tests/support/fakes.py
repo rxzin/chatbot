@@ -64,7 +64,7 @@ class ScriptedLLM(AIPlatform):
                 await self.gate.wait()
 
     async def _complete_text(
-        self, system_instruction: str, prompt: str, max_output_tokens: int
+        self, system_instruction: str, prompt: str, max_output_tokens: int, retry: bool = True
     ) -> str:
         self.completions.append(
             {"system_instruction": system_instruction, "prompt": prompt}

@@ -94,9 +94,14 @@ class AIPlatform(ABC):
 
     @abstractmethod
     async def _complete_text(
-        self, system_instruction: str, prompt: str, max_output_tokens: int
+        self, system_instruction: str, prompt: str, max_output_tokens: int, retry: bool = True
     ) -> str:
-        """Return a complete, non-streamed reply. May be empty."""
+        """
+        Return a complete, non-streamed reply. May be empty.
+
+        With retry False a rate-limited or failing call is not retried, for optional
+        calls that are better skipped than waited for.
+        """
 
     def _build_system_instruction(
         self, context_summary: Optional[str] = None, instructions: str = ""
@@ -125,10 +130,12 @@ class AIPlatform(ABC):
         return sum(counts) + num_messages * _PER_MESSAGE_TOKENS
 
     async def complete_text(
-        self, system_instruction: str, prompt: str, max_output_tokens: int
+        self, system_instruction: str, prompt: str, max_output_tokens: int, retry: bool = True
     ) -> str:
         """A complete, non-streamed reply to one prompt, with no history. May be empty."""
-        return await self._complete_text(system_instruction, prompt, max_output_tokens)
+        return await self._complete_text(
+            system_instruction, prompt, max_output_tokens, retry
+        )
 
     async def summarize_messages(
         self,

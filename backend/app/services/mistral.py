@@ -254,7 +254,7 @@ class MistralProvider(AIPlatform):
                 yield notice
 
     async def _complete_text(
-        self, system_instruction: str, prompt: str, max_output_tokens: int
+        self, system_instruction: str, prompt: str, max_output_tokens: int, retry: bool = True
     ) -> str:
         messages = _to_api_messages(system_instruction, [], prompt)
         with tracing.observe(
@@ -264,7 +264,7 @@ class MistralProvider(AIPlatform):
                 model=self.model,
                 messages=messages,
                 max_tokens=max_output_tokens,
-                retries=_CHAT_RETRY,
+                retries=_CHAT_RETRY if retry else None,
             )
             text = _extract_text(response.choices[0].message.content) if response.choices else ""
             _record_usage(generation, self.model, response.usage)

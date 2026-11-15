@@ -32,7 +32,13 @@ async def generate_title(llm: AIPlatform, message: str, timeout: float) -> str:
     try:
         with usage.purpose("title"):
             raw = await asyncio.wait_for(
-                llm.complete_text(_INSTRUCTION, f"<message>\n{message[:1500]}\n</message>", 30),
+                # Optional, so a rate-limited call is skipped rather than retried.
+                llm.complete_text(
+                    _INSTRUCTION,
+                    f"<message>\n{message[:1500]}\n</message>",
+                    30,
+                    retry=False,
+                ),
                 timeout=timeout,
             )
     except Exception:

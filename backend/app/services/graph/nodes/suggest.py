@@ -60,7 +60,8 @@ async def suggest(state: AgentState, config: RunnableConfig) -> dict:
     try:
         with usage.purpose("suggestions"):
             text = await asyncio.wait_for(
-                llm.complete_text(_INSTRUCTION, prompt, 200),
+                # Optional, so a rate-limited call is skipped rather than retried.
+                llm.complete_text(_INSTRUCTION, prompt, 200, retry=False),
                 timeout=settings.SUGGESTIONS_TIMEOUT_SECONDS,
             )
     except Exception:

@@ -9,7 +9,7 @@ MESSAGE = "help me plan a trip"
 
 
 class SlowLLM(ScriptedLLM):
-    async def _complete_text(self, system_instruction, prompt, max_output_tokens):
+    async def _complete_text(self, system_instruction, prompt, max_output_tokens, retry=True):
         await asyncio.sleep(1)
         return "Too Late"
 

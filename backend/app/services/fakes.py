@@ -47,7 +47,7 @@ class FakeLLM(AIPlatform):
             yield "tok "
 
     async def _complete_text(
-        self, system_instruction: str, prompt: str, max_output_tokens: int
+        self, system_instruction: str, prompt: str, max_output_tokens: int, retry: bool = True
     ) -> str:
         return "Fake Title"
 

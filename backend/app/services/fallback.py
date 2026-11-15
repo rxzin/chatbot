@@ -47,8 +47,10 @@ class FallbackLLM(AIPlatform):
             yield chunk
 
     async def _complete_text(
-        self, system_instruction: str, prompt: str, max_output_tokens: int
+        self, system_instruction: str, prompt: str, max_output_tokens: int, retry: bool = True
     ) -> str:
         return await self._with_fallback(
-            lambda llm: llm._complete_text(system_instruction, prompt, max_output_tokens)
+            lambda llm: llm._complete_text(
+                system_instruction, prompt, max_output_tokens, retry
+            )
         )

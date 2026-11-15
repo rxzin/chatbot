@@ -77,6 +77,14 @@ async def test_complete_text_passes_a_retry_config():
     assert isinstance(chat.calls[0]["retries"], RetryConfig)
 
 
+async def test_complete_text_without_retry_passes_no_retry_config():
+    provider, chat = _provider()
+
+    await provider.complete_text("sys", "hi", 10, retry=False)
+
+    assert chat.calls[0]["retries"] is None
+
+
 async def test_stream_turn_passes_a_retry_config():
     provider, chat = _provider()
 
